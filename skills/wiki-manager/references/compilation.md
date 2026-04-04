@@ -1,0 +1,82 @@
+# Compilation Protocol
+
+## Overview
+
+Compilation transforms raw sources into wiki articles. This is the core "LLM compiler" operation — read sources and produce synthesized, cross-referenced knowledge articles.
+
+## Incremental vs Full
+
+- **Incremental** (default): Only process sources ingested since the last compilation date (from master `_index.md`). Compare source `ingested` dates against `Last compiled` in master index.
+- **Full** (`--full`): Re-read all sources, rewrite all articles. Expensive but ensures consistency.
+
+## The Compilation Loop
+
+### Step 1: Survey
+
+1. Read `raw/_index.md` to see all sources
+2. Read `wiki/_index.md` to see existing articles
+3. For incremental: identify sources with `ingested` date after last compile date
+4. For full: use all sources
+5. Read each uncompiled source in full
+
+### Step 2: Extract
+
+For each source, identify:
+- **Key concepts**: nouns, technical terms, named entities
+- **Key facts**: claims, data points, measurements, relationships
+- **Key relationships**: X relates to Y, X is a type of Y, X was created by Y
+
+### Step 3: Map to Existing Wiki
+
+Read `wiki/_index.md` and category indexes. For each key concept:
+- Already has an article? → plan to UPDATE it with new information
+- Major concept worthy of its own article? → plan to CREATE one
+- Minor mention? → will be referenced within another article
+
+### Step 4: Classify New Articles
+
+- **concept**: A specific, bounded idea explainable in 1-3 pages. Examples: "Transformer Architecture", "Gradient Descent", "Docker Container"
+- **topic**: A broader theme tying concepts together. Examples: "Deep Learning", "DevOps", "Functional Programming"
+- **reference**: A curated list of resources, tools, or links. Examples: "Python ML Libraries", "Transformer Paper Timeline"
+
+### Step 5: Write/Update Articles
+
+**For new articles:**
+
+1. Write the abstract paragraph — what is this and why does it matter?
+2. Write the body — explain using information from source(s). Synthesize, contextualize, explain. Do NOT copy-paste.
+3. Add "See Also" links to related wiki articles (check wiki index for related tags/concepts)
+4. Add "Sources" section linking back to raw files
+5. Generate frontmatter per `references/wiki-structure.md`
+
+**For updated articles:**
+
+1. Read the existing article
+2. Identify what the new source adds (new facts, perspectives, connections)
+3. Integrate new information into appropriate sections using Edit (not full rewrite)
+4. Add the new source to the Sources section
+5. Update the `updated` date in frontmatter
+6. Check if new "See Also" links are warranted
+
+### Step 6: Bidirectional Linking
+
+For every "See Also" link from article A → article B:
+- Check if B has a "See Also" link back to A
+- If not, add one with a brief relationship note
+
+### Step 7: Update All Indexes
+
+After all articles are written/updated:
+
+1. Each category `_index.md` (concepts, topics, references) — add/update rows
+2. `wiki/_index.md` — add/update rows
+3. Master `_index.md` — update article count, set "Last compiled" to today, add to Recent Changes
+
+## Quality Standards
+
+- **Self-contained**: Articles are readable without consulting raw sources
+- **Synthesized**: Draw from multiple sources when possible, not just one
+- **Accurate**: Do not simplify to the point of being wrong
+- **Clear**: Direct language. Knowledge base, not blog post.
+- **Honest disagreement**: When sources disagree, note the disagreement rather than picking a side
+- **Connected**: Every article should link to at least one other article via "See Also"

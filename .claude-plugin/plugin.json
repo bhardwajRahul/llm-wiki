@@ -1,0 +1,17 @@
+{
+  "name": "llm-wiki",
+  "description": "LLM-compiled knowledge base. Ingest sources, compile a wiki of interconnected markdown articles, query, lint, and render outputs. Claude Code is the IDE — no Obsidian needed.",
+  "version": "0.1.0",
+  "author": {
+    "name": "nvk"
+  },
+  "license": "MIT",
+  "keywords": [
+    "wiki",
+    "knowledge-base",
+    "llm",
+    "markdown",
+    "research",
+    "karpathy"
+  ]
+}
