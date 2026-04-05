@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "llm-wiki",
+  "version": "0.1.0",
+  "description": "LLM-compiled knowledge base plugin for Claude Code. Ingest sources, compile interconnected markdown wikis, query, lint, and generate outputs. No Obsidian needed.",
+  "owner": {
+    "name": "nvk"
+  },
+  "plugins": [
+    {
+      "name": "llm-wiki",
+      "description": "LLM-compiled knowledge base. Commands: /wiki (init/status), /wiki:ingest (URLs, files, text, inbox, tweets), /wiki:compile (raw to articles), /wiki:query (Q&A with citations), /wiki:search, /wiki:lint (health checks), /wiki:output (summaries, reports, slides).",
+      "version": "0.1.0",
+      "author": {
+        "name": "nvk"
+      },
+      "source": "./claude-plugin",
+      "category": "productivity"
+    }
+  ]
+}

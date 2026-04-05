@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:x.com)",
+      "WebFetch(domain:nitter.net)",
+      "WebFetch(domain:xcancel.com)",
+      "Bash(find ~/.claude -name *.json -path */settings* -o -name mcp* -type f)",
+      "Bash(find ~/.claude/skills -name \"SKILL.md\" -exec head -20 {})",
+      "Bash(find ~/.claude/plugins -name \"*.md\" -exec grep -l \"TRIGGER\\\\|when.*activate\" {})",
+      "Bash(find ~/.claude/skills -name \"SKILL.md\" -exec grep -l \"description:\" {})",
+      "Bash(cd:*)",
+      "Bash(mkdir -p ~/.claude/plugins/cache/llm-wiki/llm-wiki)",
+      "Bash(ln -sfn \"/Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/claude-sandbox/llm-wiki/.claude/worktrees/functional-prancing-mango\" ~/.claude/plugins/cache/llm-wiki/llm-wiki/0.1.0)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''llm-wiki'''' in str\\(d\\)\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''enabledPlugins'''',{}\\).get\\(''''llm-wiki@llm-wiki''''\\)\\)\")",
+      "Bash(git clone:*)",
+      "Bash(ln -sfn ~/.claude/plugins/marketplaces/llm-wiki ~/.claude/plugins/cache/llm-wiki/llm-wiki/0.1.0)",
+      "Bash(find /Users/nvk -path *llm-wiki* -name plugin.json -type f)",
+      "Bash(find /Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/claude-sandbox/llm-wiki/.claude/worktrees/functional-prancing-mango -type f -name *.md)",
+      "Bash(find /Users/nvk/.claude/plugins/cache/autoresearch -type f -name *.md)",
+      "Bash(find /Users/nvk/.claude/plugins/cache/claude-plugins-official/commit-commands -type f -name *.md)",
+      "Bash(grep -h ^name: /Users/nvk/.claude/plugins/cache/autoresearch/autoresearch/1.8.2/commands/*.md /Users/nvk/.claude/plugins/cache/autoresearch/autoresearch/1.8.2/commands/**/*.md)",
+      "Bash(grep -h ^name: /Users/nvk/.claude/plugins/cache/claude-plugins-official/commit-commands/unknown/commands/*.md)",
+      "Bash(grep -h ^name: /Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/claude-sandbox/llm-wiki/.claude/worktrees/functional-prancing-mango/commands/*.md /Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/claude-sandbox/llm-wiki/.claude/worktrees/functional-prancing-mango/commands/**/*.md)",
+      "Bash(done)",
+      "Bash(find /Users/nvk/.claude -name *error* -o -name *log*)",
+      "Bash(while read:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/claude-sandbox/llm-wiki/.claude/worktrees/functional-prancing-mango/**)",
+      "Bash(head -3 /Users/nvk/.claude/plugins/cache/claude-plugins-official/Notion/0.1.0/commands/tasks/*.md)",
+      "Bash(grep:*)",
+      "Bash(head -2 /Users/nvk/.claude/plugins/cache/autoresearch/autoresearch/1.8.2/commands/autoresearch/*.md)",
+      "Bash(mkdir -p claude-plugin/.claude-plugin)",
+      "Bash(mv commands:*)",
+      "Bash(mv .claude-plugin/plugin.json claude-plugin/.claude-plugin/plugin.json)",
+      "Bash(rmdir .claude-plugin)"
+    ]
+  }
+}
