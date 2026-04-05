@@ -38,7 +38,7 @@ Initialize a new wiki. Parse arguments:
    - `output/`
    - For local wikis (`--local`): append `.wiki/` to the project's `.gitignore` (create it if it doesn't exist). This keeps wiki files untracked by default.
 
-3. Create `.obsidian/` directory with minimal vault config:
+3. Create `.obsidian/` directory with minimal vault config (topic sub-wikis and local wikis only — NOT the global hub, to avoid nested vault confusion):
    - `.obsidian/app.json`:
      ```json
      {
