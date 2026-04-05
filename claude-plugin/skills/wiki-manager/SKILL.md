@@ -105,3 +105,34 @@ When answering queries, note confidence levels. When linting, flag `low` confide
 ## Compilation Nudge
 
 Track uncompiled sources by comparing `raw/_index.md` ingestion dates against the last compile date in `_index.md`. If 5+ uncompiled sources exist after an ingestion, suggest: "You have N uncompiled sources. Run `/wiki:compile` to integrate them."
+
+## Structural Guardian
+
+Automatically run a quick structural check when any of these triggers occur:
+
+### Triggers
+- **After any write operation** (ingest, compile, research, output) — verify what was just written
+- **When the skill activates** and the wiki hasn't been linted in 7+ days (check "Last lint" in `_index.md`)
+- **When content is found in the wrong place** — articles in the global hub instead of a topic sub-wiki
+- **When a user mentions wiki problems** — "wiki is broken", "empty", "missing", "wrong"
+
+### Quick Structure Check (lightweight, runs inline — not a full lint)
+
+1. **Hub hygiene**: Check if `~/wiki/raw/` or `~/wiki/wiki/` contain content files (not just `_index.md`). If yes → warn: "Found content in the global hub that should be in a topic sub-wiki. Move it with `/wiki:lint --fix` or create a new topic wiki."
+
+2. **Index freshness**: For the active wiki, compare actual file count in `wiki/concepts/`, `wiki/topics/`, `wiki/references/` against the rows in their `_index.md`. If mismatched → auto-fix by adding missing entries or removing dead ones.
+
+3. **Orphan detection**: Check if any `.md` files exist in wiki directories but are not listed in any `_index.md`. If found → add them to the index.
+
+4. **Missing directories**: Verify all expected subdirectories exist (`raw/articles/`, `raw/papers/`, etc.). If missing → create them with empty `_index.md`.
+
+5. **wikis.json sync**: Check that all topic sub-wikis under `~/wiki/topics/` are registered in `wikis.json`. If a directory exists but isn't registered → add it. If registered but directory is missing → remove the entry.
+
+6. **Log existence**: Verify `log.md` exists in the active wiki. If missing → create it.
+
+### Behavior
+
+- **Silent when clean** — don't report anything if everything checks out
+- **Auto-fix trivial issues** — missing indexes, unregistered wikis, orphan files. Just fix and note in log.
+- **Warn on structural problems** — content in wrong place, missing directories, stale indexes. Tell the user what's wrong and suggest `/wiki:lint --fix`.
+- **Never block the user's request** — run the check, fix what you can, report issues, then continue with what the user actually asked for.
