@@ -128,7 +128,14 @@ You get the best of all worlds without committing to any single ecosystem.
 
 ## Obsidian Integration
 
-Open `~/wiki/` as an Obsidian vault. It works out of the box:
+Each topic sub-wiki has its own `.obsidian/` config and can be opened as a vault independently. Two ways to use it:
+
+- **Open `~/wiki/` as a vault** — see everything: hub, all topic wikis, all articles in one graph
+- **Open `~/wiki/topics/<name>/` as a vault** — see just one topic wiki, focused graph
+
+> **Note:** If you open `~/wiki/` and a topic wiki appears empty in Obsidian, make sure you're looking inside `topics/<name>/wiki/` — the hub root itself has no articles, all content lives in topic sub-wikis.
+
+What works out of the box:
 
 - `.obsidian/` config created on init with sane defaults
 - `[[wikilinks]]` on all cross-references power the graph view
