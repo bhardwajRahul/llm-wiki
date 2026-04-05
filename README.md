@@ -10,15 +10,25 @@ Inspired by [Karpathy's LLM wiki concept](https://x.com/karpathy/status/20398056
 /install-plugin github:nvk/llm-wiki
 ```
 
+> **New to a topic? Start here.** Create your wiki and let the research command do the heavy lifting:
+> ```
+> /wiki init
+> /wiki:research "your topic" --sources 10
+> ```
+> That's it. One command searches the web, ingests the best sources, and compiles them into interconnected wiki articles. Then drill into gaps with `/wiki:research "subtopic"`, ask questions with `/wiki:query`, and drop articles into `~/wiki/inbox/` anytime for later processing.
+
 ## Quick Start
 
 ```
 /wiki init                              # Create your knowledge base at ~/wiki/
-/wiki:ingest https://example.com        # Ingest a web article
-/wiki:ingest --inbox                    # Process files dropped in ~/wiki/inbox/
-/wiki:compile                           # Compile sources into wiki articles
+/wiki:research "quantum computing"      # Auto-research: search, ingest, compile
 /wiki:query "How does X work?"          # Ask questions against the wiki
-/wiki:research "topic to explore"       # Automated multi-agent research
+/wiki:query "compare X and Y" --deep    # Deep cross-referenced answer
+/wiki:ingest https://example.com        # Manually ingest a specific source
+/wiki:ingest --inbox                    # Process files dropped in ~/wiki/inbox/
+/wiki:compile                           # Compile any unprocessed sources
+/wiki:output summary --topic X          # Generate a synthesis
+/wiki:lint --fix                        # Clean up inconsistencies
 ```
 
 ## Commands
