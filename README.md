@@ -93,10 +93,27 @@ All commands accept `--wiki <name>` to target a specific wiki and `--local` to t
 - **Articles are synthesized**, not copied — they explain, contextualize, cross-reference
 - **Raw is immutable** — once ingested, sources are never modified
 - **Multi-wiki aware** — queries check sibling wiki indexes for overlap
-- **Dual-linking** — both `[[wikilinks]]` (Obsidian) and standard markdown links (Claude) on every cross-reference
+- **Dual-linking** — every cross-reference uses both `[[wikilinks]]` and standard markdown links on the same line, so the wiki works with Obsidian, any markdown viewer, or no viewer at all. Not locked into any tool.
 - **Confidence scoring** — articles rated high/medium/low based on source quality
 - **Activity log** — `log.md` tracks every operation, append-only, grep-friendly
 - **Zero dependencies** — runs entirely on Claude Code built-in tools
+
+## Linking: Works Everywhere
+
+Every cross-reference in the wiki uses dual-link format:
+
+```markdown
+[[self-attention|Self-Attention]] ([Self-Attention](../concepts/self-attention.md))
+```
+
+This is intentional. The wiki is **not locked into any tool**:
+
+- **Obsidian** reads the `[[wikilink]]` — graph view, backlinks panel, and quick-open all work
+- **Claude Code** follows the standard `(relative/path.md)` link — reads the right file every time
+- **GitHub/any markdown viewer** renders the standard link as a clickable URL
+- **No viewer at all** — the files are plain markdown, readable in any text editor
+
+You get the best of all worlds without committing to any single ecosystem.
 
 ## Obsidian Integration
 
