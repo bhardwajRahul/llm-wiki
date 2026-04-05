@@ -1,5 +1,5 @@
 ---
-description: "Compare a local repo's functionality against the wiki's research body, then search the web for what neither covers. Produces a gap analysis with opportunities."
+description: "Assess a local repo against the wiki's research body and the broader market. Gap analysis, opportunities, competitive landscape."
 argument-hint: "<repo-path> [--wiki <name>] [--local] [--retardmax]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:*), Bash(find:*), Bash(head:*), WebFetch, WebSearch, Agent
 ---
@@ -83,7 +83,7 @@ In `--retardmax` mode, add:
 
 Generate a comprehensive comparison report saved to the wiki's `output/` directory.
 
-File: `output/compare-repo-{repo-name}-{YYYY-MM-DD}.md`
+File: `output/assess-{repo-name}-{YYYY-MM-DD}.md`
 
 ```markdown
 ---
@@ -140,7 +140,7 @@ generated: YYYY-MM-DD
 1. Save report to `output/`
 2. Update `output/_index.md`
 3. Update master `_index.md`
-4. Append to topic `log.md`: `## [YYYY-MM-DD] compare-repo | {repo-name} → N alignments, N research gaps, N opportunities, N market gaps`
+4. Append to topic `log.md`: `## [YYYY-MM-DD] assess | {repo-name} → N alignments, N research gaps, N opportunities, N market gaps`
 5. Append to hub `~/wiki/log.md`
 
 6. Optionally suggest: specific `/wiki:research` commands for each gap found
