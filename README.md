@@ -57,6 +57,8 @@ Inspired by [Karpathy's LLM wiki concept](https://x.com/karpathy/status/20398056
 | `/wiki:lint --deep` | Web-verify facts and suggest improvements |
 | `/wiki:output <type>` | Generate: summary, report, study-guide, slides, timeline, glossary, comparison |
 | `/wiki:output <type> --retardmax` | Ship it now — rough but comprehensive, iterate later |
+| `/wiki:compare-repo <path>` | Compare a repo's features against wiki research + market. Gap analysis. |
+| `/wiki:compare-repo <path> --retardmax` | Wide net — adds adjacent fields and failure analysis |
 
 All commands accept `--wiki <name>` to target a specific topic wiki and `--local` to target the project wiki.
 
