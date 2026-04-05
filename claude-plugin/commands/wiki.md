@@ -71,11 +71,18 @@ Initialize a new wiki. Parse arguments:
 
 3. Create empty `_index.md` in every directory following the format in `references/wiki-structure.md`. Use today's date. Set all counts to 0.
 
-3. Ask the user: "What is this wiki about?" Use their answer to create `config.md` with title, description, scope, and today's date.
+4. Create `log.md` with initial entry:
+   ```
+   # Wiki Activity Log
 
-4. For global wiki: create `wikis.json` with the wiki registered. For topic sub-wikis: update existing `~/wiki/wikis.json` to add the new entry. For local wikis: update `~/wiki/wikis.json` `local_wikis` array (create wikis.json first if needed).
+   ## [YYYY-MM-DD] init | Wiki initialized
+   ```
 
-5. Report what was created and list available commands:
+5. Ask the user: "What is this wiki about?" Use their answer to create `config.md` with title, description, scope, and today's date.
+
+6. For global wiki: create `wikis.json` with the wiki registered. For topic sub-wikis: update existing `~/wiki/wikis.json` to add the new entry. For local wikis: update `~/wiki/wikis.json` `local_wikis` array (create wikis.json first if needed).
+
+7. Report what was created and list available commands:
    - `/wiki:ingest <url|file|text>` — add source material
    - `/wiki:ingest --inbox` — process files dropped in inbox/
    - `/wiki:compile` — compile sources into wiki articles

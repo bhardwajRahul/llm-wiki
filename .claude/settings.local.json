@@ -40,7 +40,18 @@
       "Bash(mkdir -p ~/.claude/commands)",
       "Bash(ln -sfn ~/.claude/plugins/marketplaces/llm-wiki/claude-plugin/commands/wiki.md ~/.claude/commands/wiki.md)",
       "Bash(ln -sfn ~/.claude/plugins/marketplaces/llm-wiki/claude-plugin/commands/wiki ~/.claude/commands/wiki)",
-      "Bash(ln -sfn ~/.claude/plugins/marketplaces/llm-wiki/claude-plugin/skills/wiki-manager ~/.claude/skills/wiki-manager)"
+      "Bash(ln -sfn ~/.claude/plugins/marketplaces/llm-wiki/claude-plugin/skills/wiki-manager ~/.claude/skills/wiki-manager)",
+      "WebSearch",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:deepakness.com)",
+      "WebFetch(domain:venturebeat.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:antigravity.codes)",
+      "WebFetch(domain:academy.dair.ai)",
+      "WebFetch(domain:glenrhodes.com)",
+      "WebFetch(domain:blockchain.news)",
+      "WebFetch(domain:extendedbrain.substack.com)",
+      "WebFetch(domain:alexanderzeitler.com)"
     ]
   }
 }

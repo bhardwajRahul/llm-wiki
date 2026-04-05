@@ -53,7 +53,9 @@ If wiki does not exist, stop: "No wiki found. Run `/wiki init` first."
    - `wiki/_index.md`
    - Master `_index.md` — update article count, set "Last compiled" to today, add to Recent Changes
 
-8. **Report**:
+8. **Log**: Append to `log.md`: `## [YYYY-MM-DD] compile | N sources → X new articles, Y updated (list slugs)`
+
+9. **Report**:
    - Sources processed: N
    - New articles created: list with paths
    - Existing articles updated: list with paths

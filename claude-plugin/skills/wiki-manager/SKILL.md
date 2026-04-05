@@ -84,6 +84,20 @@ Flow: Scan indexes for summary/tag matches → Grep full-text → rank results �
 ### Output
 Flow: Gather relevant articles → generate artifact (summary/report/slides/etc) → save to `output/` → update indexes.
 
+## Activity Log
+
+Every wiki operation appends to `log.md` in the wiki root. Format: `## [YYYY-MM-DD] operation | Description`. See [references/wiki-structure.md](references/wiki-structure.md) for full format. Never edit or delete existing log entries — append only.
+
+## Confidence Scoring
+
+Wiki articles include a `confidence` field in frontmatter: `high`, `medium`, or `low`.
+
+- **high**: Multiple peer-reviewed sources agree, well-established knowledge
+- **medium**: Single source, or sources partially agree, or recent findings not yet replicated
+- **low**: Anecdotal, single non-peer-reviewed source, or sources disagree
+
+When answering queries, note confidence levels. When linting, flag `low` confidence articles for review.
+
 ## Compilation Nudge
 
 Track uncompiled sources by comparing `raw/_index.md` ingestion dates against the last compile date in `_index.md`. If 5+ uncompiled sources exist after an ingestion, suggest: "You have N uncompiled sources. Run `/wiki:compile` to integrate them."

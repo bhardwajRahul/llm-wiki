@@ -7,6 +7,7 @@
 ├── wikis.json                     # Coordination file — tracks all wikis
 ├── _index.md                      # Master index: stats, quick nav, recent changes
 ├── config.md                      # Title, scope, conventions
+├── log.md                         # Append-only activity log (chronological)
 ├── inbox/                         # Drop zone — dump files here, then /wiki:ingest --inbox
 │   └── .processed/                # Processed items moved here
 ├── raw/                           # Immutable source material
@@ -126,6 +127,29 @@ Additionally includes:
 - [Outputs](output/_index.md)
 ```
 
+## log.md Format
+
+Append-only chronological activity log. Every wiki operation appends an entry. Never edit or delete existing entries. Format is grep-friendly:
+
+```markdown
+# Wiki Activity Log
+
+## [2026-04-04] init | Wiki initialized
+## [2026-04-04] ingest | Attention Is All You Need (raw/papers/2026-04-04-attention-is-all-you-need.md)
+## [2026-04-04] ingest | Illustrated Transformer (raw/articles/2026-04-04-illustrated-transformer.md)
+## [2026-04-04] compile | 2 sources → 3 new articles, 1 updated (transformer-architecture, self-attention, sequence-modeling + updated attention-mechanisms)
+## [2026-04-04] query | "How does self-attention work?" → answered from 2 articles
+## [2026-04-05] lint | 12 checks, 0 critical, 2 warnings, 3 suggestions, 1 auto-fixed
+## [2026-04-05] research | "transformer variants" → 5 sources ingested, 4 articles compiled
+## [2026-04-05] output | summary on transformer-architecture → output/summary-transformer-architecture-2026-04-05.md
+```
+
+Each entry: `## [YYYY-MM-DD] operation | Description`
+
+Operations: `init`, `ingest`, `compile`, `query`, `lint`, `research`, `output`
+
+Useful for: `grep "^## \[" log.md | tail -10` to see recent activity.
+
 ## config.md Format
 
 ```markdown
@@ -174,6 +198,7 @@ created: YYYY-MM-DD
 updated: YYYY-MM-DD
 tags: [tag1, tag2]
 aliases: [alternate names for Obsidian discovery]
+confidence: high|medium|low
 summary: "2-3 sentence summary for index"
 ---
 

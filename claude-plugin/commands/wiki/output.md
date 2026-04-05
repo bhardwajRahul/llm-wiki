@@ -64,4 +64,6 @@ If wiki does not exist or has no articles, stop: "No wiki found (or no articles)
    - `output/_index.md` — add row
    - Master `_index.md` — increment output count, add to Recent Changes
 
-5. **Report**: What was generated, where saved, which source articles were used.
+5. **Log**: Append to `log.md`: `## [YYYY-MM-DD] output | {type} on {topic} → output/{filename}.md`
+
+6. **Report**: What was generated, where saved, which source articles were used.

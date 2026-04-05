@@ -50,6 +50,10 @@ Read `wiki/_index.md` and category indexes. For each key concept:
 5. Add "Sources" section linking back to raw files
 6. Generate frontmatter per `references/wiki-structure.md` — include `aliases` for alternate names
 7. Add `aliases` in frontmatter for any common alternate names (e.g., `aliases: [GPT, Generative Pre-trained Transformer]`)
+8. Set `confidence` in frontmatter:
+   - `high`: multiple peer-reviewed sources agree, well-established
+   - `medium`: single source, or partially corroborated, or recent/unreplicated findings
+   - `low`: anecdotal, single non-peer-reviewed source, or sources disagree
 
 **For updated articles:**
 

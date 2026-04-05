@@ -84,5 +84,6 @@ Follow the inbox processing protocol from `references/ingestion.md`:
 3. Update `raw/{type}/_index.md` — add row to Contents table
 4. Update `raw/_index.md` — add row
 5. Update master `_index.md` — increment source count, add to Recent Changes
-6. Report: what was ingested, where saved, detected tags
-7. Check uncompiled source count. If 5+, suggest `/wiki:compile`
+6. Append to `log.md`: `## [YYYY-MM-DD] ingest | Title (raw/type/slug.md)`
+7. Report: what was ingested, where saved, detected tags
+8. Check uncompiled source count. If 5+, suggest `/wiki:compile`

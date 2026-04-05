@@ -57,4 +57,4 @@ IMPORTANT: Only auto-fix issues that have clear, unambiguous fixes (missing inde
 
 ### Report
 
-Present the lint report in the format specified in `references/linting.md`. Update master `_index.md` with "Last lint" date.
+Present the lint report in the format specified in `references/linting.md`. Update master `_index.md` with "Last lint" date. Append to `log.md`: `## [YYYY-MM-DD] lint | N checks, N critical, N warnings, N suggestions, N auto-fixed`
