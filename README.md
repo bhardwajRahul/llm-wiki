@@ -10,22 +10,22 @@ Inspired by [Karpathy's LLM wiki concept](https://x.com/karpathy/status/20398056
 /install-plugin github:nvk/llm-wiki
 ```
 
-> **New to a topic? Start here.** Create your wiki and let the research command do the heavy lifting:
+> **New to a topic? Two commands.** Each topic gets its own wiki — isolated indexes, focused queries, no cross-topic noise:
 > ```
-> /wiki init
-> /wiki:research "your topic" --sources 10
+> /wiki init quantum-computing
+> /wiki:research "quantum error correction" --sources 10 --wiki quantum-computing
 > ```
-> That's it. One command searches the web, ingests the best sources, and compiles them into interconnected wiki articles. Then drill into gaps with `/wiki:research "subtopic"`, ask questions with `/wiki:query`, and drop articles into `~/wiki/inbox/` anytime for later processing.
+> The research command searches the web, ingests the best sources, and compiles them into interconnected articles. Drill into gaps with more `/wiki:research`, ask questions with `/wiki:query`, drop articles into the inbox anytime.
 
 ## Quick Start
 
 ```
-/wiki init                              # Create your knowledge base at ~/wiki/
-/wiki:research "quantum computing"      # Auto-research: search, ingest, compile
+/wiki init quantum-computing            # Create a topic wiki at ~/wiki/topics/quantum-computing/
+/wiki:research "topic" --wiki qc        # Auto-research: search, ingest, compile
 /wiki:query "How does X work?"          # Ask questions against the wiki
 /wiki:query "compare X and Y" --deep    # Deep cross-referenced answer
 /wiki:ingest https://example.com        # Manually ingest a specific source
-/wiki:ingest --inbox                    # Process files dropped in ~/wiki/inbox/
+/wiki:ingest --inbox                    # Process files dropped in inbox/
 /wiki:compile                           # Compile any unprocessed sources
 /wiki:output summary --topic X          # Generate a synthesis
 /wiki:lint --fix                        # Clean up inconsistencies
@@ -35,10 +35,9 @@ Inspired by [Karpathy's LLM wiki concept](https://x.com/karpathy/status/20398056
 
 | Command | Description |
 |---------|-------------|
-| `/wiki` | Show wiki status, stats, and list of wikis |
-| `/wiki init` | Create a global wiki at `~/wiki/` |
-| `/wiki init --local` | Create a project-local wiki at `.wiki/` |
-| `/wiki init ml --topic` | Create a sub-wiki at `~/wiki/topics/ml/` |
+| `/wiki` | Show wiki status, stats, and list all topic wikis |
+| `/wiki init <name>` | Create a topic wiki at `~/wiki/topics/<name>/` |
+| `/wiki init <name> --local` | Create a project-local wiki at `.wiki/` |
 | `/wiki:ingest <source>` | Ingest a URL, file path, or quoted text |
 | `/wiki:ingest --inbox` | Process all files in `~/wiki/inbox/` |
 | `/wiki:compile` | Compile new sources into wiki articles |
@@ -65,17 +64,29 @@ All commands accept `--wiki <name>` to target a specific wiki and `--local` to t
 ### Architecture
 
 ```
-~/wiki/
-├── .obsidian/      # Obsidian vault config (auto-created)
-├── inbox/          # Drop zone — dump files here, run /wiki:ingest --inbox
-├── raw/            # Immutable source material (articles, papers, repos, notes, data)
-├── wiki/           # Compiled articles (concepts, topics, references)
-├── output/         # Generated artifacts (summaries, reports, slides, etc.)
-├── topics/         # Sub-wikis by topic
-├── log.md          # Append-only activity log
-├── config.md       # Wiki title, scope, conventions
-└── wikis.json      # Tracks all wikis (global, topic, local)
+~/wiki/                                 # Hub — tracks all topic wikis
+├── wikis.json                          # Registry of all wikis
+├── _index.md                           # Hub index with topic wiki table
+├── config.md                           # Hub config
+├── log.md                              # Global activity log
+└── topics/                             # Each topic is an isolated wiki
+    ├── dementia/                       # Example topic wiki
+    │   ├── .obsidian/                  # Obsidian vault config
+    │   ├── inbox/                      # Drop zone for this topic
+    │   ├── raw/                        # Immutable sources
+    │   ├── wiki/                       # Compiled articles
+    │   │   ├── concepts/
+    │   │   ├── topics/
+    │   │   └── references/
+    │   ├── output/                     # Generated artifacts
+    │   ├── _index.md
+    │   ├── config.md
+    │   └── log.md
+    ├── quantum-computing/              # Another topic wiki
+    └── ...
 ```
+
+Each topic wiki has its own indexes, sources, and articles — queries stay focused. The multi-wiki peek still finds overlap across topics when relevant.
 
 ### The Flow
 
@@ -88,7 +99,7 @@ All commands accept `--wiki <name>` to target a specific wiki and `--local` to t
 
 ### Key Design
 
-- **Global by default** at `~/wiki/`, with `--local` for project-specific wikis
+- **One topic, one wiki** — each research area gets its own sub-wiki with isolated indexes. No cross-topic noise.
 - **`_index.md` navigation** — every directory has an index. Claude reads indexes first, never scans blindly
 - **Articles are synthesized**, not copied — they explain, contextualize, cross-reference
 - **Raw is immutable** — once ingested, sources are never modified

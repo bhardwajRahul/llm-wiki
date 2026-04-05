@@ -24,12 +24,16 @@ You manage an LLM-compiled knowledge base. Source documents are ingested into `r
 
 ## Wiki Location
 
-**Global by default** at `~/wiki/`. Resolution order:
+**Topic sub-wikis are the default.** The global `~/wiki/` is a hub — content lives in `~/wiki/topics/<name>/`. Each topic gets isolated indexes, sources, and articles. This keeps queries focused and prevents unrelated topics from polluting each other's search space.
+
+Resolution order:
 
 1. `--local` flag → `.wiki/` in current project
 2. `--wiki <name>` flag → named wiki from `~/wiki/wikis.json`
 3. Current directory has `.wiki/` → use it
-4. Otherwise → `~/wiki/`
+4. Otherwise → `~/wiki/` (the hub)
+
+When a command targets the hub and the hub has no content, suggest creating a topic sub-wiki instead.
 
 See [references/wiki-structure.md](references/wiki-structure.md) for the complete directory layout and all file format conventions.
 

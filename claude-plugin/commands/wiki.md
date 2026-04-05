@@ -1,13 +1,12 @@
 ---
-description: "LLM wiki knowledge base — initialize, show status, or list wikis. Subcommands: ingest, compile, query, lint, search, output."
-argument-hint: "[init [name] [--topic] [--local]] [--wiki <name>]"
+description: "LLM wiki knowledge base — initialize, show status, or list wikis. Subcommands: ingest, compile, query, lint, search, output, research."
+argument-hint: "[init <topic-name> [--local]] [--wiki <name>]"
 allowed-tools: Read, Write, Edit, Glob, Bash(ls:*), Bash(wc:*), Bash(mkdir:*), Bash(date:*)
 ---
 
 ## Your task
 
 First, check if a wiki exists by trying to read `~/wiki/_index.md` (global) and `.wiki/_index.md` (local).
-
 
 You are the llm-wiki knowledge base manager. Read the skill at `skills/wiki-manager/SKILL.md` and structure reference at `skills/wiki-manager/references/wiki-structure.md` for full conventions.
 
@@ -22,21 +21,24 @@ Resolve which wiki to use:
 ### If $ARGUMENTS contains "init"
 
 Initialize a new wiki. Parse arguments:
-- `init` → create global wiki at `~/wiki/`
-- `init --local` → create local wiki at `.wiki/`
-- `init <name> --topic` → create sub-wiki at `~/wiki/topics/<name>/`
+- `init <name>` → create topic sub-wiki at `~/wiki/topics/<name>/` **(this is the recommended default)**
+- `init <name> --local` → create local wiki at `.wiki/` in current project
+- `init` (no name) → create the global hub at `~/wiki/` (only needed once, most users won't need this)
+
+**IMPORTANT: Always encourage topic sub-wikis.** If the user runs `init` without a name and `~/wiki/` already exists, ask: "What topic is this for? Each topic should get its own wiki. Try `/wiki init <topic-name>` instead." Only create a bare global hub if the user explicitly wants one.
 
 **Steps:**
 
-1. Create the full directory structure per `references/wiki-structure.md`:
+1. If creating a topic sub-wiki and `~/wiki/` doesn't exist yet, create the global hub first (directory structure + `wikis.json` + hub `_index.md` + hub `config.md`).
+
+2. Create the full directory structure per `references/wiki-structure.md`:
    - `inbox/`, `inbox/.processed/`
    - `raw/`, `raw/articles/`, `raw/papers/`, `raw/repos/`, `raw/notes/`, `raw/data/`
    - `wiki/`, `wiki/concepts/`, `wiki/topics/`, `wiki/references/`
    - `output/`
-   - For global wiki only: `topics/`
    - For local wikis (`--local`): append `.wiki/` to the project's `.gitignore` (create it if it doesn't exist). This keeps wiki files untracked by default.
 
-2. Create `.obsidian/` directory with minimal vault config:
+3. Create `.obsidian/` directory with minimal vault config:
    - `.obsidian/app.json`:
      ```json
      {
@@ -68,22 +70,22 @@ Initialize a new wiki. Parse arguments:
        "lineSizeMultiplier": 1
      }
      ```
-   This makes the wiki immediately openable as an Obsidian vault with sane defaults.
 
-3. Create empty `_index.md` in every directory following the format in `references/wiki-structure.md`. Use today's date. Set all counts to 0.
+4. Create empty `_index.md` in every directory following the format in `references/wiki-structure.md`. Use today's date. Set all counts to 0.
 
-4. Create `log.md` with initial entry:
+5. Create `log.md` with initial entry:
    ```
    # Wiki Activity Log
 
    ## [YYYY-MM-DD] init | Wiki initialized
    ```
 
-5. Ask the user: "What is this wiki about?" Use their answer to create `config.md` with title, description, scope, and today's date.
+6. Ask the user: "What is this wiki about?" Use their answer to create `config.md` with title, description, scope, and today's date.
 
-6. For global wiki: create `wikis.json` with the wiki registered. For topic sub-wikis: update existing `~/wiki/wikis.json` to add the new entry. For local wikis: update `~/wiki/wikis.json` `local_wikis` array (create wikis.json first if needed).
+7. Update `~/wiki/wikis.json`: add the new wiki entry. For local wikis, add to the `local_wikis` array. Update the hub `_index.md` topic wiki table.
 
-7. Report what was created and list available commands:
+8. Report what was created and list available commands:
+   - `/wiki:research "topic" --sources 10` — auto-research to bootstrap the wiki
    - `/wiki:ingest <url|file|text>` — add source material
    - `/wiki:ingest --inbox` — process files dropped in inbox/
    - `/wiki:compile` — compile sources into wiki articles
@@ -91,6 +93,8 @@ Initialize a new wiki. Parse arguments:
    - `/wiki:search <query>` — find content
    - `/wiki:lint` — health check
    - `/wiki:output <type>` — generate artifacts
+
+   Suggest running `/wiki:research` first to bootstrap the wiki with initial content.
 
 ---
 
@@ -111,7 +115,7 @@ Show wiki status:
    - Inbox items pending (if any)
    - Last compiled / last lint dates
    - Last 5 recent changes
-5. If `~/wiki/wikis.json` exists, list all known wikis with their descriptions
+5. If `~/wiki/wikis.json` exists, list all known topic wikis with their descriptions and stats
 6. List available subcommands
 
 ---
@@ -121,6 +125,8 @@ Show wiki status:
 Tell the user:
 
 > No wiki found. Create one with:
-> - `/wiki init` — global wiki at ~/wiki/
-> - `/wiki init --local` — project-local wiki at .wiki/
-> - `/wiki init ml --topic` — topic sub-wiki at ~/wiki/topics/ml/
+> - `/wiki init quantum-computing` — topic wiki at ~/wiki/topics/quantum-computing/
+> - `/wiki init ml` — topic wiki at ~/wiki/topics/ml/
+> - `/wiki init notes --local` — project-local wiki at .wiki/
+>
+> Each topic gets its own wiki with isolated indexes and articles. Queries automatically peek across topic wikis for relevant overlap.
