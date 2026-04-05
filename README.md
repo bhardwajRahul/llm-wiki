@@ -1,4 +1,4 @@
-# llm-wiki
+# llm-wiki — nvk's take
 
 A Claude Code plugin for building LLM-compiled knowledge bases. Ingest sources, compile interconnected markdown articles, query, lint, research, and generate outputs — all from Claude Code. Optionally view in Obsidian.
 
