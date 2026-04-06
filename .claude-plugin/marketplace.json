@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "llm-wiki",
+      "name": "wiki",
       "description": "LLM-compiled knowledge base. Commands: /wiki (init/status), /wiki:ingest (URLs, files, text, inbox), /wiki:compile (raw to articles), /wiki:query (quick/standard/deep Q&A), /wiki:research (5-10 parallel agents, --new-topic, --min-time, auto-detects topic vs question with playbook generation), /wiki:thesis (claim → evidence for+against → verdict), /wiki:assess (repo vs wiki vs market), /wiki:search, /wiki:lint (health checks + auto-fix), /wiki:output (summaries, reports, slides + retardmax).",
       "version": "0.0.9",
       "author": {

@@ -55,7 +55,10 @@
       "Bash(find ~/wiki/topics/dementia/raw -name *.md -not -name _index.md)",
       "Bash(find ~/wiki/topics/dementia/wiki -name *.md -not -name _index.md)",
       "WebFetch(domain:www.retardmaxx.com)",
-      "Bash(gh release:*)"
+      "Bash(gh release:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(mv /tmp/settings_fixed.json ~/.claude/settings.json echo 'Fixed settings.json')",
+      "Bash(sed -i '' 's/\"\"name\"\": \"\"llm-wiki\"\"/\"\"name\"\": \"\"wiki\"\"/' ~/.claude/plugins/cache/llm-wiki/wiki/0.0.9/.claude-plugin/plugin.json)"
     ]
   }
 }
