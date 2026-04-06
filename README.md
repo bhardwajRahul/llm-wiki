@@ -1,13 +1,14 @@
 ```
-     _ _                          _ _    _
-    | | |_ __ ___      __      _(_) | _(_)
-    | | | '_ ` _ \ ____\ \ /\ / / | |/ / |
-    | | | | | | | |_____\ V  V /| |   <| |
-    |_|_|_| |_| |_|      \_/\_/ |_|_|\_\_|
-
-    LLM-compiled knowledge bases
-    github.com/nvk/llm-wiki
+  ██  ██                                        ██  ██   ██
+  ██  ██                                        ██  ██  ██
+  ██  ██  ██████████   ██████████               ██  ██ ██   ██
+  ██  ██  ██  ██  ██   ██  ██  ██   ██      ██  ██  ████    ██
+  ██  ██  ██  ██  ██   ██  ██  ██   ██  ██  ██  ██  ██ ██   ██
+  ██  ██  ██  ██  ██   ██  ██  ██    ████████   ██  ██  ██  ██
+  ██  ██  ██      ██   ██      ██     ██  ██    ██  ██   ██ ██
 ```
+
+[github.com/nvk/llm-wiki](https://github.com/nvk/llm-wiki)
 
 LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, thesis-driven investigation, source ingestion, wiki compilation, querying, and artifact generation. Ships as a Claude Code plugin or a portable AGENTS.md for Codex and others. Obsidian-compatible.
 
