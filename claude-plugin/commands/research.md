@@ -21,16 +21,18 @@ Conduct deep research on the topic in $ARGUMENTS. This is an automated pipeline:
 
 ### Resolve wiki location
 
+First, resolve the hub path: read `~/.config/llm-wiki/config.json` — if it exists and has `hub_path`, use that (expand `~`), otherwise default to `~/wiki/`. Call this **HUB**.
+
 **If `--new-topic` is set:**
 1. Derive a slug from the topic: lowercase, hyphens, no special chars, max 40 chars
-2. If `~/wiki/` hub doesn't exist, create it (wikis.json + _index.md + log.md + topics/)
-3. Create the new topic wiki at `~/wiki/topics/<slug>/` following the full init protocol (directory structure, .obsidian/, empty _index.md files, config.md, log.md)
-4. Register in `~/wiki/wikis.json` and update hub `_index.md`
+2. If HUB doesn't exist, create it (wikis.json + _index.md + log.md + topics/)
+3. Create the new topic wiki at `HUB/topics/<slug>/` following the full init protocol (directory structure, .obsidian/, empty _index.md files, config.md, log.md)
+4. Register in `HUB/wikis.json` and update hub `_index.md`
 5. Target this new wiki for all research that follows
 
 **If `--new-topic` is NOT set:**
 1. `--local` → `.wiki/`
-2. `--wiki <name>` → look up in `~/wiki/wikis.json`
+2. `--wiki <name>` → look up in `HUB/wikis.json`
 3. Current directory has `.wiki/` → use it
 4. Otherwise → ask which topic wiki to target
 
@@ -132,7 +134,7 @@ Final:   Run /wiki:lint --fix to clean up
 ```
 /wiki:research "CRISPR gene therapy" --new-topic --min-time 2h --deep
 ```
-Creates `~/wiki/topics/crispr-gene-therapy/`, then runs ~3-5 research rounds over 2 hours, progressively drilling into subtopics the earlier rounds surfaced.
+Creates `HUB/topics/crispr-gene-therapy/`, then runs ~3-5 research rounds over 2 hours, progressively drilling into subtopics the earlier rounds surfaced.
 
 ### Input Detection: Topic vs Question
 
@@ -343,7 +345,7 @@ For each high-quality source (up to --sources count, ranked by quality score):
 #### Phase 5: Report & Log
 
 1. Append to topic wiki `log.md`: `## [YYYY-MM-DD] research | "topic" → N sources ingested, M articles compiled`
-2. Append to hub `~/wiki/log.md`: same entry
+2. Append to hub `HUB/log.md`: same entry
 
 3. Report:
    - **Topic researched**: the query

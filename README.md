@@ -14,6 +14,20 @@
 
 LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, thesis-driven investigation, source ingestion, wiki compilation, querying, and artifact generation. Ships as a Claude Code plugin or a portable AGENTS.md for Codex and others. Obsidian-compatible.
 
+## What's New in v0.0.12
+
+**Configurable Hub Path** — store your wiki on iCloud Drive, Dropbox, or any custom location:
+
+- **`/wiki config hub-path <path>`** — set a custom hub location (creates `~/.config/llm-wiki/config.json`)
+- Default remains `~/wiki/` — zero breaking changes if you don't configure anything
+- Offers to move existing wiki data when changing the path
+- All commands automatically resolve the hub path from config
+
+Example — move your wiki to iCloud:
+```bash
+/wiki config hub-path ~/Library/Mobile\ Documents/com~apple~CloudDocs/wiki
+```
+
 ## What's New in v0.0.11
 
 **Source Retraction** — cleanly remove regretted sources and their downstream effects:

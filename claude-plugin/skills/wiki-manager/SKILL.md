@@ -22,16 +22,30 @@ tools:
 
 You manage an LLM-compiled knowledge base. Source documents are ingested into `raw/`, then incrementally compiled into a wiki of interconnected markdown articles. Claude Code is both the compiler and the query engine — no Obsidian, no external tools.
 
+## Hub Path
+
+The hub defaults to `~/wiki/`. To use a different location (e.g., iCloud Drive), create `~/.config/llm-wiki/config.json`:
+
+```json
+{ "hub_path": "~/Library/Mobile Documents/com~apple~CloudDocs/wiki" }
+```
+
+**Resolution**: At the start of every operation, resolve the hub path:
+1. Read `~/.config/llm-wiki/config.json` — if it exists and has `hub_path`, use that (expand `~`)
+2. Otherwise, use `~/wiki/`
+
+Store the resolved path as **HUB** for the rest of the operation. All references to `~/wiki/` below mean HUB.
+
 ## Wiki Location
 
-**Topic sub-wikis are the default.** The global `~/wiki/` is a hub — content lives in `~/wiki/topics/<name>/`. Each topic gets isolated indexes, sources, and articles. This keeps queries focused and prevents unrelated topics from polluting each other's search space.
+**Topic sub-wikis are the default.** HUB is a hub — content lives in `HUB/topics/<name>/`. Each topic gets isolated indexes, sources, and articles. This keeps queries focused and prevents unrelated topics from polluting each other's search space.
 
 Resolution order:
 
 1. `--local` flag → `.wiki/` in current project
-2. `--wiki <name>` flag → named wiki from `~/wiki/wikis.json`
+2. `--wiki <name>` flag → named wiki from `HUB/wikis.json`
 3. Current directory has `.wiki/` → use it
-4. Otherwise → `~/wiki/` (the hub)
+4. Otherwise → HUB (the hub)
 
 When a command targets the hub and the hub has no content, suggest creating a topic sub-wiki instead.
 
@@ -53,13 +67,13 @@ See [references/wiki-structure.md](references/wiki-structure.md) for the complet
 
 7. **Honest gaps.** When answering questions, if the wiki doesn't have the answer, say so. Never hallucinate. Suggest what to ingest to fill the gap.
 
-8. **Multi-wiki awareness.** When querying, answer from the primary wiki first. Then peek at sibling wiki indexes (via `~/wiki/wikis.json`) for relevant overlap. Flag connections but never merge content across wikis.
+8. **Multi-wiki awareness.** When querying, answer from the primary wiki first. Then peek at sibling wiki indexes (via `HUB/wikis.json`) for relevant overlap. Flag connections but never merge content across wikis.
 
 ## Ambient Behavior
 
 When this skill activates outside of an explicit `/wiki:*` command:
 
-1. Check if `~/wiki/_index.md` or `.wiki/_index.md` exists
+1. Resolve the hub path (see Hub Path section above), then check if `HUB/_index.md` or `.wiki/_index.md` exists
 2. Read the master `_index.md` to assess if the wiki might cover the user's question
 3. If relevant content exists → read the relevant articles and answer with citations
 4. If no relevant content → answer normally, optionally suggest: "This could be added to your wiki with `/wiki:ingest`"
@@ -118,7 +132,7 @@ Automatically run a quick structural check when any of these triggers occur:
 
 ### Quick Structure Check (lightweight, runs inline — not a full lint)
 
-1. **Hub integrity**: The hub (`~/wiki/`) should ONLY contain `wikis.json`, `_index.md`, `log.md`, and `topics/`. If `raw/`, `wiki/`, `output/`, `inbox/`, or `config.md` exist at the hub level → delete them (they are traps for misplaced content).
+1. **Hub integrity**: The hub (HUB) should ONLY contain `wikis.json`, `_index.md`, `log.md`, and `topics/`. If `raw/`, `wiki/`, `output/`, `inbox/`, or `config.md` exist at the hub level → delete them (they are traps for misplaced content).
 
 2. **Index freshness**: For the active topic wiki, compare actual file count in `wiki/concepts/`, `wiki/topics/`, `wiki/references/` against the rows in their `_index.md`. If mismatched → auto-fix by adding missing entries or removing dead ones.
 
@@ -126,7 +140,7 @@ Automatically run a quick structural check when any of these triggers occur:
 
 4. **Missing directories**: Verify all expected subdirectories exist in the topic wiki (`raw/articles/`, `raw/papers/`, etc.). If missing → create them with empty `_index.md`.
 
-5. **wikis.json sync**: Check that all topic sub-wikis under `~/wiki/topics/` are registered in `wikis.json`. If a directory exists but isn't registered → add it. If registered but directory is missing → remove the entry.
+5. **wikis.json sync**: Check that all topic sub-wikis under `HUB/topics/` are registered in `wikis.json`. If a directory exists but isn't registered → add it. If registered but directory is missing → remove the entry.
 
 6. **Log existence**: Verify `log.md` exists in the active wiki and at the hub. If missing → create it.
 

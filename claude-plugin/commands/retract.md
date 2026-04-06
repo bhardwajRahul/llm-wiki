@@ -19,10 +19,12 @@ Retract (remove) a source that was previously ingested into the wiki. This handl
 
 ### Resolve wiki location
 
+First, resolve the hub path: read `~/.config/llm-wiki/config.json` — if it exists and has `hub_path`, use that (expand `~`), otherwise default to `~/wiki/`. Call this **HUB**.
+
 1. `--local` flag → `.wiki/`
-2. `--wiki <name>` flag → look up in `~/wiki/wikis.json`
+2. `--wiki <name>` flag → look up in `HUB/wikis.json`
 3. Current directory has `.wiki/` → use it
-4. Otherwise → `~/wiki/`
+4. Otherwise → HUB
 
 If the resolved wiki does not exist, stop: "No wiki found."
 
@@ -92,7 +94,7 @@ Append to `log.md`:
 ## [YYYY-MM-DD] retract | "{title}" — reason: {reason} → {N} articles affected, {N} claims flagged for review
 ```
 
-Append same to hub `~/wiki/log.md`.
+Append same to hub `HUB/log.md`.
 
 ### Phase 6: Optional Recompile (--recompile)
 

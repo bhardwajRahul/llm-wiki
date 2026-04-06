@@ -6,13 +6,13 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:
 
 ## Your task
 
-First, check if a wiki exists by trying to read `~/wiki/_index.md` (global) and `.wiki/_index.md` (local).
+First, resolve the hub path: read `~/.config/llm-wiki/config.json` — if it exists and has `hub_path`, use that (expand `~`), otherwise default to `~/wiki/`. Call this **HUB**. Then check if a wiki exists by trying to read `HUB/_index.md` (global hub) and `.wiki/_index.md` (local).
 
 Compare a local repository against the wiki's knowledge base and the broader market. Produce a comprehensive gap analysis.
 
 ### Resolve wiki location
 
-1. `--wiki <name>` → look up in `~/wiki/wikis.json`
+1. `--wiki <name>` → look up in `HUB/wikis.json`
 2. `--local` → `.wiki/` in current directory
 3. Otherwise → ask which topic wiki to compare against
 
@@ -141,6 +141,6 @@ generated: YYYY-MM-DD
 2. Update `output/_index.md`
 3. Update master `_index.md`
 4. Append to topic `log.md`: `## [YYYY-MM-DD] assess | {repo-name} → N alignments, N research gaps, N opportunities, N market gaps`
-5. Append to hub `~/wiki/log.md`
+5. Append to hub `HUB/log.md`
 
 6. Optionally suggest: specific `/wiki:research` commands for each gap found
