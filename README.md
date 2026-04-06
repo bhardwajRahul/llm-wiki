@@ -9,7 +9,7 @@
     github.com/nvk/llm-wiki
 ```
 
-A Claude Code plugin for building LLM-compiled knowledge bases. Ingest sources, compile interconnected markdown articles, query, lint, research, and generate outputs — all from Claude Code. Optionally view in Obsidian.
+LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, thesis-driven investigation, source ingestion, wiki compilation, querying, and artifact generation. Ships as a Claude Code plugin or a portable AGENTS.md for Codex and others. Obsidian-compatible.
 
 ## Install
 
