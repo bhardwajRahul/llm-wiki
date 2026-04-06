@@ -19,20 +19,19 @@ cp AGENTS.md ~/your-project/AGENTS.md
 
 The `AGENTS.md` file contains the complete wiki protocol as a single portable document — works with any LLM agent that can read/write files and search the web.
 
-> **New to a topic? Two commands.** Each topic gets its own wiki — isolated indexes, focused queries, no cross-topic noise:
+> **New to a topic? One command, from anywhere:**
 > ```
-> /wiki init nutrition
-> /wiki:research "gut microbiome and mental health" --sources 10 --wiki nutrition
+> /wiki:research "gut microbiome" --new-topic --min-time 1h
 > ```
-> The research command launches parallel agents to search the web, ingest the best sources, and compile them into interconnected articles. Drill into gaps with more `/wiki:research`, ask questions with `/wiki:query`, drop articles into the inbox anytime.
+> Creates a topic wiki, launches parallel agents, and keeps researching for an hour — drilling into subtopics each round finds. Come back to a fully compiled wiki.
 
 ## Quick Start
 
 ```
-/wiki init nutrition                              # Create a topic wiki
-/wiki:research "gut-brain axis" --wiki nutrition  # 5 parallel agents search, ingest, compile
-/wiki:research "probiotics" --deep                # 8 agents, broader angles
-/wiki:research "fasting" --retardmax              # 10 agents, max speed, ingest everything
+/wiki:research "nutrition" --new-topic            # Create wiki + research in one shot
+/wiki:research "gut-brain axis" --wiki nutrition   # Add more research to existing wiki
+/wiki:research "fasting" --deep --min-time 2h     # 8 agents, keep going for 2 hours
+/wiki:research "keto" --retardmax                 # 10 agents, max speed, ingest everything
 /wiki:query "How does fiber affect mood?"         # Ask the wiki
 /wiki:query "compare keto and mediterranean" --deep  # Deep cross-referenced answer
 /wiki:ingest https://example.com/article          # Manually ingest a source
@@ -59,6 +58,8 @@ The `AGENTS.md` file contains the complete wiki protocol as a single portable do
 | `/wiki:query <question> --quick` | Fast answer from indexes only |
 | `/wiki:query <question> --deep` | Thorough — reads everything, checks raw + sibling wikis |
 | `/wiki:research <topic>` | 5 parallel agents: academic, technical, applied, news, contrarian |
+| `/wiki:research <topic> --new-topic` | Create a topic wiki and start researching — works from any directory |
+| `/wiki:research <topic> --min-time 1h` | Keep researching in rounds until time budget is spent |
 | `/wiki:research <topic> --deep` | 8 agents: adds historical, adjacent, data/stats |
 | `/wiki:research <topic> --retardmax` | 10 agents: skip planning, max speed, ingest aggressively |
 | `/wiki:search <terms>` | Find content by keyword or tag |
@@ -131,6 +132,19 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
 | Standard | *(default)* | 5 | Academic, technical, applied, news, contrarian |
 | Deep | `--deep` | 8 | Adds historical, adjacent fields, data/stats |
 | Retardmax | `--retardmax` | 10 | Adds rabbit-hole agents. Skip planning, cast widest net, ingest aggressively, compile fast. Lint later. |
+
+**Modifiers** (combine with any mode):
+
+| Flag | What it does |
+|------|-------------|
+| `--new-topic` | Create a topic wiki from the research topic and start immediately. Works from any directory. |
+| `--min-time <duration>` | Keep running research rounds until the time budget is spent (`30m`, `1h`, `2h`, `4h`). Each round drills into gaps the previous round found. |
+| `--sources <N>` | Sources per round (default: 5, retardmax: 15) |
+
+```
+# The full combo — new topic, 2 hours of deep research, from anywhere
+/wiki:research "CRISPR gene therapy" --new-topic --deep --min-time 2h
+```
 
 Retardmax mode is inspired by [Elisha Long's retardmaxxing philosophy](https://www.retardmaxx.com/) — act first, think later. The antidote to analysis paralysis. Works for both `/wiki:research` and `/wiki:output`.
 
