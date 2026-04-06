@@ -32,6 +32,7 @@ The `AGENTS.md` file contains the complete wiki protocol as a single portable do
 /wiki:research "gut-brain axis" --wiki nutrition   # Add more research to existing wiki
 /wiki:research "fasting" --deep --min-time 2h     # 8 agents, keep going for 2 hours
 /wiki:research "keto" --retardmax                 # 10 agents, max speed, ingest everything
+/wiki:research "What makes long form articles go viral?" --new-topic  # Question → decompose → playbook
 /wiki:thesis "fiber reduces neuroinflammation via SCFAs"  # Thesis-driven: evidence for + against → verdict
 /wiki:thesis "cold exposure upregulates BDNF" --min-time 1h  # Deep thesis investigation
 /wiki:query "How does fiber affect mood?"         # Ask the wiki
@@ -136,6 +137,15 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
 | Standard | *(default)* | 5 | Academic, technical, applied, news, contrarian |
 | Deep | `--deep` | 8 | Adds historical, adjacent fields, data/stats |
 | Retardmax | `--retardmax` | 10 | Adds rabbit-hole agents. Skip planning, cast widest net, ingest aggressively, compile fast. Lint later. |
+
+**Smart input detection** — `/wiki:research` auto-detects whether you're passing a topic or a question:
+
+| Input | Detected as | Behavior |
+|-------|-------------|----------|
+| `"nutrition"` | Topic | Standard research — explore the field |
+| `"What makes articles go viral?"` | Question | Decompose into sub-questions → one agent per sub-question → synthesize → generate playbook → suggest theses |
+
+Question mode produces a **playbook** (actionable output artifact) and suggests **testable theses** derived from the findings.
 
 **Modifiers** (combine with any mode):
 

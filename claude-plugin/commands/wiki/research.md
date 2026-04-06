@@ -77,7 +77,59 @@ Final:   Run /wiki:lint --fix to clean up
 ```
 Creates `~/wiki/topics/crispr-gene-therapy/`, then runs ~3-5 research rounds over 2 hours, progressively drilling into subtopics the earlier rounds surfaced.
 
-### Research Protocol (Single Round)
+### Input Detection: Topic vs Question
+
+Before starting research, detect whether the input is a **topic** or a **question**:
+
+- **Topic**: a noun/phrase naming a subject area. Examples: "nutrition", "CRISPR", "viral content"
+- **Question**: starts with what/why/how/when/where/who, contains a "?", or is phrased as a goal ("how to...", "what makes...", "why does..."). Examples: "What makes long form articles go viral?", "How to build a search engine", "Why do startups fail in year 2?"
+
+**If topic** → proceed with standard research protocol below.
+
+**If question** → enter Question Research Mode:
+
+#### Question Research Mode
+
+The question itself is the scope constraint — like a thesis constrains thesis research.
+
+**Step 1: Decompose the question** into 3-5 focused sub-questions. Example:
+
+Input: "What makes long form articles go viral and how to replicate it"
+Decomposition:
+- **What**: What patterns do viral long-form articles share? (structure, length, hooks, format)
+- **Why**: What psychological/social mechanisms drive sharing? (emotion, identity, utility)
+- **How**: What is the step-by-step process to write one? (research, outline, writing, distribution)
+- **Who**: Who has done this successfully and what do they say? (case studies, practitioner interviews)
+- **Data**: What does the data say? (studies on shareability, engagement metrics, platform algorithms)
+
+Present the decomposition to the user. Then proceed.
+
+**Step 2: One agent per sub-question.** Instead of generic angles (academic, technical, applied), each agent targets a specific sub-question. This keeps research focused and produces a complete answer.
+
+| Agent | Sub-question | Search Strategy |
+|-------|-------------|----------------|
+| Agent 1 | What patterns? | Search for analyses of viral articles, content structure studies, BuzzSumo-style research |
+| Agent 2 | Why psychologically? | Search for psychology of sharing, Jonah Berger's research, social currency, emotion triggers |
+| Agent 3 | How to do it? | Search for practitioner playbooks, writing frameworks, distribution strategies |
+| Agent 4 | Who does it well? | Search for case studies, specific viral articles and breakdowns of why they worked |
+| Agent 5 | What does data say? | Search for studies on content virality, engagement data, platform algorithm research |
+
+In `--deep` mode: add agents for adjacent sub-questions discovered during decomposition.
+In `--retardmax` mode: add rabbit-hole agents + skip decomposition confirmation.
+
+**Step 3: Compile with structure.** Articles are organized to answer the original question:
+- Concept articles for each key finding
+- A **topic article** that synthesizes the full answer to the original question — this is the "playbook"
+- Reference articles for tools, examples, and further reading
+
+**Step 4: Generate playbook.** After compilation, automatically create an output artifact:
+- Save to `output/playbook-{slug}-{YYYY-MM-DD}.md`
+- Structure: the original question, key findings per sub-question, actionable steps, examples, sources
+- This is the deliverable — a practical, actionable answer filed back into the wiki
+
+**Step 5: Derive theses.** From the findings, suggest 2-3 testable claims that could be investigated with `/wiki:thesis`. Example: "Articles with a personal narrative hook get 3x more shares than data-led hooks" — this is a specific claim that can be verified.
+
+### Research Protocol (Single Round — Topic Mode)
 
 #### Phase 1: Existing Knowledge Check
 
