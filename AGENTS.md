@@ -169,6 +169,8 @@ Convert external material into a raw source file.
 
 Auto-detect type: arxiv/scholar → papers, github → repos, .csv/.json → data, everything else → articles.
 
+**Auto-classify** (when no `--wiki` specified): After fetching content, match against topic wiki scopes. Single items get a numbered choice (pick wiki, create new, or skip). Batch/inbox mode presents a classification table for bulk routing. Skipped when `--wiki` or `--local` is explicit.
+
 Slug: `YYYY-MM-DD-descriptive-slug.md`. Update all indexes after each ingestion. If 5+ uncompiled sources, suggest compilation.
 
 ### Compile
@@ -213,7 +215,17 @@ Automated pipeline: search → ingest → compile. Launch parallel agents. Auto-
 
 **Modifiers**: `--new-topic` (create wiki + research in one shot), `--min-time <duration>` (sustained multi-round research), `--sources <N>` (per round).
 
-Each agent: run multiple searches, fetch full content, evaluate quality (1-5), return ranked source list. Deduplicate across agents. Compile all ingested sources. Report gaps and suggest follow-ups.
+Each agent receives a standardized prompt template: Objective, Context, Current wiki state, Constraints, Return format, Quality scoring guide (5=peer-reviewed → 1=spam). Deduplicate across agents.
+
+**Phase 2b: Credibility Review** — after agents return, before ingestion: score each source on peer-review status (+2), recency (+1), author authority (+1), vendor primary source (-1), potential bias (-1), corroboration (+1 per agent, max +2). Tiers: High (4-6) → Medium (2-3) → Low (0-1) → Reject (<0). Bias signals do not stack.
+
+**Session Registry** (`--min-time`): Persists `.research-session.json` in wiki root — tracks round number, sources, articles, gaps, progress score. Enables crash recovery (resume from last completed round). Deleted on completion.
+
+**Progress Scoring**: Each round scored 0-100: sources×3 + articles×5 + cross-refs×2 + credibility×4. Trajectory triggers: 3 consecutive declines totaling 30+ points → warn. Score ≥80 + no gaps → early completion. Score <40 → change strategy.
+
+**Plan Reflection**: Between rounds, reflect holistically on ALL prior findings (not just latest gaps). Priority: draw cross-topic connections → update cross-references → re-evaluate gaps → score remaining gaps (Impact × Feasibility × Specificity) → adjust direction only if clearly needed.
+
+Compile all ingested sources. Report gaps and suggest follow-ups.
 
 ### Thesis
 
@@ -227,13 +239,27 @@ Thesis-driven research. Provide a specific claim — agents research evidence fo
 6. Anti-confirmation-bias: in `--min-time` mode, Round 2 focuses harder on the WEAKER side of Round 1's evidence
 7. Suggest follow-up theses derived from findings
 
+### Retract
+
+Remove a regretted source and clean up its downstream effects. Requires `--reason`.
+
+1. **Identify**: Find the source file (by path or filename search)
+2. **Map blast radius**: Grep all wiki articles for references — classify as frontmatter, body-inline, or see-also
+3. **Clean up articles**: Remove metadata references, flag inline claims with `<!--RETRACTED-SOURCE-->` markers
+4. **Delete raw source**: Remove file, update all indexes
+5. **Log**: Permanent retraction record with reason
+6. **Recompile** (optional `--recompile`): Rewrite flagged sections from remaining sources, remove markers
+7. **Report**: Summary of changes + remaining review items
+
+`--dry-run` shows blast radius without making changes. If a source is the only source for an article, warn prominently.
+
 ### Lint
 
 Health checks with auto-fix capability.
 
-**Checks**: structure integrity, frontmatter validity, index consistency, link integrity, tag hygiene, coverage, deep fact-checking (optional).
+**Checks**: structure integrity, frontmatter validity, index consistency, link integrity, source provenance (dangling refs, unresolved retraction markers), tag hygiene, coverage, deep fact-checking (optional).
 
-**Auto-fix** (`--fix`): missing indexes, orphan files, dead index entries, statistics mismatch, missing bidirectional links, empty frontmatter fields.
+**Auto-fix** (`--fix`): missing indexes, orphan files, dead index entries, statistics mismatch, missing bidirectional links, empty frontmatter fields, dangling source references.
 
 ### Search
 
