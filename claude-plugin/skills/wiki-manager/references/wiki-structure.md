@@ -52,7 +52,10 @@ All content lives here. Each topic wiki has the full structure:
 │   ├── topics/
 │   │   ├── _index.md
 │   │   └── *.md
-│   └── references/
+│   ├── references/
+│   │   ├── _index.md
+│   │   └── *.md
+│   └── theses/                    # Thesis investigations
 │       ├── _index.md
 │       └── *.md
 └── output/                        # Generated artifacts

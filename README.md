@@ -32,6 +32,8 @@ The `AGENTS.md` file contains the complete wiki protocol as a single portable do
 /wiki:research "gut-brain axis" --wiki nutrition   # Add more research to existing wiki
 /wiki:research "fasting" --deep --min-time 2h     # 8 agents, keep going for 2 hours
 /wiki:research "keto" --retardmax                 # 10 agents, max speed, ingest everything
+/wiki:thesis "fiber reduces neuroinflammation via SCFAs"  # Thesis-driven: evidence for + against → verdict
+/wiki:thesis "cold exposure upregulates BDNF" --min-time 1h  # Deep thesis investigation
 /wiki:query "How does fiber affect mood?"         # Ask the wiki
 /wiki:query "compare keto and mediterranean" --deep  # Deep cross-referenced answer
 /wiki:ingest https://example.com/article          # Manually ingest a source
@@ -62,6 +64,8 @@ The `AGENTS.md` file contains the complete wiki protocol as a single portable do
 | `/wiki:research <topic> --min-time 1h` | Keep researching in rounds until time budget is spent |
 | `/wiki:research <topic> --deep` | 8 agents: adds historical, adjacent, data/stats |
 | `/wiki:research <topic> --retardmax` | 10 agents: skip planning, max speed, ingest aggressively |
+| `/wiki:thesis <claim>` | Thesis-driven research: evidence for + against → verdict |
+| `/wiki:thesis <claim> --min-time 1h` | Multi-round thesis investigation with anti-confirmation-bias |
 | `/wiki:search <terms>` | Find content by keyword or tag |
 | `/wiki:lint` | Run health checks on the wiki |
 | `/wiki:lint --fix` | Auto-fix structural issues |
@@ -147,6 +151,25 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
 ```
 
 Retardmax mode is inspired by [Elisha Long's retardmaxxing philosophy](https://www.retardmaxx.com/) — act first, think later. The antidote to analysis paralysis. Works for both `/wiki:research` and `/wiki:output`.
+
+## Thesis-Driven Research
+
+Unlike open-ended research, `/wiki:thesis` starts with a specific claim and evaluates it:
+
+```
+/wiki:thesis "intermittent fasting reduces neuroinflammation via glymphatic upregulation"
+```
+
+**How it works:**
+1. Decomposes the thesis into key variables, testable predictions, and falsification criteria
+2. Launches parallel agents — but each agent has the thesis as a FILTER. Irrelevant sources get skipped (this prevents bloat)
+3. Agents are split: **supporting**, **opposing**, **mechanistic**, **meta/review**, **adjacent** — balanced by design
+4. Compiles evidence into wiki articles + a thesis file with evidence tables
+5. Delivers a **verdict**: supported / partially supported / contradicted / insufficient evidence / mixed
+
+**Anti-confirmation-bias**: When using `--min-time`, Round 2 automatically focuses harder on the WEAKER side of the evidence. If Round 1 found mostly supporting evidence, Round 2 hunts for counter-evidence.
+
+**The thesis is the bloat filter.** Sources that don't relate to the claim's variables don't get ingested. Higher skip rate = tighter focus.
 
 ## Linking: Works Everywhere
 
