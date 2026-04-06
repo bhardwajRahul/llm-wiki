@@ -1,8 +1,15 @@
-# llm-wiki — nvk's take
+```
+     _ _                          _ _    _
+    | | |_ __ ___      __      _(_) | _(_)
+    | | | '_ ` _ \ ____\ \ /\ / / | |/ / |
+    | | | | | | | |_____\ V  V /| |   <| |
+    |_|_|_| |_| |_|      \_/\_/ |_|_|\_\_|
+
+    LLM-compiled knowledge bases
+    github.com/nvk/llm-wiki
+```
 
 A Claude Code plugin for building LLM-compiled knowledge bases. Ingest sources, compile interconnected markdown articles, query, lint, research, and generate outputs — all from Claude Code. Optionally view in Obsidian.
-
-Inspired by [Karpathy's LLM wiki concept](https://x.com/karpathy/status/2039805659525644595) and his [idea file](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
 ## Install
 
@@ -226,7 +233,7 @@ Claude Code is the compiler. Obsidian is an optional viewer.
 
 ## Credits
 
-- [Andrej Karpathy](https://x.com/karpathy) — the LLM wiki concept and idea file
+- [Andrej Karpathy](https://x.com/karpathy) — the [LLM wiki concept](https://x.com/karpathy/status/2039805659525644595) and [idea file](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
 - [Elisha Long](https://www.retardmaxx.com/) — retardmaxxing philosophy (act first, think later)
 - [tobi/qmd](https://github.com/tobi/qmd) — recommended local search engine for scaling beyond ~100 articles
 - [rvk7895/llm-knowledge-bases](https://github.com/rvk7895/llm-knowledge-bases) — prior art in Claude Code wiki plugins
