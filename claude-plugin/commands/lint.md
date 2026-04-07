@@ -6,16 +6,16 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:
 
 ## Your task
 
-First, check if a wiki exists by trying to read `~/wiki/_index.md` (global) and `.wiki/_index.md` (local).
+First, resolve the hub path: read `~/.config/llm-wiki/config.json` — if it exists and has `hub_path`, use that (expand `~`), otherwise default to `~/wiki/`. Call this **HUB**. Then check if a wiki exists by trying to read `HUB/_index.md` (global hub) and `.wiki/_index.md` (local).
 
 Read the linting rules at `skills/wiki-manager/references/linting.md`. Then run health checks on the wiki.
 
 ### Resolve wiki location
 
 1. `--local` → `.wiki/`
-2. `--wiki <name>` → look up in `~/wiki/wikis.json`
+2. `--wiki <name>` → look up in `HUB/wikis.json`
 3. Current directory has `.wiki/` → use it
-4. Otherwise → `~/wiki/`
+4. Otherwise → HUB
 
 If wiki does not exist, stop: "No wiki found. Run `/wiki init` first."
 

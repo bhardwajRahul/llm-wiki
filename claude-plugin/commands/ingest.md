@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:
 
 ## Your task
 
-First, check if a wiki exists by trying to read `~/wiki/_index.md` (global) and `.wiki/_index.md` (local).
+First, resolve the hub path: read `~/.config/llm-wiki/config.json` — if it exists and has `hub_path`, use that (expand `~`), otherwise default to `~/wiki/`. Call this **HUB**. Then check if a wiki exists by trying to read `HUB/_index.md` (global hub) and `.wiki/_index.md` (local).
 
 
 Read the ingestion protocol at `skills/wiki-manager/references/ingestion.md` and the structure spec at `skills/wiki-manager/references/wiki-structure.md`. Then ingest source material.
@@ -14,9 +14,9 @@ Read the ingestion protocol at `skills/wiki-manager/references/ingestion.md` and
 ### Resolve wiki location
 
 1. `--local` flag → `.wiki/`
-2. `--wiki <name>` flag → look up in `~/wiki/wikis.json`
+2. `--wiki <name>` flag → look up in `HUB/wikis.json`
 3. Current directory has `.wiki/` → use it
-4. Otherwise → `~/wiki/`
+4. Otherwise → HUB
 
 If the resolved wiki does not exist, stop: "No wiki found. Run `/wiki init` first."
 
@@ -70,7 +70,7 @@ Follow the inbox processing protocol from `references/ingestion.md`:
 
 ### Topic Wiki Routing (when no --wiki specified)
 
-When the wiki resolved to the hub (`~/wiki/`) and no `--wiki` flag was provided, route content to the right topic wiki AFTER fetching the source content (title, summary, tags are now known).
+When the wiki resolved to the hub (HUB) and no `--wiki` flag was provided, route content to the right topic wiki AFTER fetching the source content (title, summary, tags are now known).
 
 **Skip this step entirely if** `--wiki` or `--local` was explicitly provided.
 
@@ -78,7 +78,7 @@ When the wiki resolved to the hub (`~/wiki/`) and no `--wiki` flag was provided,
 
 If `--auto-classify` is set, or the user didn't specify `--wiki`:
 
-1. Read `~/wiki/wikis.json` to list topic wikis
+1. Read `HUB/wikis.json` to list topic wikis
 2. For each topic wiki with a `config.md`, read the description/scope (first 5 lines is enough)
 3. Match the source's title + summary + tags against wiki scopes
 4. Present a simple numbered choice:

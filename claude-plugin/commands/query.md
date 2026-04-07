@@ -6,16 +6,16 @@ allowed-tools: Read, Glob, Grep, Bash(ls:*), Edit
 
 ## Your task
 
-First, check if a wiki exists by trying to read `~/wiki/_index.md` (global) and `.wiki/_index.md` (local).
+First, resolve the hub path: read `~/.config/llm-wiki/config.json` — if it exists and has `hub_path`, use that (expand `~`), otherwise default to `~/wiki/`. Call this **HUB**. Then check if a wiki exists by trying to read `HUB/_index.md` (global hub) and `.wiki/_index.md` (local).
 
 Answer the question in $ARGUMENTS using ONLY the knowledge in the wiki. Follow the Q&A protocol below.
 
 ### Resolve wiki location
 
 1. `--local` → `.wiki/`
-2. `--wiki <name>` → look up in `~/wiki/wikis.json`
+2. `--wiki <name>` → look up in `HUB/wikis.json`
 3. Current directory has `.wiki/` → use it
-4. Otherwise → `~/wiki/`
+4. Otherwise → HUB
 
 If wiki does not exist or has no compiled articles, stop: "No wiki found (or no articles compiled). Run `/wiki init` and `/wiki:compile` first."
 
@@ -71,7 +71,7 @@ Most thorough. For complex questions requiring cross-referencing.
 4. **Read raw sources**: Read any raw sources that seem relevant but may not be fully compiled into articles yet
 
 5. **Sibling wiki peek**:
-   - Read `~/wiki/wikis.json`
+   - Read `HUB/wikis.json`
    - For each sibling wiki, read its `_index.md`
    - If overlap found, note it with specific article references
 

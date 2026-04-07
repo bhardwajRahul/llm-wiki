@@ -56,7 +56,7 @@ Use actual file counts for accuracy, not manual tracking:
 ## Cross-Wiki Index Peek
 
 When peeking at sibling wikis for overlap:
-1. Read `~/wiki/wikis.json` to get the list of all wikis
+1. Read `HUB/wikis.json` to get the list of all wikis
 2. For each sibling wiki, read ONLY its `_index.md` (not full articles)
 3. Check if any summaries or tags match the current query
 4. If overlap found, note it in the response — never read full articles from sibling wikis unless explicitly asked

@@ -32,10 +32,10 @@ Present this decomposition to the user for confirmation before proceeding.
 
 **If `--wiki` is set**: Use the existing topic wiki. Create a `theses/` subdirectory if it doesn't exist. The thesis research lives there alongside the wiki's regular articles.
 
-**If `--wiki` is NOT set**: Create a new topic wiki:
+**If `--wiki` is NOT set**: Create a new topic wiki. First, resolve the hub path: read `~/.config/llm-wiki/config.json` — if it exists and has `hub_path`, use that (expand `~`), otherwise default to `~/wiki/`. Call this **HUB**.
 1. Derive slug from the thesis (e.g., "sunlight reduces CAA independent of vitamin D" → `sunlight-caa-vitamin-d`)
-2. Create `~/wiki/topics/<slug>/` with full wiki structure
-3. Register in `wikis.json`, update hub `_index.md`
+2. Create `HUB/topics/<slug>/` with full wiki structure
+3. Register in `HUB/wikis.json`, update hub `_index.md`
 4. Set `config.md` description to the thesis statement
 
 In both cases, create a thesis file at `wiki/theses/<slug>.md`:
@@ -193,7 +193,7 @@ confidence: high|medium|low
 ### Phase 5: Report & Log
 
 1. Append to topic `log.md`: `## [YYYY-MM-DD] thesis | "<thesis>" → verdict: X (confidence: Y), N sources, M articles`
-2. Append to hub `~/wiki/log.md`: same
+2. Append to hub `HUB/log.md`: same
 
 3. Report:
    - **Thesis**: the claim

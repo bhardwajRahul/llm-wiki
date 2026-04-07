@@ -1,11 +1,13 @@
 # Wiki Directory Structure
 
+> **Configurable hub path**: `~/wiki/` is the default hub location. If `~/.config/llm-wiki/config.json` exists with a `hub_path` field, that path is used instead. Throughout this document, `~/wiki/` means "the resolved hub path" (HUB). See SKILL.md "Hub Path" section.
+
 ## Hub (~/wiki/)
 
 The hub is lightweight — it has NO content directories. It only tracks topic wikis.
 
 ```
-~/wiki/
+~/wiki/                            # or custom path from config.json
 ├── wikis.json                     # Registry of all topic wikis
 ├── _index.md                      # Lists topic wikis with stats
 ├── log.md                         # Global activity log
@@ -69,12 +71,12 @@ Same structure as above but rooted at `<project>/.wiki/` without `wikis.json` or
 
 ## Wiki Resolution Order
 
-When a command runs, resolve which wiki to use:
+When a command runs, first resolve the hub path (HUB) from `~/.config/llm-wiki/config.json`, defaulting to `~/wiki/`. Then resolve which wiki to use:
 
 1. `--local` flag present → `<cwd>/.wiki/`
-2. `--wiki <name>` flag present → look up name in `~/wiki/wikis.json`
+2. `--wiki <name>` flag present → look up name in `HUB/wikis.json`
 3. Current directory has `.wiki/` → use it
-4. Otherwise → `~/wiki/`
+4. Otherwise → HUB
 
 ## wikis.json Format
 
@@ -82,7 +84,7 @@ When a command runs, resolve which wiki to use:
 {
   "default": "~/wiki",
   "wikis": {
-    "main": { "path": "~/wiki", "description": "Global knowledge base" },
+    "hub": { "path": "~/wiki", "description": "Global knowledge base" },
     "<topic>": { "path": "~/wiki/topics/<topic>", "description": "..." }
   },
   "local_wikis": [

@@ -10,12 +10,22 @@ An LLM-compiled knowledge base. You (the LLM agent) are both the compiler and th
 
 ## Architecture
 
+### Hub Path
+
+Defaults to `~/wiki/`. Optionally configured via `~/.config/llm-wiki/config.json`:
+
+```json
+{ "hub_path": "~/Library/Mobile Documents/com~apple~CloudDocs/wiki" }
+```
+
+If the config exists, use `hub_path` (expand `~`) instead of `~/wiki/` everywhere below. Store as **HUB**. Use `/wiki config hub-path <path>` to set it up, or create the JSON manually.
+
 ### Hub (~/wiki/)
 
 The hub is lightweight — NO content, just a registry.
 
 ```
-~/wiki/
+~/wiki/                         # or custom path from config.json
 ├── wikis.json          # Registry of all topic wikis
 ├── _index.md           # Lists topic wikis with stats
 ├── log.md              # Global activity log
