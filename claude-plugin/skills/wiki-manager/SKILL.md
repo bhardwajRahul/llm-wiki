@@ -6,8 +6,8 @@ description: >
   in a project with a wiki, wants to ingest/compile/query/lint knowledge,
   or uses /wiki commands. Also activates when user says "wiki", "knowledge base",
   "ingest", "compile wiki", "add to wiki", "search wiki", or asks a factual
-  question in a directory containing .wiki/ or when the configured hub path exists
-  (check ~/.config/llm-wiki/config.json for hub_path, default ~/wiki/).
+  question in a directory containing .wiki/ or when ~/wiki/ exists or the
+  configured hub path exists (check ~/.config/llm-wiki/config.json for hub_path).
 tools:
   - Read
   - Write
@@ -25,13 +25,15 @@ You manage an LLM-compiled knowledge base. Source documents are ingested into `r
 
 ## Hub Path
 
-The hub defaults to `~/wiki/`. To use a different location (e.g., iCloud Drive), create `~/.config/llm-wiki/config.json`:
+The hub defaults to `~/wiki/`. If `~/wiki/` exists and is initialized (has `_index.md`), it is used directly — no config file needed. This is the simplest, most reliable path.
+
+To use a different location (e.g., iCloud Drive) when `~/wiki/` is not set up, create `~/.config/llm-wiki/config.json`:
 
 ```json
 { "hub_path": "~/Library/Mobile Documents/com~apple~CloudDocs/wiki" }
 ```
 
-**Resolution**: At the start of every operation, resolve **HUB** by following the protocol in [references/hub-resolution.md](references/hub-resolution.md). This handles tilde expansion, paths with spaces, and iCloud directory names correctly. All references to `~/wiki/` below mean HUB.
+**Resolution**: At the start of every operation, resolve **HUB** by following the protocol in [references/hub-resolution.md](references/hub-resolution.md) — check `~/wiki/` first, then fall back to config. This handles tilde expansion, paths with spaces, and iCloud directory names correctly. All references to `~/wiki/` below mean HUB.
 
 ## Wiki Location
 

@@ -19,7 +19,7 @@ Retract (remove) a source that was previously ingested into the wiki. This handl
 
 ### Resolve wiki location
 
-First, resolve **HUB** by following the protocol in `references/hub-resolution.md` (read config, expand leading `~` only, quote paths with spaces).
+First, resolve **HUB** by following the protocol in `references/hub-resolution.md` (check `~/wiki/` first, then config, expand leading `~` only, quote paths with spaces).
 
 1. `--local` flag → `.wiki/`
 2. `--wiki <name>` flag → look up in `HUB/wikis.json`

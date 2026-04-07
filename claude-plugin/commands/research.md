@@ -21,7 +21,7 @@ Conduct deep research on the topic in $ARGUMENTS. This is an automated pipeline:
 
 ### Resolve wiki location
 
-First, resolve **HUB** by following the protocol in `references/hub-resolution.md` (read config, expand leading `~` only, quote paths with spaces).
+First, resolve **HUB** by following the protocol in `references/hub-resolution.md` (check `~/wiki/` first, then config, expand leading `~` only, quote paths with spaces).
 
 **If `--new-topic` is set:**
 1. Derive a slug from the topic: lowercase, hyphens, no special chars, max 40 chars
