@@ -11,6 +11,11 @@ Every wiki operation must resolve the hub path before doing anything else. Follo
 5. **If config does not exist** or has no `hub_path` → default to `~/wiki/` (for initialization).
 6. Store the result as **HUB** for the rest of the operation.
 
+> **CRITICAL — Do NOT confuse directory existence with hub existence.**
+> The `~/wiki/` DIRECTORY may exist (e.g., leftover `.DS_Store`, empty folder) without being an initialized hub. Only `~/wiki/_index.md` existing counts as an initialized hub. If the directory exists but `_index.md` does not, fall through to config — do NOT initialize there.
+
+> **NEVER initialize a new hub at `~/wiki/` if config exists with a `hub_path`.** The config is authoritative for where hubs are created. If step 3 reads a config with `hub_path`, all initialization (new hub, new topic wiki) MUST happen at the config path, never at `~/wiki/`.
+
 ### Why this order
 
 `~/wiki/` is simple — no spaces, no tilde ambiguity. The config-based path (often iCloud: `~/Library/Mobile Documents/com~apple~CloudDocs/wiki`) has spaces and literal tildes in directory names that agents frequently mishandle. By checking `~/wiki/` first, we avoid the fragile path entirely when it's not needed.
