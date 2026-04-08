@@ -101,18 +101,20 @@ Flow: Scan indexes for summary/tag matches → Grep full-text → rank results �
 ### Output
 Flow: Gather relevant articles → generate artifact (summary/report/slides/etc) → save to `output/` → update indexes.
 
-## File Path Reporting
+## Links: File Paths and URLs
 
-When reporting file paths to the user (saved articles, ingested sources, outputs), always:
+Terminal links break when they wrap to a second line. Rules for all wiki operations:
 
-1. **Use full absolute paths** — expand `~`, HUB, and all relative segments. Relative paths like `output/file.md` are not clickable in terminals.
-2. **Never indent or line-wrap a path** — if a long path wraps to an indented second line, the link breaks. Put long paths on their own line:
+1. **Full absolute paths** — expand `~`, HUB, and all relative segments. Relative paths are not clickable.
+2. **Markdown link syntax for URLs** — use `[short text](url)`, never bare long URLs that wrap and break.
+3. **No indentation before links** — indentation eats terminal width. Put links flush-left on their own line.
+4. **One link per line** — don't embed a long path mid-sentence. Break it out:
    ```
    Saved to:
    /Users/name/wiki/topics/my-topic/output/report-2026-04-08.md
    ```
 
-This applies to all wiki operations: ingest, compile, research, output, assess.
+See `references/agent-prompts.md` for examples. Applies to ingest, compile, research, output, assess.
 
 ## Activity Log
 

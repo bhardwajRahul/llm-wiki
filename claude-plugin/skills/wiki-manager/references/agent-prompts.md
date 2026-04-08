@@ -66,18 +66,20 @@ When a research agent encounters an X.com or Twitter link:
 
 Do NOT waste time trying other approaches or debugging X.com login walls.
 
-## File Path Reporting
+## Links: File Paths and URLs
 
-When reporting file paths to the user (saved files, created articles, outputs), agents MUST:
+Terminal links break when they wrap to a second line. This applies to both file paths and URLs. Agents MUST follow these rules:
 
-1. **Use full absolute paths** — expand `~` and all relative segments. The user needs clickable links.
-   - WRONG: `output/article-guide-2026-04-08.md`
-   - WRONG: `wiki/topics/my-topic/wiki/article.md`
-   - RIGHT: `/Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/wiki/topics/my-topic/wiki/article.md`
+1. **Full absolute paths** — expand `~` and all relative segments. Relative paths are not clickable.
 
-2. **Never indent or line-wrap a path** — a path that wraps to a second indented line breaks the link in terminals. Keep the path on a single line. If the surrounding sentence is long, put the path on its own line.
-   - WRONG: `Saved to /Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/wiki/topics/
-     my-topic/wiki/article.md`
+2. **URLs use markdown link syntax** — never output bare long URLs. Use `[short text](url)` so the clickable area is the short text, not a 120-char URL that wraps and breaks.
+   - WRONG: `https://delvingbitcoin.org/t/shrincs-324-byte-stateful-post-quantum-signatures-with-static-backups/2158`
+   - RIGHT: `[Delving Bitcoin: SHRINCS thread](https://delvingbitcoin.org/t/shrincs-324-byte-stateful-post-quantum-signatures-with-static-backups/2158)`
+
+3. **No indentation before links** — indentation eats terminal width and causes wraps. Put paths and URLs flush-left on their own line if needed.
+
+4. **One link per line** — don't embed a long path or URL mid-sentence. Break it out:
+   - WRONG: `Saved to /Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/wiki/topics/my-topic/wiki/article.md which contains...`
    - RIGHT:
      ```
      Saved to:
