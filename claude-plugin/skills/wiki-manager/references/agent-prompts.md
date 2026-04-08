@@ -66,6 +66,24 @@ When a research agent encounters an X.com or Twitter link:
 
 Do NOT waste time trying other approaches or debugging X.com login walls.
 
+## File Path Reporting
+
+When reporting file paths to the user (saved files, created articles, outputs), agents MUST:
+
+1. **Use full absolute paths** — expand `~` and all relative segments. The user needs clickable links.
+   - WRONG: `output/article-guide-2026-04-08.md`
+   - WRONG: `wiki/topics/my-topic/wiki/article.md`
+   - RIGHT: `/Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/wiki/topics/my-topic/wiki/article.md`
+
+2. **Never indent or line-wrap a path** — a path that wraps to a second indented line breaks the link in terminals. Keep the path on a single line. If the surrounding sentence is long, put the path on its own line.
+   - WRONG: `Saved to /Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/wiki/topics/
+     my-topic/wiki/article.md`
+   - RIGHT:
+     ```
+     Saved to:
+     /Users/nvk/Library/Mobile Documents/com~apple~CloudDocs/wiki/topics/my-topic/wiki/article.md
+     ```
+
 ## Retardmax Variants
 - All templates: increase to 4-5 searches
 - Lower quality threshold: accept 2+ (not 3+)
