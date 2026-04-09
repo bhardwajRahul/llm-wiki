@@ -1,6 +1,6 @@
 ---
 description: "Ask questions against the compiled wiki. Supports three depth levels: quick (indexes only), standard (full articles), deep (everything + raw + sibling wikis). Answers from wiki content only, with citations."
-argument-hint: "<question> [--quick] [--deep] [--raw] [--wiki <name>] [--local]"
+argument-hint: "<question> [--quick] [--deep] [--raw] [--list] [--tag <tag>] [--category concepts|topics|references] [--wiki <name>] [--local]"
 allowed-tools: Read, Glob, Grep, Bash(ls:*), Edit
 ---
 
@@ -25,6 +25,9 @@ If wiki does not exist or has no compiled articles, stop: "No wiki found (or no 
 - **--quick**: Fast answer from indexes only (no full article reads)
 - **--deep**: Thorough answer — read all related articles, follow all links, search raw, peek sibling wikis
 - **--raw**: Also search raw sources (implied by --deep)
+- **--list**: Return a ranked list of matching articles instead of a synthesized answer. Useful for browsing what the wiki has on a topic before diving in.
+- **--tag <tag>**: Filter to articles with this tag in frontmatter
+- **--category <cat>**: Search only in concepts, topics, or references
 - No depth flag = **standard** (default)
 
 ### Query Depth Levels
@@ -82,7 +85,44 @@ Most thorough. For complex questions requiring cross-referencing.
    - Note where raw sources contain detail not yet in compiled articles
    - Identify all gaps and suggest specific sources to ingest
 
-### Output Format (all depths)
+### List Mode (`--list`)
+
+When `--list` is set, return a ranked list of matching articles instead of a synthesized answer. This replaces the old `/wiki:search` command.
+
+1. **Index scan**: Read relevant `_index.md` files. Check summaries and tags for matches.
+   - If `--category` specified, only read that category's index
+   - Otherwise read all category indexes under `wiki/`
+
+2. **Full-text search**: Use Grep to search `wiki/` for the query terms.
+   - If `--raw`, also search `raw/`
+
+3. **Tag filter**: If `--tag` specified, use Grep to find files with matching tags in YAML frontmatter: `tags:.*<tag>`.
+
+4. **Rank results**: Present ordered by relevance:
+   - Title match > summary match > body match
+   - Multiple term matches > single term match
+   - More recent > older
+
+**Output format for --list:**
+
+```
+## Search Results for "<query>"
+
+Found N results:
+
+### Wiki Articles
+1. **[Title](path)** — summary — tags: tag1, tag2
+2. **[Title](path)** — summary — tags: tag1
+
+### Raw Sources (if --raw)
+1. **[Title](path)** — summary — type: articles
+```
+
+If no results found, suggest alternative search terms or `/wiki:ingest` to add sources.
+
+Skip the synthesized answer, sources used, and knowledge gaps sections. Just return the list.
+
+### Output Format (all depths, not --list)
 
 [Answer in clear prose with markdown formatting]
 

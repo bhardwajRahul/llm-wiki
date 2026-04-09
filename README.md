@@ -14,6 +14,8 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, th
 
 ## Changelog
 
+**v0.0.17** — **Plan Command + Search Consolidation.** New `/wiki:plan` generates wiki-grounded implementation plans (6-stage pipeline: context assembly → interview → gap research → synthesis → plan → save). Supports `--format rfc|adr|spec`. Merged `/wiki:search` into `/wiki:query --list` — one less command, same functionality. `/wiki:ingest` now supports `--new-topic`.
+
 **v0.0.16** — **Full Path Reporting.** Agents now report full absolute paths (not relative) and never indent-wrap them, so file links are always clickable in terminals.
 
 **v0.0.15** — **X.com Fallback Chain.** Explicit fallback for X.com/Twitter links: Grok MCP → FxTwitter API → VxTwitter API → direct fetch. Agents no longer waste time debugging login walls. Install [ask-grok-mcp](https://github.com/nvk/ask-grok-mcp) for best results.
@@ -115,6 +117,10 @@ Check your installed version: look for the version in `/wiki` status output or c
 | `/wiki:query <question>` | Q&A against the wiki (standard depth) |
 | `/wiki:query <question> --quick` | Fast answer from indexes only |
 | `/wiki:query <question> --deep` | Thorough — reads everything, checks raw + sibling wikis |
+| `/wiki:query <terms> --list` | Find content by keyword, tag, or category (replaces old `/wiki:search`) |
+| `/wiki:plan <goal>` | Generate wiki-grounded implementation plan (interview → gap research → phased plan) |
+| `/wiki:plan <goal> --quick` | Plan from wiki content only — skip interview and gap research |
+| `/wiki:plan <goal> --format rfc\|adr\|spec` | Output as RFC, ADR, or tech spec instead of roadmap |
 | `/wiki:research <topic>` | 5 parallel agents: academic, technical, applied, news, contrarian |
 | `/wiki:research <topic> --new-topic` | Create a topic wiki and start researching — works from any directory |
 | `/wiki:research <topic> --min-time 1h` | Keep researching in rounds until time budget is spent |
@@ -122,7 +128,6 @@ Check your installed version: look for the version in `/wiki` status output or c
 | `/wiki:research <topic> --retardmax` | 10 agents: skip planning, max speed, ingest aggressively |
 | `/wiki:thesis <claim>` | Thesis-driven research: evidence for + against → verdict |
 | `/wiki:thesis <claim> --min-time 1h` | Multi-round thesis investigation with anti-confirmation-bias |
-| `/wiki:search <terms>` | Find content by keyword or tag |
 | `/wiki:lint` | Run health checks on the wiki |
 | `/wiki:lint --fix` | Auto-fix structural issues |
 | `/wiki:lint --deep` | Web-verify facts and suggest improvements |
@@ -278,6 +283,7 @@ Claude Code is the compiler. Obsidian is an optional viewer.
 | Quick | `--quick` | Reads indexes only. Fastest. For simple lookups. |
 | Standard | *(default)* | Reads relevant articles + full-text search. For most questions. |
 | Deep | `--deep` | Reads everything, searches raw sources, peeks sibling wikis. For complex questions. |
+| List | `--list` | Returns ranked article list instead of synthesized answer. Supports `--tag` and `--category` filters. |
 
 ## Credits
 
