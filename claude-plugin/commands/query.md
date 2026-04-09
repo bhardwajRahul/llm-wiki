@@ -1,6 +1,6 @@
 ---
-description: "Ask questions against the compiled wiki. Supports three depth levels: quick (indexes only), standard (full articles), deep (everything + raw + sibling wikis). Answers from wiki content only, with citations."
-argument-hint: "<question> [--quick] [--deep] [--raw] [--list] [--tag <tag>] [--category concepts|topics|references] [--with <wiki>...] [--wiki <name>] [--local]"
+description: "Ask questions against the compiled wiki. Supports quick/standard/deep depth levels, --list for browsing, and --resume to reload context after a session break. Answers from wiki content only, with citations."
+argument-hint: "<question> [--quick] [--deep] [--raw] [--list] [--resume] [--tag <tag>] [--category concepts|topics|references] [--with <wiki>...] [--wiki <name>] [--local]"
 allowed-tools: Read, Glob, Grep, Bash(ls:*), Edit
 ---
 
@@ -26,6 +26,7 @@ If wiki does not exist or has no compiled articles, stop: "No wiki found (or no 
 - **--deep**: Thorough answer — read all related articles, follow all links, search raw, peek sibling wikis
 - **--raw**: Also search raw sources (implied by --deep)
 - **--list**: Return a ranked list of matching articles instead of a synthesized answer. Useful for browsing what the wiki has on a topic before diving in.
+- **--resume**: Load recent activity context and show a "where you left off" briefing. If a question is also provided, answer it after the briefing using standard depth.
 - **--tag <tag>**: Filter to articles with this tag in frontmatter
 - **--category <cat>**: Search only in concepts, topics, or references
 - **--with <wiki>**: Load a supplementary wiki as additional context when answering. The primary wiki provides the subject; `--with` wikis provide craft/skill knowledge. Multiple `--with` flags allowed.
@@ -122,6 +123,53 @@ Found N results:
 If no results found, suggest alternative search terms or `/wiki:ingest` to add sources.
 
 Skip the synthesized answer, sources used, and knowledge gaps sections. Just return the list.
+
+### Resume Mode (`--resume`)
+
+Context reload for new sessions. Reads persistent state and outputs a briefing so you can pick up where you left off.
+
+1. **Check for interrupted sessions**: Try to read `.research-session.json` and `.thesis-session.json` in the wiki root. If either exists with `status: "in_progress"`, report: topic/thesis, current round, sources so far, last round's gaps or verdict direction.
+
+2. **Recent activity**: Read `log.md`. Extract the last 10 entries (grep for `^## \[`). Present them as a compact timeline.
+
+3. **Wiki stats**: Read `_index.md` — pull total source count, article count, and output count from the stats section.
+
+4. **Most recent work**: Read the master `_index.md` table. Identify the 3 most recently updated articles by their `Updated` column. Show their titles, paths, and summaries from the index (do NOT read full articles — keep it fast).
+
+5. **Suggested next steps**: Based on what you found:
+   - If interrupted session exists → suggest resuming it (e.g., "Run `/wiki:research --min-time ...` to continue")
+   - If recent research logged gaps → suggest addressing them
+   - If recent ingests have no corresponding compile → suggest `/wiki:compile`
+   - If nothing recent → suggest `/wiki:research` or `/wiki:ingest` to add material
+
+**Output format:**
+
+```
+## Resume: <wiki-title>
+
+**Interrupted session?** Yes — research on "<topic>", round N, M sources so far. Last gaps: ...
+(or: No interrupted sessions.)
+
+**Recent activity** (last 10 ops):
+- YYYY-MM-DD: operation | description
+- ...
+
+**Wiki stats**: N sources, M articles, K outputs
+
+**Last updated articles**:
+- [Article](path) — summary
+- [Article](path) — summary
+- [Article](path) — summary
+
+**Suggested next steps**:
+- ...
+```
+
+**If a question is also provided**: After the briefing, answer the question using standard depth. Include the usual Sources used / Knowledge gaps sections for the answer portion only.
+
+**If no question**: Skip the Sources used / Knowledge gaps sections entirely — just the briefing.
+
+**Log**: Append `## [YYYY-MM-DD] query | --resume briefing`
 
 ### Output Format (all depths, not --list)
 
