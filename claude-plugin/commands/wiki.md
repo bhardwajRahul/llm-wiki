@@ -146,7 +146,7 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 
 ### If $ARGUMENTS is empty (or just "status"/"stats"/"show") and a wiki exists
 
-Show wiki status:
+Show wiki status. Before reading any `_index.md`, stale-check it: count `.md` files in the directory vs rows in the index table. If mismatched, rebuild inline from file frontmatter first (see `references/indexing.md` Derived Index Protocol).
 
 1. If at the hub level (HUB):
    - Read `HUB/_index.md` and `HUB/wikis.json`

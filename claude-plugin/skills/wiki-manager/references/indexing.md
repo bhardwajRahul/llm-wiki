@@ -14,13 +14,57 @@ When answering a query or finding content:
 
 This means Claude typically reads 2-3 small index files + 3-8 full articles, rather than scanning dozens of files.
 
-## When to Update Indexes
+## Derived Index Protocol
 
-Indexes MUST be updated whenever:
+**Indexes are a cache, not a source of truth.** The `.md` files and their YAML frontmatter are the source of truth. Indexes are rebuilt on read when stale. This makes the wiki concurrent-safe — multiple sessions can write simultaneously without locks.
+
+### Stale Detection
+
+Before using any `_index.md`, check staleness:
+
+1. Count `.md` files in the directory (excluding `_index.md`)
+2. Count rows in the `_index.md` contents table
+3. If counts differ → index is stale → rebuild inline before proceeding
+
+### Rebuild Inline
+
+When an index is stale:
+
+1. List all `.md` files in the directory (excluding `_index.md`)
+2. Read each file's YAML frontmatter (title, summary, tags, updated)
+3. Regenerate the `_index.md` contents table from frontmatter
+4. Recalculate statistics (source count, article count, etc.)
+5. Write the new `_index.md`
+6. Continue with the original operation
+
+### Write Operations (ingest, compile, research)
+
+- Write the article/source file with correct frontmatter — this is the source of truth
+- Index updates are **best-effort** — update if convenient, but if skipped or if a concurrent session overwrites, no data is lost
+- The next read will detect staleness and rebuild
+
+### Read Operations (query, status, lint)
+
+- Always stale-check before trusting the index
+- If stale, rebuild first, then proceed
+- This adds a small overhead on first read after writes, but guarantees accuracy
+
+### Why This Works for Concurrency
+
+- Two sessions writing articles simultaneously: both write files, neither corrupts the other
+- Index may be momentarily stale or one rebuild may overwrite another's rebuild — but since both rebuild from the same source files on disk, the result converges to the same correct state
+- `log.md` is append-only with small atomic writes — already safe
+- No locks needed, no stale lock cleanup, no coordination between sessions
+
+## When to Update Indexes (Best-Effort)
+
+Write operations SHOULD update indexes when convenient:
 - A file is added to the directory
 - A file is removed from the directory
 - A file's frontmatter (title, summary, tags) changes
 - Statistics change (after compilation, after lint)
+
+But these updates are optional. If skipped (e.g., due to a crash or concurrent write), the next read operation will detect the stale index and rebuild it automatically.
 
 ## Index Update Procedure
 
@@ -42,13 +86,7 @@ Indexes MUST be updated whenever:
 
 ### Master Index Statistics
 
-The root `_index.md` statistics must be recalculated on:
-- Any ingestion (source count changes)
-- Any compilation (article count may change)
-- Any lint run (lint date updates)
-- Any output generation (output count changes)
-
-Use actual file counts for accuracy, not manual tracking:
+The root `_index.md` statistics are derived from actual file counts, not manual tracking:
 - Sources: count .md files in `raw/` subdirectories (excluding `_index.md`)
 - Articles: count .md files in `wiki/` subdirectories (excluding `_index.md`)
 - Outputs: count .md files in `output/` (excluding `_index.md`)

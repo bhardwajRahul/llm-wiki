@@ -143,7 +143,7 @@ Additionally includes:
 
 ## log.md Format
 
-Append-only chronological activity log. Every wiki operation appends an entry. Never edit or delete existing entries. Format is grep-friendly:
+Append-only chronological activity log. Every wiki operation appends an entry. Never edit or delete existing entries. **Always open for append, never read-modify-write** — this makes concurrent writes safe (lines from multiple sessions interleave without corruption). Format is grep-friendly:
 
 ```markdown
 # Wiki Activity Log

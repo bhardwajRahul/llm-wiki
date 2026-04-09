@@ -46,12 +46,7 @@ If wiki does not exist, stop: "No wiki found. Run `/wiki init` first."
 
 6. **Bidirectional links**: For every See Also link A→B, ensure B→A exists
 
-7. **Update all indexes**:
-   - `wiki/concepts/_index.md`
-   - `wiki/topics/_index.md`
-   - `wiki/references/_index.md`
-   - `wiki/_index.md`
-   - Master `_index.md` — update article count, set "Last compiled" to today, add to Recent Changes
+7. **Update indexes (best-effort)**: Update `wiki/concepts/_index.md`, `wiki/topics/_index.md`, `wiki/references/_index.md`, `wiki/_index.md`, and master `_index.md` (article count, "Last compiled" date, Recent Changes). If any index update is skipped or interrupted, no data is lost — the next read operation will detect the stale index and rebuild it from file frontmatter. See `references/indexing.md` Derived Index Protocol.
 
 8. **Log**: Append to `log.md`: `## [YYYY-MM-DD] compile | N sources → X new articles, Y updated (list slugs)`
 

@@ -142,9 +142,7 @@ When `--inbox` is set and no `--wiki` was provided, classify items as a batch:
    summary: "2-3 sentence summary"
    ---
    ```
-3. Update `raw/{type}/_index.md` — add row to Contents table
-4. Update `raw/_index.md` — add row
-5. Update master `_index.md` — increment source count, add to Recent Changes
-6. Append to `log.md`: `## [YYYY-MM-DD] ingest | Title (raw/type/slug.md)`
+3. Update `raw/{type}/_index.md`, `raw/_index.md`, and master `_index.md` (best-effort — if skipped or interrupted, the next read will rebuild from file frontmatter. See `references/indexing.md` Derived Index Protocol.)
+4. Append to `log.md`: `## [YYYY-MM-DD] ingest | Title (raw/type/slug.md)`
 7. Report: what was ingested, where saved, detected tags
 8. Check uncompiled source count. If 5+, suggest `/wiki:compile`

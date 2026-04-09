@@ -32,6 +32,10 @@ If wiki does not exist or has no compiled articles, stop: "No wiki found (or no 
 - **--with <wiki>**: Load a supplementary wiki as additional context when answering. The primary wiki provides the subject; `--with` wikis provide craft/skill knowledge. Multiple `--with` flags allowed.
 - No depth flag = **standard** (default)
 
+### Index Freshness Check
+
+Before using any `_index.md`, verify it's current: count `.md` files in the directory (excluding `_index.md`) and compare against rows in the index table. If counts differ, rebuild the index inline from file frontmatter before proceeding. See `references/indexing.md` Derived Index Protocol.
+
 ### Query Depth Levels
 
 #### Quick (`--quick`)

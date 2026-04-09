@@ -52,7 +52,7 @@ See [references/wiki-structure.md](references/wiki-structure.md) for the complet
 
 ## Core Principles
 
-1. **Indexes are navigation.** Always read `_index.md` files first. They contain summaries, tags, and file lists. Never scan directories blindly. Keep indexes current — they are the backbone.
+1. **Indexes are a derived cache.** The `.md` files and their YAML frontmatter are the source of truth. `_index.md` files are a cached view rebuilt on read when stale. Always read indexes first for navigation — but before trusting one, stale-check it (file count vs row count). See [references/indexing.md](references/indexing.md) for the Derived Index Protocol.
 
 2. **Raw is immutable.** Once ingested into `raw/`, sources are never modified. They are a record of what was ingested and when. All synthesis happens in `wiki/`.
 
@@ -164,6 +164,16 @@ Automatically run a quick structural check when any of these triggers occur:
 - **Auto-fix trivial issues** — missing indexes, unregistered wikis, orphan files. Just fix and note in log.
 - **Warn on structural problems** — content in wrong place, missing directories, stale indexes. Tell the user what's wrong and suggest `/wiki:lint --fix`.
 - **Never block the user's request** — run the check, fix what you can, report issues, then continue with what the user actually asked for.
+
+## Concurrency
+
+Multiple Claude Code sessions can safely read and write to the same wiki simultaneously. No locks are needed.
+
+- **Indexes** are derived from the actual files on disk. If two sessions write articles at the same time, the next read rebuilds the index from whatever files exist. Both rebuilds converge to the same correct result.
+- **log.md** is append-only with small atomic writes. Concurrent appends are safe.
+- **Article/source files** are written independently. Two sessions creating different files never conflict. Two sessions editing the same file is unlikely and handled by last-write-wins (acceptable for a wiki — the content is always rebuildable from raw sources).
+
+See [references/indexing.md](references/indexing.md) for the Derived Index Protocol.
 
 ## Session Management
 
