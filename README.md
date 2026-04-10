@@ -14,6 +14,8 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, th
 
 ## Changelog
 
+**v0.0.20** — **Bug fixes.** `/wiki` bare command now resolves correctly — the fuzzy router from v0.0.19 is reachable without typing `/wiki:wiki`.
+
 **v0.0.19** — **Fuzzy Intent Router.** `/wiki` now understands natural language — type what you want and it routes to the right subcommand. URLs route to ingest, questions route to query, "research X" routes to research, "where was I" routes to resume. Ambiguous input gets a numbered menu instead of guessing.
 
 **v0.0.18** — **Query Resume Mode.** New `--resume` flag on `/wiki:query` reloads context after a session break. Reads interrupted research/thesis sessions, recent log entries, wiki stats, and last-updated articles to produce a "where you left off" briefing. Supports combo mode: `--resume` alone or `--resume` + a question.
