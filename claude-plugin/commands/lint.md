@@ -49,12 +49,33 @@ Check that every raw source is referenced by at least one wiki article. Find orp
 #### 7. C7: Deep Checks (only if --deep)
 Use WebSearch to spot-check key claims. Identify stale content. Suggest new connections and articles.
 
+#### 8. C8: Project Hygiene (Critical/Warning)
+For each `output/projects/<slug>/_project.md`:
+- Validate frontmatter (`type: project-manifest`, `goal`, `status`, `created`, `updated`)
+- Verify `<!-- DERIVED -->` / `<!-- /DERIVED -->` delimiters present in the Members section
+- Scan the project folder recursively (max 3 levels) and diff against the rendered Members list
+- Check every markdown file inside the project folder has `project: <slug>` frontmatter
+- Check that the `project:` value matches the containing folder slug
+- Validate slug format (lowercase, hyphen-separated, ≤40 chars, no dates)
+
+See `references/projects.md` § "Derived index regeneration" and `references/linting.md` § C8.
+
+#### 9. C9: Project Candidates (Suggestion)
+Scan `output/` (excluding `projects/`) for migration candidates:
+- **Critical**: loose binaries (`.png`, `.jpg`, `.pdf`, `.csv`, `.svg`, `.zip`) in `output/` root — architecture violation
+- **Critical**: any non-`projects/` subdirectory inside `output/` containing files — architecture violation
+- **Suggestion**: markdown outputs with sibling binaries sharing a basename prefix (e.g., `article-foo.md` + `article-foo-hero.jpg`)
+- **Suggestion**: ≥3 markdown outputs sharing a common prefix — strip dates, version tags (`-v\d+`, `-final`, `-release`), and type prefixes (`article-`, `output-`, `report-`) before comparing
+- **Suggestion (fallback)**: ≥3 loose markdown outputs and no `output/projects/` folder exists — report as unmigrated wiki with a default single-project seed using the wiki slug. This catches topical clusters that don't share a leading prefix.
+
+For each candidate cluster, compute a proposed slug per the heuristic in `references/linting.md` § C9 and output a ready-to-paste `/wiki:project new` + `/wiki:project add` block.
+
 ### If --fix
 
 For each fixable issue, apply the auto-fix from the rules table in `references/linting.md`. Report what was fixed.
 
-IMPORTANT: Only auto-fix issues that have clear, unambiguous fixes (missing index entries, broken stats, etc.). Do NOT auto-fix content quality issues or rewrite articles.
+IMPORTANT: Only auto-fix issues with clear, unambiguous fixes — missing index entries, broken stats, stale `_project.md` Members sections, missing `project:` frontmatter on files already inside project folders, stale `output/_index.md` when `projects/` exists, etc. Do NOT auto-fix content quality issues. Do NOT move files into projects — C9 candidates are human-authored via `/wiki:project new` + `/wiki:project add`. Do NOT rewrite articles.
 
 ### Report
 
-Present the lint report in the format specified in `references/linting.md`. Update master `_index.md` with "Last lint" date. Append to `log.md`: `## [YYYY-MM-DD] lint | N checks, N critical, N warnings, N suggestions, N auto-fixed`
+Present the lint report in the format specified in `references/linting.md`, including the **Projects** and **Project Candidates** sections. Update master `_index.md` with "Last lint" date. Append to `log.md`: `## [YYYY-MM-DD] lint | N checks, N critical, N warnings, N suggestions, N candidates, N auto-fixed`

@@ -41,6 +41,8 @@ Read `wiki/_index.md` and category indexes. For each key concept:
 
 ### Step 5: Write/Update Articles
 
+**For new outputs with binary artifacts:** If a new output will produce binary siblings (images, diagrams, CSVs, rendered screenshots, code files), create it inside `output/projects/<slug>/` from the start rather than scattering into `output/` root. See `references/projects.md` for the architecture. If there is a focused project (`.wiki-session.json`), default to writing into it. Otherwise prompt for a slug and goal and invoke `/wiki:project new` before writing the artifacts. Loose markdown outputs (no binary siblings) can still land flat in `output/` for backward compatibility.
+
 **For new articles:**
 
 1. Write the abstract paragraph — what is this and why does it matter?
@@ -80,6 +82,8 @@ After all articles are written/updated:
 1. Each category `_index.md` (concepts, topics, references) — add/update rows
 2. `wiki/_index.md` — add/update rows
 3. Master `_index.md` — update article count, set "Last compiled" to today, add to Recent Changes
+4. For every `output/projects/*/_project.md`, regenerate the Members section between the `<!-- DERIVED -->` / `<!-- /DERIVED -->` delimiters per the folder-scan rules in `references/projects.md` § "Derived index regeneration", and bump the manifest's `updated:` field if the member list actually changed. This is **best-effort** and follows the same concurrency model as `_index.md` — if skipped or clobbered by a concurrent session, the next lint/compile will fix it. Skip manifests missing the delimiters (warn instead of writing).
+5. If `output/projects/` exists, regenerate `output/_index.md` as a projects-aware listing (table of projects + any remaining loose outputs) rather than a flat file table.
 
 ## Quality Standards
 
