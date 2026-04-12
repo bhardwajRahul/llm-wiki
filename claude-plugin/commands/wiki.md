@@ -110,12 +110,10 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 | 9 | **Assess** | "compare to", "assess", "gap analysis" | `Skill: wiki:assess` |
 | 10 | **Plan** | "plan for", "implementation plan", "architecture for" | `Skill: wiki:plan` |
 | 11 | **Retract** | "remove source", "retract", "delete source", "pull out" | `Skill: wiki:retract` |
-| 12 | **Project (new)** | "new project", "start a project", "create project", "start working on" (+ slug) | `Skill: wiki:project` with `new <slug> "goal"` |
-| 13 | **Project (focus)** | "focus on", "work on", "switch to" (+ existing project slug) | `Skill: wiki:project` with `focus <slug>` |
-| 14 | **Project (list)** | "list projects", "what projects", "show projects", "my projects" | `Skill: wiki:project` with `list` |
-| 15 | **Project (show)** | "show project X", "what's in project X", "open project X" | `Skill: wiki:project` with `show <slug>` |
-| 16 | **Project (archive)** | "archive project", "I'm done with project", "close project" | `Skill: wiki:project` with `archive <slug>` |
-| 17 | **Project (unfocus)** | "unfocus", "stop working on project", "clear focus", "back to hub" | `Skill: wiki:project` with `unfocus` |
+| 12 | **Project (new)** | "new project", "start a project", "create project" (+ slug and goal) | `Skill: wiki:project` with `new <slug> "goal"` |
+| 13 | **Project (list)** | "list projects", "what projects", "show projects", "my projects" | `Skill: wiki:project` with `list` |
+| 14 | **Project (show)** | "show project X", "what's in project X", "open project X" | `Skill: wiki:project` with `show <slug>` |
+| 15 | **Project (archive)** | "archive project", "I'm done with project", "close project" | `Skill: wiki:project` with `archive <slug>` |
 
 **Confidence routing:**
 
@@ -140,9 +138,8 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 **Key rules:**
 - Never guess when ambiguous. A quick menu is faster than undoing the wrong action.
 - Strip the signal words when passing args to the target command (e.g., "add https://example.com" → pass just the URL to ingest, not "add https://example.com").
-- Include `--wiki` or `--local` flags from the original args when routing.
-- **Respect focused project**: Before routing `ingest`, `research`, `query`, or `output`, check if `.wiki-session.json` exists in the resolved wiki with a `focused_project`. If so, pass `--project <slug>` through to the target command unless the user explicitly named a different project.
-- **Project intent disambiguation**: "work on X" is ambiguous — if X matches an existing project slug, route to `project focus`. If X doesn't match and contains a goal phrase, offer to create via `project new`. If unsure, show a menu.
+- Include `--wiki`, `--local`, and `--project` flags from the original args when routing.
+- **No ambient project focus**: `--project <slug>` must be passed explicitly by the user. The focus-session mechanism was removed in the v0.2 projects simplification (see `skills/wiki-manager/references/projects.md` § "Focus"). If the user says "work on project X" without a clear sub-intent, treat it as a request to `show` the project — not as a focus state change.
 
 ---
 

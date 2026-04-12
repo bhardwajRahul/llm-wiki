@@ -20,9 +20,11 @@ Conduct deep research on the topic in $ARGUMENTS. This is an automated pipeline:
 - **--local**: Use project-local `.wiki/`
 - **--project <slug>**: Tag all new outputs with this project. The research playbook/summary artifact is saved inside `output/projects/<slug>/` instead of flat `output/`. Compiled wiki articles get `project: <slug>` frontmatter. If the project doesn't exist, fail early with a helpful error. See `references/projects.md` for the projects architecture.
 
-### Focus-aware behavior
+### `--project <slug>` flag
 
-Before starting, check `<wiki-root>/.wiki-session.json` for a `focused_project` field. If present and no explicit `--project` flag is set, treat the focused project as an implicit `--project <slug>`. Explicit flags always win over focus.
+If `--project <slug>` is set, the research playbook/summary artifact is saved inside `output/projects/<slug>/` instead of flat `output/`, and compiled wiki articles get `project: <slug>` frontmatter. Verify the project exists at `<wiki-root>/output/projects/<slug>/WHY.md` before starting; if not, fail early with a suggestion to run `/wiki:project new <slug> "goal"` first.
+
+There is no ambient project focus — pass `--project` explicitly when you want project scope. The focus-session mechanism was removed in the v0.2 projects simplification; see `references/projects.md` § "Focus" for the rationale.
 
 ### Resolve HUB and wiki
 

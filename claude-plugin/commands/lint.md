@@ -49,32 +49,30 @@ Check that every raw source is referenced by at least one wiki article. Find orp
 #### 10. C7: Deep Checks (only if --deep)
 Use WebSearch to spot-check key claims. Identify stale content. Suggest new connections and articles.
 
-#### 11. C8: Project Hygiene (Critical/Warning)
-For each `output/projects/<slug>/_project.md`:
-- Validate frontmatter (`type: project-manifest`, `goal`, `status`, `created`, `updated`)
-- Verify `<!-- DERIVED -->` / `<!-- /DERIVED -->` delimiters present in the Members section
-- Scan the project folder recursively (max 3 levels) and diff against the rendered Members list
-- Check every markdown file inside the project folder has `project: <slug>` frontmatter
-- Check that the `project:` value matches the containing folder slug
-- Validate slug format (lowercase, hyphen-separated, ≤40 chars, no dates)
+#### 11. C8: Project Hygiene (Critical/Warning/Suggestion)
+For each `output/projects/<slug>/` directory. Sub-check execution order matters — run C8c first so migrated projects pass C8a in the same lint pass:
 
-See `references/projects.md` § "Derived index regeneration" and `references/linting.md` § C8.
+1. **C8c** (run first): if a legacy `_project.md` is present, migrate it to `WHY.md` per the rule in `references/linting.md` § C8 (critical, auto-fixable — this is the first real application of lint-is-the-migration principle).
+2. **C8a**: verify `WHY.md` exists and is non-empty (critical — projects without rationale become black boxes; LLMs rebuild wrong without the why).
+3. **C8d**: slug format (warning — lowercase, hyphen-separated, ≤40 chars, no dates).
+4. **C8b**: compute staleness by following each member file's `sources:` chain. If any raw source has an `ingested:` newer than the member's `updated:`, flag the project (suggestion — human re-evaluates, never auto-fixed).
+
+See `references/linting.md` § C8 for the full migration rule and `references/projects.md` for the architecture rationale.
 
 #### 12. C9: Project Candidates (Suggestion)
-Scan `output/` (excluding `projects/`) for migration candidates:
-- **Critical**: loose binaries (`.png`, `.jpg`, `.pdf`, `.csv`, `.svg`, `.zip`) in `output/` root — architecture violation
-- **Critical**: any non-`projects/` subdirectory inside `output/` containing files — architecture violation
-- **Suggestion**: markdown outputs with sibling binaries sharing a basename prefix (e.g., `article-foo.md` + `article-foo-hero.jpg`)
-- **Suggestion**: ≥3 markdown outputs sharing a common prefix — strip dates, version tags (`-v\d+`, `-final`, `-release`), and type prefixes (`article-`, `output-`, `report-`) before comparing
-- **Suggestion (fallback)**: ≥3 loose markdown outputs and no `output/projects/` folder exists — report as unmigrated wiki with a default single-project seed using the wiki slug. This catches topical clusters that don't share a leading prefix.
+Scan `output/` for architectural violations and migration candidates:
+- **C9a** (critical): loose binaries in `output/` root — relative paths will break
+- **C9b** (critical): non-`projects/` subdirectories containing files
+- **C9c** (warning): `output/projects/<slug>/` folder without a `WHY.md`
+- **C9d** (suggestion): ≥3 loose markdown outputs sharing a prefix — candidate for grouping
 
-For each candidate cluster, compute a proposed slug per the heuristic in `references/linting.md` § C9 and output a ready-to-paste `/wiki:project new` + `/wiki:project add` block.
+For each C9d cluster, output a ready-to-paste `/wiki:project new` + `/wiki:project add` block. Never auto-moved — grouping is a human decision.
 
 ### If --fix
 
 For each fixable issue, apply the auto-fix from the rules table in `references/linting.md`. Report what was fixed.
 
-IMPORTANT: Only auto-fix issues with clear, unambiguous fixes — missing index entries, broken stats, stale `_project.md` Members sections, missing `project:` frontmatter on files already inside project folders, stale `output/_index.md` when `projects/` exists, legacy frontmatter keys/values (C13), files in the wrong canonical `raw/` or `wiki/` directory (C11), etc. Do NOT auto-fix content quality issues. Do NOT move files into projects — C9 candidates are human-authored via `/wiki:project new` + `/wiki:project add`. Never auto-delete unknown directories (C12) — warn only. On slug collisions during a C11 placement move, skip and warn. Do NOT rewrite articles.
+IMPORTANT: Only auto-fix issues with clear, unambiguous fixes — missing index entries, broken stats, legacy `_project.md` → `WHY.md` migration (C8c), stale `output/_index.md` when `projects/` exists, legacy frontmatter keys/values (C13), files in the wrong canonical `raw/` or `wiki/` directory (C11), etc. Do NOT auto-fix content quality issues. Do NOT create `WHY.md` with placeholder goals (C8a is warn-only — manufactured rationale is worse than the missing file). Do NOT move files into projects — C9 candidates are human-authored via `/wiki:project new` + `/wiki:project add`. Never auto-delete unknown directories (C12) — warn only. On slug collisions during a C11 placement move, skip and warn. Do NOT rewrite articles.
 
 ### Report
 

@@ -1,16 +1,16 @@
 ---
-description: "Manage projects inside a topic wiki. Projects are folders under output/projects/ that bundle related outputs (playbooks, images, code, data) with a goal, lifecycle, and manifest. Focus into a project to scope subsequent commands automatically."
-argument-hint: "new <slug> \"goal\" | list [--archived] | show [<slug>] | add <slug> <path> | focus <slug> | unfocus | archive <slug> | retract <slug> | rename <old> <new>"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(mkdir:*), Bash(mv:*), Bash(date:*), Bash(rm:*), Bash(basename:*), Bash(find:*), Bash(wc:*)
+description: "Manage projects inside a topic wiki. Projects are folders under output/projects/ that group related outputs (playbooks, images, code, data) with a goal captured in WHY.md."
+argument-hint: "new <slug> \"goal\" | list [--archived] | show <slug> | add <slug> <path> | archive <slug>"
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(mkdir:*), Bash(mv:*), Bash(date:*), Bash(basename:*), Bash(find:*), Bash(wc:*)
 ---
 
 ## Your task
 
-Manage projects — folders inside a topic wiki's `output/projects/` directory that group related outputs with a goal, lifecycle, and manifest.
+Manage projects — folders inside a topic wiki's `output/projects/` directory that group related outputs. The only required file in a project is `WHY.md`, which captures the goal/rationale in plain markdown.
 
 Follow the standard prelude in `skills/wiki-manager/references/command-prelude.md` (variant: **wiki-neutral** — see deviation below for the step-4 fallback).
 
-Read the projects architecture at `skills/wiki-manager/references/projects.md` for the full specification of folder layout, `_project.md` manifest format, lifecycle states, multi-project membership via `also_in:`, and focus session state.
+Read the projects architecture at `skills/wiki-manager/references/projects.md` for the full rationale — particularly *why* `WHY.md` is the only required file (it holds the precious, non-derivable rationale) and *why* everything else is derived from filesystem state.
 
 ### Deviation: wiki resolution step 4
 
@@ -22,17 +22,15 @@ The first word is the subcommand. Subsequent words are args.
 
 | Subcommand | Args | Purpose |
 |------------|------|---------|
-| `new` | `<slug> "goal"` | Create a new project |
-| `list` | `[--archived]` | List all projects |
-| `show` | `[<slug>]` | Show a project manifest (or focused project if no arg) |
+| `new` | `<slug> "goal"` | Create a new project with a WHY.md |
+| `list` | `[--archived]` | List projects (active by default) |
+| `show` | `<slug>` | Show a project's WHY.md and member files |
 | `add` | `<slug> <path>` | Move an existing file into a project |
-| `focus` | `<slug>` | Set ambient project context |
-| `unfocus` | (none) | Clear ambient project context |
-| `archive` | `<slug>` | Mark status: archived (no file moves) |
-| `retract` | `<slug>` | Mark status: retracted (no file moves) |
-| `rename` | `<old> <new>` | Rename a project folder + update references |
+| `archive` | `<slug>` | Move folder to `.archive/` (reversible via mv) |
 
 If `$ARGUMENTS` is empty, show help (list subcommands with examples) and exit.
+
+**Removed in v0.2 simplification**: `focus`, `unfocus`, `retract`, `rename`. See `references/projects.md` § "Focus" for the rationale on dropping focus (pass `--project <slug>` explicitly instead). Rename and retract are rare and better done via direct filesystem ops (`mv`, `rm -rf`) than wrapped subcommands.
 
 ---
 
@@ -49,93 +47,72 @@ Create a new project.
 
 **Validate goal**: Mandatory. If missing, prompt: `Goal is required. What is this project trying to accomplish?`
 
-**Check collision**: If `<wiki-root>/output/projects/<slug>/` already exists, fail: `Project "<slug>" already exists at <path>. Use a different slug.`
+**Check collision**: If `<wiki-root>/output/projects/<slug>/` already exists (active or archived), fail: `Project "<slug>" already exists at <path>. Use a different slug.`
 
 **Create**:
 1. `mkdir -p <wiki-root>/output/projects/<slug>/`
-2. Write `<wiki-root>/output/projects/<slug>/_project.md` with the template below
-3. Auto-focus into the new project (write `.wiki-session.json`)
-4. Report: `Created project "<slug>" at <path>. Focused.`
+2. Write `<wiki-root>/output/projects/<slug>/WHY.md` using the template below
+3. Report: `Created project "<slug>" at <path>.`
 
-**`_project.md` template**:
+**`WHY.md` template**:
 ```markdown
----
-title: "<human title derived from slug>"
-type: project-manifest
-goal: "<goal>"
-status: active
-created: <YYYY-MM-DD>
-updated: <YYYY-MM-DD>
-tags: []
-related_wikis: []
----
-
 # <Title>
-
-## Goal
 
 <goal>
 
 ## Context
 
-<!-- Why this project exists, what triggered it, who cares -->
+<!-- Why this project exists, what triggered it, who cares. Delete this section if you don't need it. -->
 
-## Current State
+## Current state
 
-<!-- Where things stand, what's next, outstanding questions -->
-
-## Members
-<!-- DERIVED — regenerated on demand, do not hand-edit below -->
-<!-- /DERIVED -->
-
-## External Members (via also_in)
-<!-- DERIVED — outputs in other project folders that also_in this project -->
-<!-- /DERIVED -->
-
-## Research Sessions
-
-<!-- Link to research log entries, raw sources, theses -->
+<!-- Where things stand, what's next, outstanding questions. Delete this section if you don't need it. -->
 ```
 
-Derive the title from the slug: `bitcoin-quantum-risk` → `Bitcoin Quantum Risk`. Capitalize each hyphen-separated token.
+Derive the title from the slug: `bitcoin-quantum-risk` → `Bitcoin Quantum Risk`. Capitalize each hyphen-separated token. Drop the `<!-- ... -->` placeholders if the user gave a goal rich enough to stand alone.
+
+**No frontmatter.** `WHY.md` is plain markdown. The convention is "first `#` heading = title, body = rationale." That's it. Don't add `type:`, `status:`, `created:`, `updated:` — filesystem state is the state.
 
 ---
 
 ### Subcommand: `list [--archived]`
 
-List all projects in the resolved wiki.
+List projects in the resolved wiki.
 
-1. Glob `<wiki-root>/output/projects/*/_project.md`
-2. For each manifest, read frontmatter: `title`, `goal`, `status`, `created`, `updated`
-3. Count members: `ls <wiki-root>/output/projects/<slug>/` minus `_project.md`
-4. Filter: by default show only `status: active`. If `--archived`, also show `archived`. Never show `retracted` unless `--all` is also passed.
-5. Sort by `updated` descending
-6. Render a table:
+1. Glob `<wiki-root>/output/projects/*/WHY.md` (active projects)
+2. If `--archived` is set, also glob `<wiki-root>/output/projects/.archive/*/WHY.md`
+3. For each, read the first `#` heading (the title) and the first non-heading paragraph (the goal, first 120 chars)
+4. Count members: `ls <wiki-root>/output/projects/<slug>/` minus `WHY.md`, recursively counting files at max 3 levels
+5. Render a table:
 
 ```
-Active Projects (N)
+Active projects (N)
 
-| Slug | Title | Goal | Members | Updated |
-|------|-------|------|---------|---------|
-| bitcoin-quantum-risk | Bitcoin Quantum Risk | Ship migration plan | 4 | 2026-04-10 |
-| llm-wiki-roadmap | llm-wiki Roadmap | v0.1 features | 2 | 2026-04-09 |
+| Slug | Title | Goal | Members |
+|------|-------|------|---------|
+| bitcoin-quantum-risk | Bitcoin Quantum Risk | Ship a migration plan for Bitcoin's quantum transition | 4 |
+| llm-wiki-roadmap | llm-wiki Roadmap | v0.1 features | 2 |
 ```
 
-If currently focused, mark the focused project with `* `:
-```
-* bitcoin-quantum-risk | Bitcoin Quantum Risk | ...
-```
+With `--archived`, render a second "Archived projects" table below.
+
+If no projects exist, report: `No projects in <wiki>. Create one with /wiki:project new <slug> "goal".`
 
 ---
 
-### Subcommand: `show [<slug>]`
+### Subcommand: `show <slug>`
 
-Show a project's manifest.
+Show a project's goal and members.
 
-- If `<slug>` not provided, use the focused project from `.wiki-session.json`. If nothing is focused, fail: `No project focused. Usage: /wiki:project show <slug> or /wiki:project focus <slug> first.`
-- Read `<wiki-root>/output/projects/<slug>/_project.md`
-- Regenerate the derived Members and External Members sections inline (see "Regenerate derived sections" below)
-- Print the full manifest to the user
+1. Look for `<wiki-root>/output/projects/<slug>/WHY.md` (or `.archive/<slug>/WHY.md` if not in active)
+2. If not found, fail: `Project "<slug>" not found.`
+3. Print the full WHY.md
+4. Below it, print a member list scanned at display time:
+   - Glob the project folder (max 3 levels deep), excluding WHY.md, hidden files, `.DS_Store`
+   - Sort: markdown first, then code, then binaries
+   - Render as a relative-path list, one per line
+
+No derived cache, no regeneration step — `show` always reflects current filesystem state.
 
 ---
 
@@ -143,125 +120,30 @@ Show a project's manifest.
 
 Move an existing file into a project.
 
-1. Verify the project exists: `<wiki-root>/output/projects/<slug>/_project.md`. If not, fail: `Project "<slug>" does not exist. Create it first with /wiki:project new <slug> "goal".`
+1. Verify the project exists: `<wiki-root>/output/projects/<slug>/WHY.md`. If not, fail: `Project "<slug>" does not exist. Create it first with /wiki:project new <slug> "goal".`
 2. Resolve the source path (absolute or relative to wiki root)
 3. Verify the file exists
-4. Move it: `mv <source> <wiki-root>/output/projects/<slug>/<basename>`
-5. If the file is markdown, update its frontmatter to add `project: <slug>` (preserving existing frontmatter, adding the field if absent)
-6. Regenerate the project's `_project.md` derived Members section
-7. Report: `Added <basename> to project "<slug>".`
+4. `mv <source> <wiki-root>/output/projects/<slug>/<basename>`
+5. Report: `Added <basename> to project "<slug>".`
 
-**Warning**: If the source file is referenced by other articles (grep for its old path), print those references and warn the user they may be broken. Do not auto-fix.
+**Warning**: If the source file is referenced by other articles (grep for its old path in `wiki/` and `output/`), print those references and warn the user they may be broken. Do not auto-fix — the user decides whether to update the links manually or run lint.
 
----
-
-### Subcommand: `focus <slug>`
-
-Set the ambient project context.
-
-1. Verify project exists: `<wiki-root>/output/projects/<slug>/_project.md`. If not, fail.
-2. Write `<wiki-root>/.wiki-session.json`:
-   ```json
-   {
-     "focused_project": "<slug>",
-     "focused_at": "<ISO 8601 now>",
-     "last_commands": []
-   }
-   ```
-3. Report: `Focused on "<slug>". Subsequent /wiki commands will inherit this project context. Run /wiki:project unfocus to clear.`
-
----
-
-### Subcommand: `unfocus`
-
-Clear the ambient project context.
-
-1. Delete `<wiki-root>/.wiki-session.json` if it exists
-2. Report: `Unfocused. Commands no longer scoped to a project.`
-
-Safe to call even if no focus is set.
+**Frontmatter note**: This command does **not** add `project: <slug>` to the moved file's frontmatter. Folder position is authoritative; frontmatter duplication is a drift trap. If the user wants Obsidian-style project tagging for search, they can add it manually — it's not required.
 
 ---
 
 ### Subcommand: `archive <slug>`
 
-Mark a project as archived without moving any files.
+Move a project to `.archive/`.
 
-1. Read `<wiki-root>/output/projects/<slug>/_project.md`
-2. Update frontmatter: `status: archived`, `updated: <today>`
-3. If the focused project is `<slug>`, unfocus
-4. Report: `Archived "<slug>". Folder preserved. Excluded from default queries.`
+1. Verify the project exists: `<wiki-root>/output/projects/<slug>/WHY.md`
+2. `mkdir -p <wiki-root>/output/projects/.archive/`
+3. `mv <wiki-root>/output/projects/<slug> <wiki-root>/output/projects/.archive/<slug>`
+4. Report: `Archived "<slug>". Folder moved to output/projects/.archive/<slug>. Reverse with: mv output/projects/.archive/<slug> output/projects/<slug>.`
 
----
+This is the entire archive operation. No frontmatter updates, no status flags, no linked-file cleanup. Filesystem state is the state.
 
-### Subcommand: `retract <slug>`
-
-Mark a project as retracted (mistake/withdrawn) without moving any files.
-
-1. Read `_project.md`
-2. Update frontmatter: `status: retracted`, `updated: <today>`
-3. Unfocus if needed
-4. Report: `Retracted "<slug>". Folder preserved. Excluded from default queries. Reversible by editing _project.md status.`
-
----
-
-### Subcommand: `rename <old> <new>`
-
-Rename a project folder and update references.
-
-1. Validate `<new>` slug (same rules as `new`)
-2. Check collision: fail if `<new>` already exists
-3. `mv <wiki-root>/output/projects/<old> <wiki-root>/output/projects/<new>`
-4. Update the manifest's title (derive from new slug)
-5. Grep all files inside the new folder for `project: <old>` and replace with `project: <new>`
-6. Grep all markdown files in the topic wiki for `also_in: [.*<old>.*]` and update to `<new>`
-7. If focused on `<old>`, update focus to `<new>`
-8. Report: `Renamed project "<old>" → "<new>". N files updated.`
-
-**Warning**: If there are incoming references from other topic wikis (cross-wiki links), print them and warn they may break. Do not auto-fix v1.
-
----
-
-## Regenerate derived sections
-
-This helper logic runs from `new`, `add`, `show`, and `rename`.
-
-**Members section**:
-1. Scan `<wiki-root>/output/projects/<slug>/` recursively (max 3 levels)
-2. Exclude `_project.md` itself, hidden files, and `.DS_Store`
-3. For each file, build a relative path (`playbook.md`, `code/demo.py`, etc.)
-4. Sort: markdown first, then code, then images/data
-5. Render as markdown list with relative links:
-   ```
-   - [playbook.md](playbook.md) — <title from frontmatter or filename>
-   - [threat-model.png](threat-model.png)
-   - [code/demo.py](code/demo.py)
-   ```
-
-**External Members section**:
-1. Glob `<wiki-root>/output/projects/*/*.md` (not the current project)
-2. Glob `<wiki-root>/output/*.md` (loose outputs)
-3. For each file, read frontmatter
-4. If `also_in` contains `<slug>`, add to External Members with its relative path from the current project's folder
-
-**Replacement**:
-1. Read the existing `_project.md`
-2. Find the delimiter comments: `<!-- DERIVED -->` ... `<!-- /DERIVED -->`
-3. Replace the content between them with the freshly generated list
-4. If delimiters are missing, print a warning: `Manifest <path> is missing <!-- DERIVED --> delimiters. Skipping regeneration to protect hand-written content.` Do not modify the file.
-5. Update the `updated:` frontmatter field to today
-
----
-
-## Focus-aware behavior for other commands
-
-Other `/wiki:*` commands should respect the focused project when no explicit `--project` flag is passed:
-
-1. At the start, read `<wiki-root>/.wiki-session.json` if it exists
-2. If `focused_project` is set, treat it as an implicit `--project <slug>`
-3. Explicit `--project <slug>` always wins over focus
-
-This file is the source of truth for focus. This command is the only one that writes it.
+**Broken links**: Files elsewhere in the wiki that linked to the archived project will now have broken links. Lint check C4 will catch these on the next run. This is an intentional tradeoff — the simpler archive model is worth the broken-link cost because archiving is rare and lint already handles broken links for every other reason.
 
 ---
 
@@ -269,8 +151,7 @@ This file is the source of truth for focus. This command is the only one that wr
 
 After any mutation, output:
 
-- **Action taken**: created/listed/shown/added/focused/unfocused/archived/retracted/renamed
+- **Action taken**: created/listed/shown/added/archived
 - **Project(s) affected**: slug and path
-- **Members delta**: if applicable, `+1 member` or `regenerated with N members`
-- **Focus state**: current focused project or "none"
-- **Next steps**: suggestions like `/wiki:research <topic>` or `/wiki:project show`
+- **Members delta** (for `add`): `+1 member` or equivalent
+- **Next steps**: suggestions like `/wiki:research <topic> --project <slug>` or `/wiki:project show <slug>`

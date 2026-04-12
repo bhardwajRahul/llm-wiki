@@ -63,12 +63,15 @@ All content lives here. Each topic wiki has the full structure:
 └── output/                        # Generated artifacts
     ├── _index.md
     ├── projects/                  # Project folders (see projects.md)
-    │   └── <slug>/
-    │       ├── _project.md        # Manifest: goal, status, derived members
-    │       ├── *.md               # Markdown deliverables
-    │       ├── *.png, *.svg       # Colocated images/diagrams
-    │       ├── code/              # Optional — prototype scripts
-    │       └── data/              # Optional — CSVs, JSON exports
+    │   ├── <slug>/
+    │   │   ├── WHY.md             # Required: goal + rationale in plain markdown
+    │   │   ├── *.md               # Markdown deliverables
+    │   │   ├── *.png, *.svg       # Colocated images/diagrams
+    │   │   ├── code/              # Optional — prototype scripts
+    │   │   └── data/              # Optional — CSVs, JSON exports
+    │   └── .archive/              # Archived projects (moved here by /wiki:project archive)
+    │       └── <slug>/
+    │           └── WHY.md
     └── *.md                       # Loose outputs (backward compatible)
 ```
 

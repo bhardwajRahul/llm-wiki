@@ -1,180 +1,107 @@
 # Projects
 
-Projects are a way to group related outputs — playbooks, reports, code, images, data — into a single container with a goal, lifecycle, and manifest. They live inside a topic wiki's `output/` directory.
+Projects group related outputs — markdown deliverables, images, code, data — into a single folder with a goal. They live inside a topic wiki's `output/projects/` directory.
 
-## Why folders, not pure metadata
+## Why projects exist at all
 
-Outputs are multi-artifact. A single project can produce markdown deliverables plus images referenced by `![](screenshot.png)`, Python prototypes, CSV data exports, and generated diagrams. Relative paths only work when these artifacts colocate. Pure metadata overlays (keeping `output/` flat and tagging via frontmatter) break the moment the first binary asset appears.
+Outputs are often multi-artifact. A single deliverable can produce a markdown playbook plus images referenced by `![](screenshot.png)`, a Python prototype, a CSV export, and a generated diagram. **Relative paths only work when these artifacts colocate.** A pure metadata overlay that keeps `output/` flat and tags via frontmatter breaks the moment the first binary asset appears — markdown image links no longer resolve, scripts can't find their data files, and the user has to manually prefix every asset reference.
 
-Therefore: project folders are the primary home. Metadata overlay handles the two cases folders can't — multi-project membership (rare) and lifecycle state.
+Project folders solve this by making colocation the primary structure. The folder *is* the project. Everything else (goal, status, members) is derivable from the folder and what's in it.
+
+## Why `WHY.md` is the only required file
+
+Earlier iterations of this architecture (v0.1.0, v0.1.1) used a `_project.md` manifest with YAML frontmatter (`type: project-manifest`, `goal`, `status`, `created`, `updated`), human-written narrative sections, and a derived Members list between `<!-- DERIVED -->` delimiters. That manifest held exactly one thing that couldn't be derived from elsewhere: **the goal — the "why this project exists"**. Everything else (status, timestamps, member list) was either filesystem state or derivable by scanning the folder.
+
+`WHY.md` preserves the precious part (the goal / rationale / "why") and drops the machinery around it. It is plain markdown, no frontmatter, no schema. The convention is:
+
+- First `#` heading → the project title
+- Body → goal, rationale, context, current state, notes — whatever the human wants to write
+
+LLMs rebuild wrong without rationale. LLMs don't need a manifest format to read a markdown file. Keep the first, drop the second.
 
 ## Directory layout
 
 ```
 <topic-wiki>/
 └── output/
+    ├── _index.md
     ├── projects/
     │   ├── bitcoin-quantum-risk/
-    │   │   ├── _project.md              # manifest — goal, status, narrative, derived members
-    │   │   ├── playbook.md              # main deliverable
-    │   │   ├── threat-model.png         # assets next to the thing that uses them
+    │   │   ├── WHY.md                  # goal + rationale (the only required file)
+    │   │   ├── playbook.md             # main deliverable
+    │   │   ├── threat-model.png        # assets colocated with the markdown that uses them
     │   │   ├── code/
     │   │   │   └── ecc-crack-demo.py
     │   │   └── data/
     │   │       └── key-exposure-analysis.csv
-    │   └── llm-wiki-roadmap/
-    │       └── _project.md
+    │   ├── llm-wiki-roadmap/
+    │   │   └── WHY.md
+    │   └── .archive/                   # archived projects live here
+    │       └── old-thing/
+    │           └── WHY.md
     └── playbook-improving-llm-wiki-2026-04-08.md   # loose outputs still allowed
 ```
 
 ## Rules
 
-1. **Multi-file or binary artifacts require a project folder.** Code, images, CSVs, SVGs, PDFs — all colocate with the markdown that references them.
-2. **Single loose markdown outputs can stay flat in `output/`** for backward compatibility.
-3. **`_project.md` is the manifest.** Lives inside the project folder. Contains goal, status, human-written narrative, and a derived member list.
-4. **Multi-project membership via `also_in:` frontmatter.** An output's physical home is one project folder. If it's also relevant to another project, add `also_in: [other-slug]` in frontmatter. The other project's `_project.md` picks it up via derived backlinks.
-5. **Lifecycle as metadata.** `status: active | archived | retracted` in `_project.md` frontmatter. Archive does NOT move folders — it just flips a flag. Preserves all links and git history.
+1. **Folder is the project.** The directory name is the slug. No manifest file beyond `WHY.md`.
+2. **`WHY.md` is required and non-empty.** Plain markdown. First `#` heading is the title. Body is the rationale.
+3. **Multi-file or binary artifacts require a project folder.** Code, images, CSVs, SVGs, PDFs colocate with the markdown that references them. This is the whole reason projects exist.
+4. **Single loose markdown outputs can stay flat in `output/`** for backward compatibility.
+5. **No frontmatter schema on member files.** `project: <slug>` in frontmatter is optional sugar for Obsidian tag-based search; folder position is authoritative. If the two disagree, folder wins.
 6. **Max nesting depth: 3 levels inside a project folder.** `projects/<slug>/code/file.py` is the deepest shape allowed.
-7. **Slugs**: lowercase, hyphen-separated, max 40 characters. Semantic, not date-prefixed.
-8. **Goal is mandatory** at project creation. Forces clarity per PARA discipline.
+7. **Slugs**: lowercase, hyphen-separated, max 40 characters. Semantic, not date-prefixed. Unique within the topic wiki.
+8. **Goal is mandatory at creation.** Enforced by `/wiki:project new <slug> "goal"` — the goal becomes the body of `WHY.md`.
 
-## `_project.md` format
+## Archive = move the folder
 
-```markdown
----
-title: "Bitcoin Quantum Risk Analysis"
-type: project-manifest
-goal: "Ship a migration plan for Bitcoin's quantum transition"
-status: active
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-tags: [bitcoin, quantum, migration]
-related_wikis: [quantum-computing, bitcoin-treasury]
----
+Archiving a project is a filesystem operation, not a metadata flip:
 
-# Bitcoin Quantum Risk Analysis
-
-## Goal
-<!-- HUMAN — what this project is trying to accomplish -->
-
-## Context
-<!-- HUMAN — why now, what triggered this, stakeholders -->
-
-## Current State
-<!-- HUMAN — where things stand, what's next, outstanding questions -->
-
-## Members
-<!-- DERIVED — regenerated on demand, do not hand-edit below -->
-- [playbook.md](playbook.md) — main deliverable
-- [threat-model.png](threat-model.png) — attack surface diagram
-- [code/ecc-crack-demo.py](code/ecc-crack-demo.py)
-- [data/key-exposure-analysis.csv](data/key-exposure-analysis.csv)
-<!-- /DERIVED -->
-
-## External Members (via also_in)
-<!-- DERIVED — outputs living in other project folders that also_in this project -->
-<!-- /DERIVED -->
-
-## Research Sessions
-<!-- HUMAN — link to research log entries, raw sources, theses -->
+```
+mv output/projects/<slug> output/projects/.archive/<slug>
 ```
 
-**Two zones**: human-written prose (Goal, Context, Current State, Research Sessions) and derived sections (Members, External Members). Derived sections are regenerated between delimiter comments; prose is preserved.
+The folder is preserved, all files stay put, git history continues. `/wiki:project list` shows active projects only by default; `list --archived` includes `.archive/`.
 
-## Output frontmatter (for members)
+Reason: a `status: archived` frontmatter field in the old model required the manifest to exist, which required the manifest format, which required the derived-members machinery. Moving the folder is one operation and needs zero schema. The tradeoff is that links to archived projects from other files break — but broken links are something lint already catches (C4), so the existing tooling handles it.
 
-Every markdown output inside a project folder should carry:
+There is no separate `retract` lifecycle state. Retraction means deleting the folder. That's a manual operation (`rm -rf`), deliberately not wrapped in a subcommand, because it's destructive and rare.
 
-```yaml
----
-title: "..."
-project: <slug>                   # the folder this file lives in
-also_in: [<other-slug>]           # optional cross-project membership
----
-```
+## Staleness detection
 
-Binary files (`.png`, `.svg`, `.pdf`, `.csv`, `.json`, `.zip`) are exempt from frontmatter requirements. Other text files (`.py`, `.ts`, `.sh`) get a comment header where language allows, or are auto-tracked by folder position only.
+A project is **stale** when new information relevant to it has been ingested since its artifacts were last updated. This is detected by lint check C8b, not by a manifest field, and the chain runs through frontmatter that already exists:
 
-## Focus — the session state
+1. Scan the project folder for member files with `sources:` in frontmatter
+2. Follow each `sources:` entry to the raw source file
+3. Compare the raw source's `ingested:` date to the member's `updated:` date
+4. If any source is newer than the member that cites it → the project is stale
 
-The core UX primitive is **focus**, an ambient project context similar to `cd`-ing into a directory. Once focused, every `/wiki` command inherits the project context until the user explicitly unfocuses.
+No `updated:` field on a manifest. No derived cache. Pure function over the frontmatter that already exists on every output and every raw source. Guaranteed to be accurate because it reads from the authoritative state.
 
-**Location**: `<topic-wiki>/.wiki-session.json` (per topic wiki, gitignored)
+## Focus / ambient project context
 
-**Schema**:
-```json
-{
-  "focused_project": "bitcoin-quantum-risk",
-  "focused_at": "2026-04-10T14:30:00Z",
-  "last_commands": ["research PQC migration", "add https://..."]
-}
-```
+**Removed in the v0.2 simplification.** Earlier iterations used a `.wiki-session.json` file with a `focused_project` field, so that `/wiki:ingest`, `/wiki:research`, `/wiki:query`, etc., would implicitly scope to the focused project. This worked but added a mutable state file, focus-aware logic in every consumer command, and two subcommands (`focus`, `unfocus`) whose only job was to manage it.
 
-Short-lived, cheap to lose. If the file is missing or malformed, treat it as "no focus". Clearing it never destroys data.
-
-**Lifecycle**:
-- `/wiki:project focus <slug>` — set focus
-- `/wiki:project unfocus` — clear focus (removes the file)
-- Any `/wiki:*` command that accepts `--project <slug>` explicitly overrides the focused project for that single invocation
-- `/wiki:project show` with no arg shows the currently focused project
-
-## Lifecycle states
-
-| Status | Behavior |
-|--------|----------|
-| `active` | Default. Appears in status, queries, and listings. |
-| `archived` | Completed. Excluded from default queries. Still listed via `/wiki:project list --archived`. Folder stays put. |
-| `retracted` | Mistake/withdrawn. Excluded from all queries by default. Folder stays put. Reversible. |
-
-Transitions never move files. Always edit `_project.md` frontmatter.
-
-## Multi-project membership
-
-Physical home = one project folder. An output can belong to additional projects via frontmatter:
-
-```yaml
----
-title: "ECC Threat Model"
-project: bitcoin-quantum-risk      # physical home
-also_in: [llm-wiki-roadmap]        # also linked from this project's manifest
----
-```
-
-When a project's `_project.md` is regenerated, its External Members section is populated by scanning all outputs (across project folders and loose) for `also_in:` entries containing its slug. The file is not duplicated.
-
-**Do not** use symlinks or hardlinks for multi-membership. They break on iCloud, git, and cross-platform moves.
-
-## Cross-wiki scoping (v1 limitation)
-
-Projects are scoped to a single topic wiki. A project in `meta-llm-wiki` cannot reference outputs in `quantum-computing`. Use `related_wikis:` in the project manifest to declare informal cross-wiki connections without file-level references.
-
-Cross-wiki projects may be added in a future version. v1 keeps the problem small.
-
-## Slug conventions
-
-- Lowercase, hyphen-separated (`bitcoin-quantum-risk`)
-- Max 40 characters
-- No dates, no uppercase, no special characters
-- Must be unique within the topic wiki
-- Collision → explicit error with existing path
+The simpler model: pass `--project <slug>` explicitly when you want project scope. One extra flag per command vs. a whole session-state mechanism. If a user finds themselves typing `--project foo` on every command, that's a signal they're deep in the project and should probably `cd` into the folder directly.
 
 ## What to avoid
 
-- **Physical lifecycle folders** (`active/`, `done/`, `archived/`) — breaks links on status changes
-- **Deep nesting beyond 3 levels** — `projects/<slug>/code/file.py` is the max shape
-- **Date-prefixed slugs** — date lives in frontmatter
-- **Mandatory projects** — loose outputs remain allowed
-- **File duplication for multi-membership** — use `also_in:` frontmatter references
-- **Cross-wiki project membership in v1** — use `related_wikis:` instead
+- **Physical lifecycle folders** (`active/`, `done/`) — breaks links on status changes. Archive via `.archive/` is the one exception because it's rare.
+- **Deep nesting beyond 3 levels** — `projects/<slug>/code/file.py` is the max shape.
+- **Date-prefixed slugs** — dates live in filenames inside the folder, not in the slug.
+- **Mandatory projects** — loose single-markdown outputs remain allowed in `output/`.
+- **File duplication for multi-membership** — use markdown links to cross-reference between projects.
+- **Frontmatter-driven lifecycle** — filesystem state is simpler and can't drift.
 
-## Derived index regeneration
+## Migration from legacy `_project.md`
 
-The Members and External Members sections of `_project.md` are derived caches (same pattern as `_index.md` files). They are regenerated on demand:
+Existing wikis created under v0.1.0/v0.1.1 will have `_project.md` manifests. Lint check C8c detects these and auto-migrates:
 
-1. Read folder contents (scan `<project-path>/**/*`)
-2. Filter by file type (exclude `_project.md` itself)
-3. For External Members: grep all markdown files in `output/` for `also_in: [.*<slug>.*]` frontmatter
-4. Build the member list with relative paths
-5. Replace only the content between `<!-- DERIVED -->` and `<!-- /DERIVED -->` delimiter comments
+1. Read `_project.md` frontmatter
+2. Extract `goal:` (or `title:` if goal is missing)
+3. Read the `## Goal`, `## Context`, `## Current State` sections if present
+4. Write `WHY.md` in the same folder with the first `#` heading as the title and the extracted prose as the body
+5. Delete `_project.md`
+6. Report the migration in the lint output
 
-If delimiter comments are missing, warn and do not regenerate. Never overwrite hand-written prose.
+This is the first real application of the lint-is-the-migration principle codified in `linting.md`. One-time healing; idempotent; no separate migration command needed. See `linting.md` C8c for the full rule.

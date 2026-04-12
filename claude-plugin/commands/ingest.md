@@ -19,13 +19,13 @@ When `--new-topic` is set, override the standard resolution:
 4. Register in `HUB/wikis.json` and update hub `_index.md`
 5. Target this new wiki for ingestion
 
-### Focus-aware behavior + --project flag
+### `--project <slug>` flag
 
 **--project <slug>**: Tag the ingested source with `project: <slug>` frontmatter. The raw file still lands in the normal `raw/<type>/` location (sources are shared across projects by design). The project tagging propagates later when sources are compiled into wiki articles. See `references/projects.md`.
 
-**Focus check**: Before ingesting, check `<wiki-root>/.wiki-session.json` for a `focused_project` field. If present and no explicit `--project` is passed, treat the focused project as implicit. Explicit `--project` always wins over focus.
+If `--project <slug>` is set, verify the project exists at `<wiki-root>/output/projects/<slug>/WHY.md`. If not, fail early: `Project "<slug>" does not exist. Create it first with /wiki:project new <slug> "goal".`
 
-If `--project <slug>` is set (or inherited from focus), verify the project exists at `<wiki-root>/output/projects/<slug>/_project.md`. If not, fail early: `Project "<slug>" does not exist. Create it first with /wiki:project new <slug> "goal".`
+There is no ambient project focus — pass `--project` explicitly when you want project scope. The focus-session mechanism (`.wiki-session.json`) was removed in the v0.2 projects simplification; see `references/projects.md` § "Focus" for the rationale.
 
 ### Parse $ARGUMENTS
 

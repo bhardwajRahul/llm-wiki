@@ -50,9 +50,9 @@ The rationale is ergonomics — research and ingestion are often the first opera
 
 These commands either don't require wiki content (project manifest operations, wiki status) or have their own "no articles yet" message. They resolve HUB and wiki location, then handle missing state inline with command-specific messaging.
 
-## Focus-aware behavior (ingest, research, query, output)
+## Project scoping
 
-Before finalizing wiki resolution, these commands additionally check `<wiki-root>/.wiki-session.json` for a `focused_project` field. If present and no explicit `--project` flag is passed, the focused project becomes an implicit `--project <slug>` for the operation. Explicit flags always override focus. The rationale is that when a user is deep in a project, they rarely want to type `--project foo` on every command; the focus session makes it sticky. See [`projects.md`](projects.md) for project model details.
+Commands that accept `--project <slug>` (`ingest`, `research`, `output`, `compile`) apply it as an explicit flag only. There is no ambient project focus — earlier iterations of this plugin had a `.wiki-session.json` focus mechanism that made project scope sticky, but it was removed in the v0.2 projects simplification. The rationale is documented in [`projects.md`](projects.md) § "Focus": one explicit flag per command is simpler than a whole session-state mechanism, and if a user finds themselves typing `--project foo` on every invocation that's a signal to `cd` into the project folder directly.
 
 ## What commands still handle inline
 
