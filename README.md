@@ -46,7 +46,7 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, th
 
 **Claude Code** (native plugin):
 ```bash
-claude plugin install github:nvk/llm-wiki
+claude plugin install wiki@llm-wiki
 ```
 
 **OpenAI Codex / Any LLM Agent** (idea file):
