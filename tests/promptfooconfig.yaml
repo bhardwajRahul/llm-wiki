@@ -1,0 +1,99 @@
+description: llm-wiki plugin behavioral evals
+
+tracing:
+  enabled: true
+  otlp:
+    http:
+      enabled: true
+
+providers:
+  - id: anthropic:claude-agent-sdk
+    config:
+      model: claude-sonnet-4-6
+      working_dir: ./tests/workspace
+      plugins:
+        - type: local
+          path: ./claude-plugin
+      append_allowed_tools: ['Skill', 'Read', 'Write', 'Edit', 'Bash', 'Glob', 'Grep']
+      permission_mode: acceptEdits
+      max_budget_usd: 2.00
+      sandbox:
+        enabled: true
+        autoAllowBashIfSandboxed: true
+      settings:
+        permissions:
+          allow:
+            - 'Read(*)'
+            - 'Write(*)'
+            - 'Edit(*)'
+            - 'Glob(*)'
+            - 'Grep(*)'
+            - 'Bash(*)'
+
+defaultTest:
+  options:
+    provider:
+      config:
+        max_budget_usd: 0.50
+
+tests:
+  # --- Fuzzy Router ---
+  - description: "Router: research intent dispatches correctly"
+    vars:
+      prompt: "Research the history of testing"
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent recognized this as a research request and began searching for sources"
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  - description: "Router: URL dispatches to ingest"
+    vars:
+      prompt: "https://example.com/article-about-testing"
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent recognized the URL and routed to ingestion, not query or research"
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  - description: "Router: question dispatches to query"
+    vars:
+      prompt: "What testing patterns exist for LLM tools?"
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent treated this as a query against existing wiki content"
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  # --- Negative controls ---
+  - description: "Router: ambiguous single word asks for clarification"
+    vars:
+      prompt: "testing"
+    assert:
+      - type: llm-rubric
+        value: "Agent asked for clarification or presented a menu rather than guessing a subcommand"
+        threshold: 0.50
+      - type: cost
+        threshold: 0.50
+
+  # --- Plugin loading ---
+  - description: "Plugin loads and lists wiki commands"
+    vars:
+      prompt: "What wiki commands are available? List them briefly."
+    assert:
+      - type: not-contains
+        value: "error loading"
+      - type: llm-rubric
+        value: "Agent listed wiki subcommands — at minimum ingest, compile, query, lint, research"
+        threshold: 0.75
+      - type: cost
+        threshold: 0.30

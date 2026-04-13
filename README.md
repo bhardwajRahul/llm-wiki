@@ -14,6 +14,8 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, th
 
 ## Changelog
 
+**v0.2.0t** — **Tests.** Three-layer test suite: structural validation (84 assertions, no LLM, runs in seconds), behavioral evals via Promptfoo with Claude Agent SDK, and GitHub Actions CI workflow. Golden wiki fixture with 11 defect variants (one per lint rule) for negative testing. `CLAUDE.md` dev guide added.
+
 **v0.2.0** — **Nice Cleanup.** Lint is the migration — `lint --fix` heals misplaced files and legacy layouts automatically. No migrate command needed. Projects simplified — `_project.md` manifest → plain `WHY.md`. Focus sessions removed. Thesis folded into research — `/wiki:research --mode thesis "<claim>"` replaces `/wiki:thesis`. Same logic, no duplication. Old command still works as shim. Hub resolution hardened — `resolved_path` cached in config, symlink recommended for iCloud. Tilde expansion runs at most once. −8% plugin size (3,933 → 3,610 lines) with zero rationale loss.
 
 **v0.1.1** — **Project-aware lint and compile.** `/wiki:lint` now validates projects (manifest frontmatter, derived-content delimiters, frontmatter presence and match, member freshness, slug format) and surfaces migration candidates in existing wikis (loose binaries, sibling binary pairs, version families, and topical clusters). `--fix` regenerates stale manifest Members sections, backfills missing frontmatter, and rebuilds `output/_index.md` as a projects-aware listing. `/wiki:compile` regenerates project manifests as a best-effort tail step and steers new outputs with binary siblings into project folders from the start. Completes the v0.1.0 projects architecture.
