@@ -10,13 +10,17 @@
 
 [github.com/nvk/llm-wiki](https://github.com/nvk/llm-wiki)
 
-LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, thesis-driven investigation, source ingestion, wiki compilation, querying, and artifact generation. Ships as a Claude Code plugin or a portable AGENTS.md for Codex and others. Obsidian-compatible.
+LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, thesis-driven investigation, source ingestion, wiki compilation, querying, and artifact generation. Ships as a Claude Code plugin, an OpenAI Codex plugin, or a portable AGENTS.md for any other LLM agent. Obsidian-compatible.
 
 ## Changelog
 
-**v0.2.0** — **Nice Cleanup.** Lint is the migration — new C11/C12/C13 checks heal misplaced files and legacy layouts via `lint --fix`. No migrate command needed. Projects simplified — `_project.md` manifest → plain `WHY.md`. Focus sessions removed. 9 subcommands → 5. Legacy manifests auto-migrate via `lint --fix`. Thesis → research mode — `/wiki:research --mode thesis "<claim>"` replaces `/wiki:thesis`. Same logic, no duplication. Old command still works as shim. Hub resolution hardened — `resolved_path` cached in config, symlink recommended for iCloud. Tilde expansion runs at most once. −8% plugin size (3,933 → 3,610 lines) with zero rationale loss.
+**v0.2.1** — **Codex packaging.** Repo-local Codex plugin (`plugins/llm-wiki/`) and marketplace entry alongside the Claude plugin — same wiki-manager skill, two thin packaging layers. References are a single source of truth: the Codex tree symlinks into `claude-plugin/skills/wiki-manager/references/`. `./scripts/sync-codex-plugin.sh` regenerates the mirror; `tests/test-codex-sync.sh` catches drift inside the agent's own test loop with self-healing fix instructions. `tests/test-plugin-validate.sh` extended with 19 checks for symlink integrity, Codex manifests, and `agents/openai.yaml`.
 
-**v0.1.1** — **Project-aware lint and compile.** `/wiki:lint` now validates projects (C8 — manifest frontmatter, `<!-- DERIVED -->` delimiters, `project:` frontmatter presence and match, Members freshness, slug format) and surfaces migration candidates in existing wikis (C9 — loose binaries as critical violations, sibling binary pairs, version families via prefix clustering, and a fallback that catches topical clusters in any wiki with ≥3 loose outputs and no `projects/` folder). `--fix` regenerates stale `_project.md` Members sections, backfills missing `project:` frontmatter, and rebuilds `output/_index.md` as a projects-aware listing. `/wiki:compile` regenerates project manifests as a best-effort tail step and steers new outputs with binary siblings into project folders from the start. Completes the v0.1.0 projects architecture.
+**v0.2.0t** — **Tests.** Three-layer test suite: structural validation (84 assertions, no LLM, runs in seconds), behavioral evals via Promptfoo with Claude Agent SDK, and GitHub Actions CI workflow. Golden wiki fixture with 11 defect variants (one per lint rule) for negative testing. `CLAUDE.md` dev guide added.
+
+**v0.2.0** — **Nice Cleanup.** Lint is the migration — `lint --fix` heals misplaced files and legacy layouts automatically. No migrate command needed. Projects simplified — `_project.md` manifest → plain `WHY.md`. Focus sessions removed. Thesis folded into research — `/wiki:research --mode thesis "<claim>"` replaces `/wiki:thesis`. Same logic, no duplication. Old command still works as shim. Hub resolution hardened — `resolved_path` cached in config, symlink recommended for iCloud. Tilde expansion runs at most once. −8% plugin size (3,933 → 3,610 lines) with zero rationale loss.
+
+**v0.1.1** — **Project-aware lint and compile.** `/wiki:lint` now validates projects (manifest frontmatter, derived-content delimiters, frontmatter presence and match, member freshness, slug format) and surfaces migration candidates in existing wikis (loose binaries, sibling binary pairs, version families, and topical clusters). `--fix` regenerates stale manifest Members sections, backfills missing frontmatter, and rebuilds `output/_index.md` as a projects-aware listing. `/wiki:compile` regenerates project manifests as a best-effort tail step and steers new outputs with binary siblings into project folders from the start. Completes the v0.1.0 projects architecture.
 
 **v0.1.0** — **Projects.** Group related outputs (playbooks, images, code, data) into project folders under `output/projects/<slug>/`. Each project has a `_project.md` manifest with goal, status, and auto-derived member list. Focus into a project with `/wiki focus <slug>` and subsequent commands inherit it — same as `cd`-ing into a directory. Multi-project membership via `also_in:` frontmatter. Lifecycle (active/archived/retracted) is metadata, never file moves. New `/wiki:project` command with `new`, `list`, `show`, `add`, `focus`, `unfocus`, `archive`, `retract`, `rename` subcommands. `/wiki:research` and `/wiki:ingest` now accept `--project <slug>` and respect focus. The fuzzy router recognizes project intents ("start a new project", "work on X", "what projects do I have"). Backward compatible — loose outputs still work.
 
@@ -49,6 +53,9 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, th
 claude plugin install wiki@llm-wiki
 ```
 
+**OpenAI Codex** (repo-local plugin):
+Use the repo-local marketplace in this repo, then install `LLM Wiki` from Codex's `/plugins` UI. The plugin lives at `plugins/llm-wiki/` and is a thin wrapper around the same wiki-manager skill.
+
 **OpenAI Codex / Any LLM Agent** (idea file):
 ```bash
 # Copy AGENTS.md into your agent's context or project root
@@ -56,6 +63,32 @@ cp AGENTS.md ~/your-project/AGENTS.md
 ```
 
 The `AGENTS.md` file contains the complete wiki protocol as a single portable document — works with any LLM agent that can read/write files and search the web.
+
+## Claude-First, Codex-Compatible
+
+If Claude Code is the principal user, do not try to make one plugin manifest serve both runtimes. Keep one shared behavior layer and two thin packaging layers:
+
+- `claude-plugin/` is the primary distribution target and UX surface.
+- `claude-plugin/skills/wiki-manager/` is the behavioral source of truth.
+- `plugins/llm-wiki/` is the Codex packaging target.
+- `.agents/plugins/marketplace.json` makes the Codex plugin installable from this repo.
+
+The Codex plugin should stay generated, not hand-maintained. Rebuild it from the Claude source of truth with:
+
+```bash
+./scripts/sync-codex-plugin.sh
+```
+
+That script:
+
+- copies `claude-plugin/skills/wiki-manager/SKILL.md` into the Codex tree and reapplies a small list of Codex-specific wording patches
+- (re)creates `plugins/llm-wiki/skills/wiki-manager/references` as a **symlink** to `claude-plugin/skills/wiki-manager/references` — references are runtime-neutral and shared verbatim, no copy
+- recreates `agents/openai.yaml` for Codex UI metadata
+- syncs the Codex plugin version to match `claude-plugin/.claude-plugin/plugin.json`
+
+Drift between the two trees is caught by `./tests/test-codex-sync.sh`, which runs the sync script and fails (with a self-healing fix instruction) if `plugins/` differs from `HEAD`. This runs alongside the other structural tests, so any LLM following the test-before-done rule catches a missed sync inside its own loop.
+
+Practical rule: design workflows first for Claude commands and behavior, but keep the underlying knowledge model and references runtime-neutral. The Codex wrapper should adapt invocation and metadata, not fork the wiki logic.
 
 ## Upgrade
 
@@ -80,6 +113,15 @@ cp -R "$REPO/.claude-plugin" "$REPO/commands" "$REPO/skills" "$DEST/$VERSION/"
 
 # Restart Claude Code to apply
 ```
+
+**Codex** — pull the repo and reinstall from the local marketplace:
+```bash
+git -C ~/llm-wiki pull   # or clone if you don't have it yet
+# In Codex, open /plugins, point at the repo's marketplace at
+# .agents/plugins/marketplace.json, and install (or reinstall) "LLM Wiki".
+```
+
+The Codex plugin is generated from the same Claude source — `plugins/llm-wiki/`'s `references/` is a symlink into `claude-plugin/skills/wiki-manager/references/`, so updates land identically across both runtimes.
 
 **AGENTS.md** — just pull the latest and replace:
 ```bash
