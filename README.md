@@ -10,9 +10,11 @@
 
 [github.com/nvk/llm-wiki](https://github.com/nvk/llm-wiki)
 
-LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, thesis-driven investigation, source ingestion, wiki compilation, querying, and artifact generation. Ships as a Claude Code plugin or a portable AGENTS.md for Codex and others. Obsidian-compatible.
+LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, thesis-driven investigation, source ingestion, wiki compilation, querying, and artifact generation. Ships as a Claude Code plugin, an OpenAI Codex plugin, or a portable AGENTS.md for any other LLM agent. Obsidian-compatible.
 
 ## Changelog
+
+**v0.2.1** — **Codex packaging.** Repo-local Codex plugin (`plugins/llm-wiki/`) and marketplace entry alongside the Claude plugin — same wiki-manager skill, two thin packaging layers. References are a single source of truth: the Codex tree symlinks into `claude-plugin/skills/wiki-manager/references/`. `./scripts/sync-codex-plugin.sh` regenerates the mirror; `tests/test-codex-sync.sh` catches drift inside the agent's own test loop with self-healing fix instructions. `tests/test-plugin-validate.sh` extended with 19 checks for symlink integrity, Codex manifests, and `agents/openai.yaml`.
 
 **v0.2.0t** — **Tests.** Three-layer test suite: structural validation (84 assertions, no LLM, runs in seconds), behavioral evals via Promptfoo with Claude Agent SDK, and GitHub Actions CI workflow. Golden wiki fixture with 11 defect variants (one per lint rule) for negative testing. `CLAUDE.md` dev guide added.
 
@@ -111,6 +113,15 @@ cp -R "$REPO/.claude-plugin" "$REPO/commands" "$REPO/skills" "$DEST/$VERSION/"
 
 # Restart Claude Code to apply
 ```
+
+**Codex** — pull the repo and reinstall from the local marketplace:
+```bash
+git -C ~/llm-wiki pull   # or clone if you don't have it yet
+# In Codex, open /plugins, point at the repo's marketplace at
+# .agents/plugins/marketplace.json, and install (or reinstall) "LLM Wiki".
+```
+
+The Codex plugin is generated from the same Claude source — `plugins/llm-wiki/`'s `references/` is a symlink into `claude-plugin/skills/wiki-manager/references/`, so updates land identically across both runtimes.
 
 **AGENTS.md** — just pull the latest and replace:
 ```bash
