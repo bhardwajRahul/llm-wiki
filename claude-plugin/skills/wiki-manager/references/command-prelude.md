@@ -12,9 +12,11 @@ The prelude appeared verbatim in 11 command files. Every time the hub resolution
 
 ## Standard prelude
 
+**IMPORTANT: Hub resolution is 1-2 file reads, not an exploration task. Do NOT launch Explore agents, run `find` commands, or search the filesystem. Just read the files below in order.**
+
 Every command that needs a wiki follows these steps in order:
 
-1. **Resolve HUB.** Follow the protocol in [`hub-resolution.md`](hub-resolution.md). Short version: try `~/wiki/_index.md` first (works for both real dirs and symlinks to iCloud). If that works, HUB = `$HOME/wiki`, done. If not, read `~/.config/llm-wiki/config.json` and use `resolved_path` (pre-computed absolute path — no tilde expansion needed). The full protocol has 6 steps but most sessions hit step 1 or 4 and resolve instantly.
+1. **Resolve HUB.** Follow the protocol in [`hub-resolution.md`](hub-resolution.md). Short version: use the Read tool on `~/wiki/_index.md` (expand `~` to `$HOME`). If it exists, HUB = `$HOME/wiki`, done — skip everything else. If not, read `~/.config/llm-wiki/config.json` and use `resolved_path`. That's it — two file reads at most.
 
 2. **Resolve wiki location.** The target wiki is determined by this order (first match wins):
    1. `--local` flag → `.wiki/` in the current directory

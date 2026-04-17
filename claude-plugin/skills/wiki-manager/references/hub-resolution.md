@@ -8,6 +8,8 @@ The hub path can be `~/wiki/` (simple), a symlink at `~/wiki/` pointing to an iC
 
 ## Resolution Steps
 
+**This is a sequential file-read protocol. Do NOT use Explore agents, `find`, `ls -R`, or any filesystem search. Each step is a single Read tool call. Most sessions resolve at step 1.**
+
 1. **Try `~/wiki/_index.md`** (expand `~` to `$HOME`). This works whether `~/wiki/` is a real directory or a symlink to an iCloud/custom path.
 
 2. **If it exists** → **HUB** = `$HOME/wiki`. Done. Skip everything below.
