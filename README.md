@@ -23,29 +23,7 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, th
 
 **v0.1.1** — **Project-aware lint and compile.** `/wiki:lint` now validates projects (manifest frontmatter, derived-content delimiters, frontmatter presence and match, member freshness, slug format) and surfaces migration candidates in existing wikis (loose binaries, sibling binary pairs, version families, and topical clusters). `--fix` regenerates stale manifest Members sections, backfills missing frontmatter, and rebuilds `output/_index.md` as a projects-aware listing. `/wiki:compile` regenerates project manifests as a best-effort tail step and steers new outputs with binary siblings into project folders from the start. Completes the v0.1.0 projects architecture.
 
-**v0.1.0** — **Projects.** Group related outputs (playbooks, images, code, data) into project folders under `output/projects/<slug>/`. Each project has a `_project.md` manifest with goal, status, and auto-derived member list. Focus into a project with `/wiki focus <slug>` and subsequent commands inherit it — same as `cd`-ing into a directory. Multi-project membership via `also_in:` frontmatter. Lifecycle (active/archived/retracted) is metadata, never file moves. New `/wiki:project` command with `new`, `list`, `show`, `add`, `focus`, `unfocus`, `archive`, `retract`, `rename` subcommands. `/wiki:research` and `/wiki:ingest` now accept `--project <slug>` and respect focus. The fuzzy router recognizes project intents ("start a new project", "work on X", "what projects do I have"). Backward compatible — loose outputs still work.
-
-**v0.0.20** — **Bug fixes.** `/wiki` bare command now resolves correctly — the fuzzy router from v0.0.19 is reachable without typing `/wiki:wiki`.
-
-**v0.0.19** — **Fuzzy Intent Router.** `/wiki` now understands natural language — type what you want and it routes to the right subcommand. URLs route to ingest, questions route to query, "research X" routes to research, "where was I" routes to resume. Ambiguous input gets a numbered menu instead of guessing.
-
-**v0.0.18** — **Query Resume Mode.** New `--resume` flag on `/wiki:query` reloads context after a session break. Reads interrupted research/thesis sessions, recent log entries, wiki stats, and last-updated articles to produce a "where you left off" briefing. Supports combo mode: `--resume` alone or `--resume` + a question.
-
-**v0.0.17** — **Plan Command + Cross-Wiki Context.** New `/wiki:plan` generates wiki-grounded implementation plans (6-stage pipeline: context assembly → interview → gap research → synthesis → plan → save). Supports `--format rfc|adr|spec`. New `--with <wiki>` flag on `query`, `output`, and `plan` enables cross-wiki synthesis — use one wiki's craft knowledge when generating from another (e.g., `--with article-writing`). Merged `/wiki:search` into `/wiki:query --list`. `/wiki:ingest` now supports `--new-topic`.
-
-**v0.0.16** — **Full Path Reporting.** Agents now report full absolute paths (not relative) and never indent-wrap them, so file links are always clickable in terminals.
-
-**v0.0.15** — **X.com Fallback Chain.** Explicit fallback for X.com/Twitter links: Grok MCP → FxTwitter API → VxTwitter API → direct fetch. Agents no longer waste time debugging login walls. Install [ask-grok-mcp](https://github.com/nvk/ask-grok-mcp) for best results.
-
-**v0.0.14** — **Hub Init Guard.** Agents no longer initialize a hub at `~/wiki/` when config points to iCloud/custom path. Fixes bug where an empty `~/wiki/` directory caused research to write to the wrong location.
-
-**v0.0.13** — **Hub Resolution: ~/wiki First.** Resolution now checks `~/wiki/` before reading config. If `~/wiki/_index.md` exists, it's used directly — no config read, no iCloud path issues. Config-based custom paths (iCloud, Dropbox) are the fallback, not the default.
-
-**v0.0.12** — **Configurable Hub Path.** Store wiki on iCloud, Dropbox, or any custom location via `/wiki config hub-path <path>`. Config at `~/.config/llm-wiki/config.json`. Default `~/wiki/` unchanged. **v0.0.12-fix**: Centralized hub resolution into `references/hub-resolution.md` — fixes iCloud paths where agents misexpanded tildes in `com~apple~CloudDocs` or broke on spaces in `Mobile Documents`.
-
-**v0.0.11** — **Source Retraction.** `/wiki:retract` removes sources and cleans up all downstream references. `--recompile` rewrites affected articles, `--dry-run` previews blast radius. New lint rule C4b catches dangling refs.
-
-**v0.0.10** — **Research Quality.** Session registry for crash recovery, standardized agent prompts, credibility scoring (Phase 2b), progress scoring (0-100) with smart termination, and inter-round plan reflection.
+**v0.1.0** — **Projects.** Group related outputs into project folders under `output/projects/<slug>/`. `/wiki:project` command with `new`, `list`, `show`, `add`, `archive` subcommands. `/wiki:research` and `/wiki:ingest` accept `--project <slug>`. Fuzzy router recognizes project intents.
 
 ## Install
 

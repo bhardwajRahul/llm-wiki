@@ -4,13 +4,9 @@ Standard process for testing and shipping a new version of the llm-wiki plugin.
 
 ## Pre-release: Version Bump
 
-1. **Bump `plugin.json`** — `claude-plugin/.claude-plugin/plugin.json`
-   - Update `"version"` field (e.g. `"0.0.20"` → `"0.0.21"`)
-
-2. **Bump `marketplace.json`** — `.claude-plugin/marketplace.json`
-   - Update top-level `"version"` field
-   - Update `plugins[0].version` field
-   - (Both must match plugin.json)
+1. **Bump `plugin.json`** — both files must match:
+   - `claude-plugin/.claude-plugin/plugin.json`
+   - `plugins/llm-wiki/.codex-plugin/plugin.json`
 
 ## Test
 
@@ -69,11 +65,22 @@ Standard process for testing and shipping a new version of the llm-wiki plugin.
 
 10. **Verify install** — start a fresh Claude Code session and run `/wiki status`
 
-## Optional: README Update
+## Post-ship: README
 
-- Update changelog section in `README.md` if it's a notable release
-- Follow the existing format (see v0.0.18/v0.0.19 entries)
-- Commit separately: `"Update README with v0.0.XX changelog"`
+- Update the changelog section in `README.md` for notable releases (skip patch-level fixes)
+- Keep only the last 5-6 entries — drop the oldest when adding a new one
+- Follow the existing single-paragraph format
+- Commit separately: `"Update README with vX.Y.Z changelog"`
+
+## Post-ship: Website
+
+- Update `llm-wiki-web/index.html`:
+  - Release card fallback version + description (the live API fetch also picks it up, but the fallback should match)
+  - Plugin card fallback version
+  - Commands table if new flags/commands were added
+  - Feature cards if a major capability changed
+- Update `llm-wiki-web/llms.txt` if commands or flags changed
+- Commit and push to `llm-wiki-web` repo separately
 
 ## Notes
 
