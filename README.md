@@ -13,6 +13,8 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, th
 
 ## Changelog
 
+**v0.3.0** — **Parallel Research & Human-Readable Lint.** New `--plan` flag for `/wiki:research` decomposes a topic into 3-5 independent research paths, presents the plan for confirmation, then dispatches all paths as parallel agent groups. Parallel ingest with path-prefixed raw files (no collisions), sequential compilation for cross-path synthesis. Extends `.research-session.json` with `mode` and `paths` fields (backward-compatible). Lint reports now lead with plain-English descriptions instead of internal check codes. C4 extended to catch broken inline body links. Test counter bug fixed — all 86 assertions now run.
+
 **v0.2.1** — **Codex packaging.** Repo-local Codex plugin (`plugins/llm-wiki/`) and marketplace entry alongside the Claude plugin — same wiki-manager skill, two thin packaging layers. References are a single source of truth: the Codex tree symlinks into `claude-plugin/skills/wiki-manager/references/`. `./scripts/sync-codex-plugin.sh` regenerates the mirror; `tests/test-codex-sync.sh` catches drift inside the agent's own test loop with self-healing fix instructions. `tests/test-plugin-validate.sh` extended with 19 checks for symlink integrity, Codex manifests, and `agents/openai.yaml`.
 
 **v0.2.0t** — **Tests.** Three-layer test suite: structural validation (84 assertions, no LLM, runs in seconds), behavioral evals via Promptfoo with Claude Agent SDK, and GitHub Actions CI workflow. Golden wiki fixture with 11 defect variants (one per lint rule) for negative testing. `CLAUDE.md` dev guide added.
@@ -182,6 +184,7 @@ Check your installed version: look for the version in `/wiki` status output or c
 | `/wiki:research <topic>` | 5 parallel agents: academic, technical, applied, news, contrarian |
 | `/wiki:research <topic> --new-topic` | Create a topic wiki and start researching — works from any directory |
 | `/wiki:research <topic> --min-time 1h` | Keep researching in rounds until time budget is spent |
+| `/wiki:research <topic> --plan` | Decompose into 3-5 parallel paths, confirm, then dispatch all at once |
 | `/wiki:research <topic> --deep` | 8 agents: adds historical, adjacent, data/stats |
 | `/wiki:research <topic> --retardmax` | 10 agents: skip planning, max speed, ingest aggressively |
 | `/wiki:thesis <claim>` | Thesis-driven research: evidence for + against → verdict |
@@ -270,6 +273,7 @@ Question mode produces a **playbook** (actionable output artifact) and suggests 
 | Flag | What it does |
 |------|-------------|
 | `--new-topic` | Create a topic wiki from the research topic and start immediately. Works from any directory. |
+| `--plan` | Decompose into 3-5 parallel research paths, confirm, then dispatch all paths simultaneously. Parallel ingest, sequential compile. |
 | `--min-time <duration>` | Keep running research rounds until the time budget is spent (`30m`, `1h`, `2h`, `4h`). Each round drills into gaps the previous round found. |
 | `--sources <N>` | Sources per round (default: 5, retardmax: 15) |
 
