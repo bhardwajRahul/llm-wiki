@@ -47,6 +47,14 @@ changing operational state.
    - Updated articles: use Edit to integrate new information, update frontmatter dates
    - Every article must link to at least one other via See Also
 
+5.5. **Self-validation pass**: For every article touched in step 5 (new or updated), re-read the frontmatter and verify:
+   - `sources:` is a non-empty list resolving to existing raw files, OR `compiled-from: conversation` is set
+   - `volatility:` is set to `hot`, `warm`, or `cold`
+   - `verified:` is set to today's date
+   - `confidence:` is set to `high`, `medium`, or `low`
+
+   If any check fails, halt with: `Article <path>: missing required frontmatter (<field>). See references/compilation.md § Step 5 (write protocol) and references/wiki-structure.md § Volatility Classification.` This catches silent agent skips before lint has to catch them later. Do not "fix and continue" — stop, surface the failure, let the user re-run with awareness.
+
 6. **Bidirectional links**: For every See Also link A→B, ensure B→A exists
 
 7. **Update indexes (best-effort)**: Update `wiki/concepts/_index.md`, `wiki/topics/_index.md`, `wiki/references/_index.md`, `wiki/_index.md`, and master `_index.md` (article count, "Last compiled" date, Recent Changes). If `output/projects/` exists, rebuild `output/_index.md` as a projects-aware listing: scan each `output/projects/*/WHY.md` for its first `#` heading (title) and first non-heading paragraph (goal), list them as a table, then list any remaining loose outputs in `output/` below. If any index update is skipped or interrupted, no data is lost — the next read operation will detect the stale index and rebuild it from file frontmatter. See `references/indexing.md` Derived Index Protocol and `references/compilation.md` Step 7.
@@ -58,4 +66,5 @@ changing operational state.
    - New articles created: list with paths
    - Existing articles updated: list with paths
    - New cross-references added: count
+   - Volatility set: count of `hot`, `warm`, `cold` articles touched. If any are `hot`, append a one-line note pointing at `references/wiki-structure.md § Volatility Classification` so the author can confirm the rubric matched their intent.
    - Suggest: `/wiki:lint` to verify consistency

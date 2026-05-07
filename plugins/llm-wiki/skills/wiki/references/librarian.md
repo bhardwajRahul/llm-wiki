@@ -67,6 +67,19 @@ Range: 0 (completely stale) to 100 (perfectly fresh).
 - Missing `updated`: fall back to `created` date
 - Missing `sources`: integrity = 0 (no sources to verify)
 
+### `compiled-from: conversation` Exemption
+
+Articles whose evidence is the conversation that authored them — not fetchable raw files — set `compiled-from: conversation` in frontmatter (see `wiki-structure.md` schema and `linting.md` C18). For these articles:
+
+- Skip the **source freshness** dimension (no `sources:` to age) — set its contribution to 0 of 0 (excluded, not zero-of-25).
+- Skip the **source chain integrity** dimension (no `sources:` to resolve) — set its contribution to 0 of 0.
+- Compute the **verification recency** and **compilation recency** dimensions as usual.
+- Re-base the composite to a 50-point scale (verification + compilation, each 0-25), then multiply by 2 to land on the same 0-100 score range as standard articles.
+
+Effect: a `compiled-from: conversation` article verified within its volatility's half-life scores ~95-100. A neglected one decays at the same rate as any other article on the verification/compilation dimensions. The article is no longer permanently capped at 50 by missing sources.
+
+Articles with `compiled-from: mixed` are scored using the standard four-dimension formula — `mixed` means some sources exist, so integrity is meaningful.
+
 ### Staleness Threshold
 
 Read `freshness_threshold` from the wiki's `config.md` (default: 70). Articles scoring below this threshold are flagged.

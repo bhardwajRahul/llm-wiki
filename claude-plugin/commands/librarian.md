@@ -11,6 +11,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:
 2. If no config → read `$HOME/wiki/_index.md`. If it exists → HUB = `$HOME/wiki`. If nothing found, ask the user where to create the wiki.
 3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup; CWD has `.wiki/` → use it; else → HUB.
 4. Read `<wiki>/_index.md` to verify. If missing → stop with "No wiki found. Run `/wiki init` first."
+5. **Hub-level detection**: Librarian operates on the `wiki/` layer of a single topic wiki. The HUB has no `wiki/` subdirectory — only `wikis.json`, `_index.md`, `log.md`, and `topics/`. If the resolved wiki is the HUB (detected by the presence of `wikis.json` and the absence of a `wiki/` subdir) AND the user did not pass `--wiki <name>`, do NOT proceed with the scan against an empty topic surface. Instead, present a numbered list of registered topic wikis from `HUB/wikis.json` (excluding the synthetic `hub` entry) and ask the user to pick one. Re-resolve the wiki path with the selected name (`HUB/topics/<name>/`) and continue. If the user explicitly wants every topic, accept `--wiki all` and iterate the scan against each registered topic wiki sequentially.
 
 Read the librarian reference at `skills/wiki-manager/references/librarian.md`. Then execute the requested subcommand.
 

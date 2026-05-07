@@ -57,6 +57,7 @@ Read `wiki/_index.md` and category indexes. For each key concept:
 5. Add "Sources" section linking back to raw files. If a raw path contains spaces, use angle-bracket markdown destinations such as `[Title](<../../raw/articles/File Name.md>)`.
 6. Generate frontmatter per `references/wiki-structure.md` — include `aliases` for alternate names
    - In `sources:` frontmatter, write exact wiki-root-relative raw paths. Use block-list YAML and quote any path with spaces or punctuation. Do not cite raw files by display title or whitespace-delimited slug.
+   - **`sources:` MUST be non-empty for articles compiled from raw files.** If the article has no fetchable raw sources because it was authored from conversation rather than ingested material, set `compiled-from: conversation` in frontmatter instead. Lint rule C18 enforces this — articles with neither will fail at next lint pass.
 7. Add `aliases` in frontmatter for any common alternate names (e.g., `aliases: [GPT, Generative Pre-trained Transformer]`)
 8. Set `confidence` in frontmatter based on source credibility AND corroboration:
    - `high`: multiple sources with credibility score 4+ agree, OR single peer-reviewed meta-analysis/systematic review
@@ -65,7 +66,7 @@ Read `wiki/_index.md` and category indexes. For each key concept:
 
    When Phase 2b credibility scores are available, use them directly. When compiling without a preceding research phase (e.g., manual ingest → compile), assess credibility inline.
 
-When creating or updating a wiki article, set `volatility` and `verified` in frontmatter. Default `volatility` to `warm`. Set `verified` to today's date. If the article's sources are primarily news/trends (type: articles with recent ingestion dates), suggest `hot`. If sources are foundational papers, historical references, or mathematical content, suggest `cold`. The author can override during review.
+When creating or updating a wiki article, set `volatility` and `verified` in frontmatter. Default `volatility` to `warm`. Set `verified` to today's date. The full rubric — what each tier means, when to use it, how the decay differs — lives in `references/wiki-structure.md` § Volatility Classification. The short version: news/trends sources → `hot`, foundational/historical sources → `cold`, everything else → `warm` (the safe default). The author can override during review.
 
 **For updated articles:**
 

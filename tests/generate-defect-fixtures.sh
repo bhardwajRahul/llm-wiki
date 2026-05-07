@@ -137,6 +137,20 @@ sed -i.bak '/^verified:/d' \
 rm -f "$DEFECTS/missing-volatility/wiki/concepts/sample-concept.md.bak"
 echo "  Created: missing-volatility (C15)"
 
+# C18: missing-sources — wiki article without sources frontmatter and no compiled-from exemption
+copy_golden "missing-sources"
+# Strip the sources: key and its block-list children. AWK is more reliable than
+# sed across BSD/GNU for multi-line YAML range deletes.
+awk '
+  /^sources:/ { in_sources=1; next }
+  in_sources && /^  - / { next }
+  { in_sources=0; print }
+' "$DEFECTS/missing-sources/wiki/concepts/sample-concept.md" \
+  > "$DEFECTS/missing-sources/wiki/concepts/sample-concept.md.tmp"
+mv "$DEFECTS/missing-sources/wiki/concepts/sample-concept.md.tmp" \
+   "$DEFECTS/missing-sources/wiki/concepts/sample-concept.md"
+echo "  Created: missing-sources (C18)"
+
 # C16: missing-inventory — inventory structure missing an index
 copy_golden "missing-inventory"
 rm "$DEFECTS/missing-inventory/inventory/_index.md"

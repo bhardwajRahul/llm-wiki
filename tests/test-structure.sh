@@ -490,6 +490,13 @@ if [ -d "$DEFECTS" ]; then
       || log_fail "missing-volatility: volatility field still present" "fixture broken"
   }
 
+  [ -d "$DEFECTS/missing-sources" ] && {
+    ! grep -q "^sources:" "$DEFECTS/missing-sources/wiki/concepts/sample-concept.md" 2>/dev/null \
+      && ! grep -q "^compiled-from:" "$DEFECTS/missing-sources/wiki/concepts/sample-concept.md" 2>/dev/null \
+      && log_pass "missing-sources: C18 defect present" \
+      || log_fail "missing-sources: sources field still present or compiled-from set" "fixture broken"
+  }
+
   [ -d "$DEFECTS/missing-inventory" ] && {
     [ ! -f "$DEFECTS/missing-inventory/inventory/_index.md" ] \
       && log_pass "missing-inventory: C16 defect present" \

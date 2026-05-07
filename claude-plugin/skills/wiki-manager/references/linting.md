@@ -98,7 +98,7 @@ There is no `/wiki:migrate` command and there should never be one. Lint rules **
 
 - [ ] Every raw source is referenced by at least one wiki article's `sources` field
 - [ ] Raw sources tagged `collection-manifest` are exempt from this coverage check
-- [ ] No wiki article has an empty `sources` field
+- [ ] No wiki article has an empty `sources` field (C18 covers the per-article enforcement at Warning severity; this bullet stays as the wiki-wide coverage signal at Suggestion)
 - [ ] Articles with overlapping tags that don't link to each other via "See Also" — suggest connection
 - [ ] Orphan articles: no incoming "See Also" links from other articles
 
@@ -367,6 +367,23 @@ opportunity, not corruption.
   dataset manifests. Report suggested commands such as:
   `/wiki:dataset migrate-output output/bitcointalk-data-2026-05-03.md --dry-run`
 
+### C18: Missing Sources (Warning)
+
+Wiki articles that lack `sources:` in their frontmatter — or carry an empty list — cannot have their source-chain integrity scored, which leaves them stuck near the freshness floor regardless of how recently they were verified or compiled. The compile protocol already requires non-empty `sources:` for articles compiled from raw files (see `compilation.md` step 5.6); C18 is the runtime check that catches articles where compile skipped this step.
+
+The exemption is `compiled-from: conversation` — articles whose evidence is the conversation that authored them rather than fetchable raw files. This frontmatter value is the legitimate signal that the article will never have raw sources and should be scored against verification recency only (see `librarian.md` § Staleness Scoring for the matching exemption in the score formula).
+
+- [ ] For each `.md` file in `wiki/` (excluding `_index.md`), check that frontmatter has either:
+  - A non-empty `sources:` list with at least one entry that resolves under the Source Reference Resolution protocol in `wiki-structure.md`, OR
+  - `compiled-from: conversation` set explicitly
+- [ ] Flag any file that has neither.
+
+**Severity**: Warning (not Critical — the article is still readable and may be substantively correct; but it will silently fail the freshness composite until fixed).
+
+**Auto-fix**: None. Wiring sources requires reading the article body, identifying its origin raw files, and writing accurate paths — not a default-fillable. Surface the file with a one-line suggestion: `Compiled article <path> has no sources. Run /wiki:compile --source <article> to re-derive, OR add 'compiled-from: conversation' if this article was authored from chat without fetchable sources.`
+
+**Output line**: `Compiled article missing sources: <path>. (C18)`
+
 ## Auto-Fix Rules (when --fix is set)
 
 | Issue | Auto-Fix Action |
@@ -399,6 +416,7 @@ opportunity, not corruption.
 | **C16** Output looks like inventory | Warn only — suggest `/wiki:inventory migrate-output <path> --dry-run`; never auto-migrate |
 | **C17** Missing dataset registry directories/indexes | Create empty `datasets/_index.md` and missing per-dataset `samples/`, `profiles/`, and `queries/` indexes only |
 | **C17** Output looks like a dataset manifest | Warn only — suggest `/wiki:dataset migrate-output <path> --dry-run`; never auto-migrate |
+| **C18** Compiled article missing sources | **Warn only** — surface with the suggested commands. Do not auto-add `compiled-from: conversation` (that's a provenance claim that requires human judgment) and do not auto-recompile (would synthesize fake sources). |
 
 ## Report Format
 

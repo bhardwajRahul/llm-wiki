@@ -295,6 +295,7 @@ aliases: [alternate names for Obsidian discovery]
 confidence: high|medium|low
 volatility: hot|warm|cold
 verified: YYYY-MM-DD
+compiled-from: sources|conversation|mixed   # optional; defaults to "sources"
 summary: "2-3 sentence summary for index"
 ---
 
