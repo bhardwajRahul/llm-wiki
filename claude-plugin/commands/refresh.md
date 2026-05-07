@@ -1,6 +1,6 @@
 ---
 description: "Check if wiki articles are still current. Re-fetches sources, detects changes, and offers to update stale articles."
-argument-hint: "[<article-path>|--due] [--wiki <name>] [--local]"
+argument-hint: "[<article-path>|--due] [--wiki <name|all>] [--local]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:*), WebFetch, WebSearch, Agent
 ---
 
@@ -9,9 +9,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:
 **Resolve the wiki.** Do NOT search the filesystem or read reference files — follow these steps:
 1. Read `$HOME/.config/llm-wiki/config.json`. If it has `resolved_path` → HUB = that value, skip to step 3. If only `hub_path`, expand leading `~` only (not tildes in `com~apple~CloudDocs`), set HUB, write `resolved_path` back, skip to step 3.
 2. If no config → read `$HOME/wiki/_index.md`. If it exists → HUB = `$HOME/wiki`. If nothing found, ask the user where to create the wiki.
-3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup; CWD has `.wiki/` → use it; else → HUB.
+3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki all` → HUB with an `ALL_TOPICS` flag for step 5; `--wiki <name>` → `HUB/wikis.json` lookup; CWD has `.wiki/` → use it; else → HUB.
 4. Read `<wiki>/_index.md` to verify. If missing → stop with "No wiki found. Run `/wiki init` first."
-5. **Hub-level detection**: Refresh operates on articles inside a single topic wiki. The HUB has no `wiki/` subdirectory. If the resolved wiki is the HUB (detected by the presence of `wikis.json` and the absence of a `wiki/` subdir) AND the user did not pass `--wiki <name>`, do NOT iterate against an empty topic surface. Instead, present a numbered list of registered topic wikis from `HUB/wikis.json` (excluding the synthetic `hub` entry) and ask the user to pick one. Re-resolve the wiki path with the selected name (`HUB/topics/<name>/`) and continue. Accept `--wiki all` to iterate against every registered topic wiki sequentially.
+5. **Hub-level detection**: Refresh operates on articles inside a single topic wiki. The HUB has no `wiki/` subdirectory. If `ALL_TOPICS` is set from `--wiki all`, read registered topic wikis from `HUB/wikis.json` (excluding the synthetic `hub` entry) and iterate refresh against each topic wiki sequentially. If the resolved wiki is the HUB (detected by the presence of `wikis.json` and the absence of a `wiki/` subdir) AND the user did not pass `--wiki <name>`, do NOT iterate against an empty topic surface. Instead, present a numbered list of registered topic wikis from `HUB/wikis.json` and ask the user to pick one. Re-resolve the wiki path with the selected name (`HUB/topics/<name>/`) and continue.
 
 Check whether wiki articles are still current by re-examining their sources. This is NOT automatic recompilation — it's a human-gated assessment of what may have changed.
 

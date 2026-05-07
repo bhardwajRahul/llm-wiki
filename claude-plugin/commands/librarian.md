@@ -1,6 +1,6 @@
 ---
 description: "Keep the wiki article layer in check: staleness, quality, accuracy, and coherence. Focused maintenance tool; broader trust audits belong to /wiki:audit."
-argument-hint: "scan [--article <path>] [--resume] [--passes <list>] | report | fix <id> [--wiki <name>] [--local]"
+argument-hint: "scan [--article <path>] [--resume] [--passes <list>] | report | fix <id> [--wiki <name|all>] [--local]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:*), Bash(mv:*), Bash(mkdir:*), WebFetch, WebSearch, Agent
 ---
 
@@ -9,9 +9,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:
 **Resolve the wiki.** Do NOT search the filesystem or read reference files — follow these steps:
 1. Read `$HOME/.config/llm-wiki/config.json`. If it has `resolved_path` → HUB = that value, skip to step 3. If only `hub_path`, expand leading `~` only (not tildes in `com~apple~CloudDocs`), set HUB, write `resolved_path` back, skip to step 3.
 2. If no config → read `$HOME/wiki/_index.md`. If it exists → HUB = `$HOME/wiki`. If nothing found, ask the user where to create the wiki.
-3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup; CWD has `.wiki/` → use it; else → HUB.
+3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki all` → HUB with an `ALL_TOPICS` flag for step 5; `--wiki <name>` → `HUB/wikis.json` lookup; CWD has `.wiki/` → use it; else → HUB.
 4. Read `<wiki>/_index.md` to verify. If missing → stop with "No wiki found. Run `/wiki init` first."
-5. **Hub-level detection**: Librarian operates on the `wiki/` layer of a single topic wiki. The HUB has no `wiki/` subdirectory — only `wikis.json`, `_index.md`, `log.md`, and `topics/`. If the resolved wiki is the HUB (detected by the presence of `wikis.json` and the absence of a `wiki/` subdir) AND the user did not pass `--wiki <name>`, do NOT proceed with the scan against an empty topic surface. Instead, present a numbered list of registered topic wikis from `HUB/wikis.json` (excluding the synthetic `hub` entry) and ask the user to pick one. Re-resolve the wiki path with the selected name (`HUB/topics/<name>/`) and continue. If the user explicitly wants every topic, accept `--wiki all` and iterate the scan against each registered topic wiki sequentially.
+5. **Hub-level detection**: Librarian operates on the `wiki/` layer of a single topic wiki. The HUB has no `wiki/` subdirectory — only `wikis.json`, `_index.md`, `log.md`, and `topics/`. If `ALL_TOPICS` is set from `--wiki all`, read registered topic wikis from `HUB/wikis.json` (excluding the synthetic `hub` entry) and iterate the scan against each topic wiki sequentially. If the resolved wiki is the HUB (detected by the presence of `wikis.json` and the absence of a `wiki/` subdir) AND the user did not pass `--wiki <name>`, do NOT proceed with the scan against an empty topic surface. Instead, present a numbered list of registered topic wikis from `HUB/wikis.json` and ask the user to pick one. Re-resolve the wiki path with the selected name (`HUB/topics/<name>/`) and continue.
 
 Read the librarian reference at `skills/wiki-manager/references/librarian.md`. Then execute the requested subcommand.
 
@@ -36,7 +36,7 @@ Flags (apply to `scan`):
 - **--article <path>**: Scan only this article instead of the full wiki. Path relative to wiki root (e.g., `wiki/concepts/librarian-agent.md`).
 - **--resume**: Explicitly resume from checkpoint. Also happens automatically if `checkpoint.json` exists.
 - **--passes <list>**: Comma-separated list of passes to run. Default: `staleness,quality`. Future: `verification,coherence,dedup`.
-- **--wiki <name>**: Target a specific topic wiki.
+- **--wiki <name|all>**: Target a specific topic wiki, or every registered topic wiki sequentially.
 - **--local**: Use project-local `.wiki/`.
 
 ### Scan Protocol

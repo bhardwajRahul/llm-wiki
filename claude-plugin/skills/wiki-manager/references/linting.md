@@ -53,11 +53,12 @@ There is no `/wiki:migrate` command and there should never be one. Lint rules **
 ### C2: Frontmatter (Critical/Warning)
 
 - [ ] Every raw source has: title, source, type, ingested, tags, summary
-- [ ] Every wiki article has: title, category, sources, created, updated, tags, summary
+- [ ] Every wiki article has: title, category, created, updated, tags, summary, plus either `sources` or `compiled-from: conversation`
 - [ ] No empty title or summary fields
 - [ ] `category` is one of: concept, topic, reference
 - [ ] `type` is one of: articles, papers, repos, notes, data
 - [ ] `tags` is a list, not empty
+- [ ] `compiled-from`, when present, is one of: sources, conversation, mixed
 - [ ] Optional collection provenance fields are valid when present:
   `collection`, `adapter`, `upstream_id`, `upstream_type`, `revision`, `sha`,
   `canonical_url`, `content_format`, `license`, `authors`, `categories`,
@@ -274,15 +275,17 @@ Note: thesis files use `type: thesis`, not `category`. Do not alias `theses` to 
 
 ### C14: Freshness (Warning/Info)
 
-Computes a composite freshness score (0-100) for each compiled wiki article based on four dimensions: source freshness, verification recency, compilation recency, and source chain integrity. Each dimension contributes 0-25 points, with decay curves scaled by the article's `volatility` tier. See `wiki-structure.md` § Freshness Score for the full formula.
+Computes a composite freshness score (0-100) for each compiled wiki article based on source freshness, verification recency, compilation recency, and source chain integrity. Standard source-backed articles use all four dimensions at 0-25 points each. Articles with `compiled-from: conversation` have no fetchable raw source chain, so they skip source freshness and source chain integrity, compute verification recency and compilation recency at 0-25 points each, then multiply the 50-point subtotal by 2. Decay curves are scaled by the article's `volatility` tier. See `wiki-structure.md` § Freshness Score for the full formula.
 
-- [ ] For each wiki article with `volatility` and `verified` fields, compute the four-dimension composite score
+- [ ] For each wiki article with `volatility` and `verified` fields, compute the standard four-dimension composite score, or the rebased two-dimension score when `compiled-from: conversation`
 - [ ] Read `freshness_threshold` from `config.md` (default: 70 if not set)
 - [ ] Flag articles scoring below the threshold
 
 **Severity**: Warning for `hot` and `warm` articles below threshold. Info for `cold` articles below threshold (Lindy Effect — cold content scoring low is unusual and worth noting, but rarely urgent).
 
 **Output**: `Freshness score [score]/100: [article] — source age [avg days], verified [days] ago, compiled [days] ago, [N/M] sources intact. Run /wiki:refresh [path]`
+
+For `compiled-from: conversation` articles, use: `Freshness score [score]/100: [article] — conversation-sourced, verified [days] ago, compiled [days] ago. Review or re-verify manually.`
 
 **Auto-fix**: None. Freshness requires human judgment — automated recompilation risks the "confident wrong answer" problem where stale content is replaced by hallucinated content.
 
@@ -380,7 +383,7 @@ The exemption is `compiled-from: conversation` — articles whose evidence is th
 
 **Severity**: Warning (not Critical — the article is still readable and may be substantively correct; but it will silently fail the freshness composite until fixed).
 
-**Auto-fix**: None. Wiring sources requires reading the article body, identifying its origin raw files, and writing accurate paths — not a default-fillable. Surface the file with a one-line suggestion: `Compiled article <path> has no sources. Run /wiki:compile --source <article> to re-derive, OR add 'compiled-from: conversation' if this article was authored from chat without fetchable sources.`
+**Auto-fix**: None. Wiring sources requires reading the article body, identifying its origin raw files, and writing accurate paths — not a default-fillable. Surface the file with a one-line suggestion: `Compiled article <path> has no sources. Recompile the relevant raw source with /wiki:compile --source <raw-source-path>, run /wiki:compile --full, OR add 'compiled-from: conversation' if this article was authored from chat without fetchable sources.`
 
 **Output line**: `Compiled article missing sources: <path>. (C18)`
 

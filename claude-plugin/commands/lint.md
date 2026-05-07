@@ -76,7 +76,7 @@ Scan `output/` for architectural violations and migration candidates:
 For each C9d cluster, output a ready-to-paste `/wiki:project new` + `/wiki:project add` block. Never auto-moved — grouping is a human decision.
 
 #### 13. C14: Freshness (Warning/Info)
-Compute composite freshness score (0-100) for each wiki article from four dimensions: source age, verification recency, compilation recency, source chain integrity. Decay curves scale by `volatility` tier. Flag articles below `freshness_threshold` from `config.md` (default 70). See `references/linting.md` § C14.
+Compute composite freshness score (0-100) for each wiki article. Standard articles use four dimensions: source age, verification recency, compilation recency, source chain integrity. Articles with `compiled-from: conversation` use the two-dimension rebased formula from `references/linting.md` § C14. Decay curves scale by `volatility` tier. Flag articles below `freshness_threshold` from `config.md` (default 70).
 
 #### 14. C15: Missing Volatility (Info)
 Flag wiki articles lacking the `volatility` field. See `references/linting.md` § C15.
@@ -102,6 +102,9 @@ Check the dataset registry from `references/datasets.md` and `references/linting
 4. Validate dataset manifest frontmatter when manifests exist.
 5. Scan `output/**/*.md` for artifacts that look like dataset manifests, such as corpus descriptions, archive inventories, dump summaries, parquet/sqlite/duckdb notes, or data profile reports.
 6. Report suggested `dataset migrate-output <path> --dry-run` commands. Never auto-convert outputs, raw files, or inventory records into dataset manifests.
+
+#### 17. C18: Missing Sources (Warning)
+For each `.md` file in `wiki/` (excluding `_index.md`), verify that frontmatter has either a non-empty `sources:` list with at least one resolvable source, or `compiled-from: conversation`. Surface files with neither as missing provenance. Do not auto-fix.
 
 ### If --fix
 
