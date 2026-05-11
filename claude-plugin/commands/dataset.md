@@ -58,21 +58,25 @@ Schema statuses:
 
 ### Ensure Structure
 
-Before any write:
+Dataset structure is lazy. Do not create it during read-only operations, and do
+not create empty sample/profile/query folders until the relevant command needs
+them.
+
+Before a write:
 
 1. Ensure `datasets/` exists with `_index.md`.
-2. For a specific dataset write, ensure:
-   - `datasets/<slug>/MANIFEST.md`
-   - `datasets/<slug>/_index.md`
-   - `datasets/<slug>/samples/_index.md`
-   - `datasets/<slug>/profiles/_index.md`
-   - `datasets/<slug>/queries/_index.md`
-3. Missing structure may be created, but never move or copy user datasets into the wiki.
+2. For a manifest write, ensure `datasets/<slug>/` exists with `_index.md`.
+3. For `profile`, ensure `datasets/<slug>/profiles/_index.md`.
+4. For `sample`, ensure `datasets/<slug>/samples/_index.md`.
+5. For query recipes, ensure `datasets/<slug>/queries/_index.md`.
+6. Missing structure may be created, but never move or copy user datasets into the wiki.
 
 ### Add
 
 1. Slugify the title using normal wiki filename rules.
-2. Create `datasets/<slug>/` with `samples/`, `profiles/`, and `queries/` subdirectories.
+2. Create `datasets/<slug>/` with `_index.md`. Do not create `samples/`,
+   `profiles/`, or `queries/` yet unless the user is also writing one of those
+   notes now.
 3. Write `MANIFEST.md` with frontmatter per `references/datasets.md`.
 4. Record any `--location`, `--format`, size, access, license, or source hints provided by the user.
 5. Append to `log.md`:
@@ -81,19 +85,21 @@ Before any write:
 
 ### List
 
-1. Read `datasets/_index.md` first.
-2. If filters require fields not present in the index, read only
+1. If `datasets/` or `datasets/_index.md` is missing, report that there are no
+   dataset manifests yet and do not create files.
+2. Read `datasets/_index.md` first.
+3. If filters require fields not present in the index, read only
    `datasets/*/MANIFEST.md` frontmatter. Do not inspect samples, profiles,
    queries, or underlying data for a list operation.
-3. Present a compact chat-friendly result. Default to a Markdown table with
+4. Present a compact chat-friendly result. Default to a Markdown table with
    dataset, status, storage, formats, size, records, schema status, and updated
    date.
-4. Use `--view` to choose columns:
+5. Use `--view` to choose columns:
    - `summary`: counts by status/storage plus the most actionable manifests
    - `manifests`: one row per manifest
    - `schema`: schema status, formats, record count, profile availability
    - `locations`: compact storage/access/location pointers
-5. Use `--format list` for short bullets when paths or URLs would make a table
+6. Use `--format list` for short bullets when paths or URLs would make a table
    unreadable. Use `--limit N` to cap rows in chat and report the hidden count.
 
 ### Scan Outputs

@@ -68,25 +68,31 @@ action only when it can be read cheaply from the linked record frontmatter.
 
 ## Directory Layout
 
+The dataset registry is created lazily. A wiki with no `datasets/` directory has
+no dataset manifests yet; read-only commands should report that state without
+creating files.
+
 ```text
 datasets/
 ├── _index.md
 └── <dataset-slug>/
     ├── _index.md
     ├── MANIFEST.md
-    ├── samples/
+    ├── samples/          # Lazy: created by dataset sample
     │   ├── _index.md
     │   └── *.md
-    ├── profiles/
+    ├── profiles/         # Lazy: created by dataset profile
     │   ├── _index.md
     │   └── *.md
-    └── queries/
+    └── queries/          # Lazy: created when query recipes are written
         ├── _index.md
         └── *.md
 ```
 
-Per-dataset folders are created only when a manifest is added. Older wikis may
-have no `datasets/` directory until lint or `/wiki:dataset add` creates it.
+Per-dataset manifest folders are created only when a manifest is added. The
+`samples/`, `profiles/`, and `queries/` subfolders are created only when their
+first note is written. Older wikis may have no `datasets/` directory until
+`/wiki:dataset add` or an explicit lint repair creates it.
 
 ## Manifest Format
 
@@ -219,9 +225,9 @@ Last updated: YYYY-MM-DD
 | [Bitcointalk Temporal Graph](bitcointalk-temporal-graph/MANIFEST.md) | proposed | external | csv, zip | unknown | unknown | YYYY-MM-DD |
 ```
 
-Each `datasets/<slug>/_index.md` links to `MANIFEST.md` and the sample/profile/
-query indexes. Dataset subdirectory indexes list sample/profile/query notes with
-the standard `_index.md` table shape.
+Each `datasets/<slug>/_index.md` links to `MANIFEST.md` and any existing
+sample/profile/query indexes. Dataset subdirectory indexes list
+sample/profile/query notes with the standard `_index.md` table shape.
 
 ## Profiles
 
@@ -292,8 +298,10 @@ Lint should treat missing `datasets/` as a migration opportunity, not
 corruption:
 
 - Missing `datasets/` on an existing wiki: suggestion, not critical.
-- `lint --fix`: may create `datasets/_index.md` and missing per-dataset
-  subdirectory indexes only.
+- `lint --fix`: may repair indexes for a dataset registry that already exists,
+  but should not create a completely absent `datasets/` tree just to populate
+  empty placeholders. Missing per-dataset `samples/`, `profiles/`, or
+  `queries/` folders are fine until used.
 - Output artifacts that look like dataset manifests: suggestion with migration
   commands.
 - Lint must never auto-convert outputs, raw files, or inventory records into

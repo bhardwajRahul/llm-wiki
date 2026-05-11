@@ -11,11 +11,15 @@ There are two layers where this principle applies, each with its own rules:
 - **Mechanical layer (C11/C12/C13)** — raw-source and wiki-article placement and frontmatter schema. Fully auto-fixable because the canonical location and field shape are pure functions of frontmatter. No judgment required.
 - **Editorial layer (C8/C9)** — project grouping inside `output/projects/`. **Never auto-fixed** because "these files belong together" requires human sense-making. C9 surfaces candidates and emits ready-to-paste `/wiki:project new` + `/wiki:project add` blocks for the user to run.
 - **Inventory layer (C16)** — durable tracking records under `inventory/`.
-  Missing inventory structure is auto-creatable, but migrating old queue-like
-  outputs into inventory records is human-gated.
+  Inventory is lazy: a completely absent inventory tree is a suggestion, not
+  something to auto-populate with empty placeholders. Partially existing
+  inventory structure is repairable. Migrating old queue-like outputs into
+  inventory records is human-gated.
 - **Dataset layer (C17)** — dataset manifests under `datasets/`.
-  Missing registry structure is auto-creatable, but converting outputs or raw
-  data into dataset manifests is human-gated.
+  Datasets are lazy: a completely absent registry is a suggestion, not
+  something to auto-populate with empty placeholders. Partially existing
+  registry structure is repairable. Converting outputs or raw data into dataset
+  manifests is human-gated.
 
 Concretely, when evolving the schema:
 
@@ -46,7 +50,7 @@ There is no `/wiki:migrate` command and there should never be one. Lint rules **
 
 - [ ] Master `_index.md` exists
 - [ ] `config.md` exists
-- [ ] Every subdirectory under `raw/`, `wiki/`, `inventory/`, and `datasets/` has `_index.md` where applicable
+- [ ] Every existing wiki-managed subdirectory under `raw/`, `wiki/`, `inventory/`, and `datasets/` has `_index.md` where applicable. Optional lazy roots that are completely absent are not C1 failures.
 - [ ] `output/` has `_index.md`
 - [ ] Every `.md` file (excluding `_index.md` and `config.md`) has valid YAML frontmatter delimited by `---`
 
@@ -302,11 +306,14 @@ Flags wiki articles that lack the `volatility` field. New articles should always
 
 ### C16: Inventory Structure and Migration Candidates (Suggestion)
 
-Validates the optional-but-first-class `inventory/` layer. Older wikis may lack
-this directory; that is a migration opportunity, not corruption.
+Validates the optional-but-first-class `inventory/` layer. New or older wikis
+may lack this directory; that is a migration opportunity, not corruption, and
+lint should not create a blank inventory tree unless part of the layer already
+exists.
 
-- [ ] `inventory/`, `inventory/items/`, `inventory/candidates/`,
-  `inventory/entities/`, `inventory/corpora/`, and `inventory/views/` exist with `_index.md`
+- [ ] If `inventory/` is missing entirely, report "no inventory layer yet" as a suggestion.
+- [ ] If `inventory/` exists, it has `_index.md`.
+- [ ] If any inventory subdirectory exists, it has `_index.md`.
 - [ ] Inventory records under `inventory/items/`, `inventory/candidates/`,
   `inventory/entities/`, and `inventory/corpora/` have valid frontmatter when present:
   `title`, `kind`, `status`, `priority`, `created`, `updated`, `tags`,
@@ -326,9 +333,12 @@ this directory; that is a migration opportunity, not corruption.
 
 **Auto-fix**:
 
-- With `--fix`, create only missing inventory directories and empty indexes.
+- With `--fix`, repair missing indexes for an inventory layer or subdirectory
+  that already exists. Do not create `inventory/` when it is completely absent,
+  and do not create empty category folders that are not needed by existing
+  records.
 - With `--fix`, regenerate `inventory/views/_index.md` from saved view
-  frontmatter, but do not fabricate saved views.
+  frontmatter when `inventory/views/` exists, but do not fabricate saved views.
 - Never auto-convert output artifacts into inventory records. Report suggested
   commands such as:
   `/wiki:inventory migrate-output output/ingest-queue-2026-05-03.md --kind ingest-candidate --dry-run`
@@ -340,13 +350,16 @@ this directory; that is a migration opportunity, not corruption.
 ### C17: Dataset Registry Structure and Migration Candidates (Suggestion)
 
 Validates the optional-but-first-class `datasets/` registry for large or
-external data. Older wikis may lack this directory; that is a migration
-opportunity, not corruption.
+external data. New or older wikis may lack this directory; that is a migration
+opportunity, not corruption, and lint should not create a blank registry unless
+part of the layer already exists.
 
-- [ ] `datasets/` exists with `_index.md`
+- [ ] If `datasets/` is missing entirely, report "no dataset registry yet" as a suggestion.
+- [ ] If `datasets/` exists, it has `_index.md`.
 - [ ] Every `datasets/<slug>/` directory has `_index.md` and `MANIFEST.md`
-- [ ] Every dataset folder has `samples/_index.md`, `profiles/_index.md`, and
-  `queries/_index.md`
+- [ ] If a dataset folder has `samples/`, `profiles/`, or `queries/`, those
+  subdirectories have `_index.md`. Missing sample/profile/query folders are fine
+  until used.
 - [ ] Dataset manifests have valid frontmatter:
   `title`, `dataset_id`, `status`, `storage`, `locations`, `formats`,
   `schema_status`, `created`, `updated`, `tags`, `summary`
@@ -363,9 +376,10 @@ opportunity, not corruption.
 
 **Auto-fix**:
 
-- With `--fix`, create only missing `datasets/` directories and empty indexes.
-- With `--fix`, create missing `samples/`, `profiles/`, and `queries/`
-  directories/indexes for existing dataset manifests.
+- With `--fix`, repair missing indexes for a dataset registry or subdirectory
+  that already exists. Do not create `datasets/` when it is completely absent,
+  and do not create empty `samples/`, `profiles/`, or `queries/` folders until
+  they are needed.
 - Never auto-convert output artifacts, raw data files, or inventory records into
   dataset manifests. Report suggested commands such as:
   `/wiki:dataset migrate-output output/bitcointalk-data-2026-05-03.md --dry-run`
@@ -415,9 +429,9 @@ The exemption is `compiled-from: conversation` — articles whose evidence is th
 | **C13** Legacy enum value | Rewrite value to canonical per alias table |
 | **C14** Article below freshness score threshold | **Warn/Info only** — composite score below `freshness_threshold` (default 70). Report score breakdown and suggest `/wiki:refresh`. |
 | **C15** Missing volatility field | Add `volatility: warm` and `verified: <updated>` — safe defaults |
-| **C16** Missing inventory directories/indexes | Create empty `inventory/`, `inventory/items/`, `inventory/candidates/`, `inventory/entities/`, `inventory/corpora/`, and `inventory/views/` indexes |
+| **C16** Missing inventory directories/indexes | Repair missing indexes for existing inventory directories; do not create a completely absent inventory tree or empty unused category folders |
 | **C16** Output looks like inventory | Warn only — suggest `/wiki:inventory migrate-output <path> --dry-run`; never auto-migrate |
-| **C17** Missing dataset registry directories/indexes | Create empty `datasets/_index.md` and missing per-dataset `samples/`, `profiles/`, and `queries/` indexes only |
+| **C17** Missing dataset registry directories/indexes | Repair missing indexes for existing dataset directories; do not create a completely absent dataset tree or empty unused sample/profile/query folders |
 | **C17** Output looks like a dataset manifest | Warn only — suggest `/wiki:dataset migrate-output <path> --dry-run`; never auto-migrate |
 | **C18** Compiled article missing sources | **Warn only** — surface with the suggested commands. Do not auto-add `compiled-from: conversation` (that's a provenance claim that requires human judgment) and do not auto-recompile (would synthesize fake sources). |
 

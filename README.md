@@ -420,10 +420,10 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
 ├── log.md                              # Global activity log
 └── topics/                             # Each topic is an isolated wiki
     ├── nutrition/                      # Example topic wiki
-    │   ├── .obsidian/                  # Obsidian vault config
+    │   ├── .obsidian/                  # Optional Obsidian vault config
     │   ├── inbox/                      # Drop zone for this topic
-    │   ├── inventory/                  # Durable tracking records + derived views
-    │   ├── datasets/                   # Manifests for large/external data
+    │   ├── inventory/                  # Lazy: durable tracking records + derived views
+    │   ├── datasets/                   # Lazy: manifests for large/external data
     │   ├── raw/                        # Immutable sources
     │   ├── wiki/                       # Compiled articles
     │   │   ├── concepts/
@@ -437,7 +437,7 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
     └── ...
 ```
 
-The hub is just a registry — no content directories, no `.obsidian/`. All content lives in topic sub-wikis with isolated indexes and articles. Queries stay focused. The multi-wiki peek finds overlap across topics when relevant.
+The hub is just a registry — no content directories, no `.obsidian/`. All content lives in topic sub-wikis with isolated indexes and articles. Init creates the core wiki skeleton first; optional inventory and dataset layers are created when you use them. Queries stay focused. The multi-wiki peek finds overlap across topics when relevant.
 
 ### The Flow
 
@@ -456,7 +456,7 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
 
 - **One topic, one wiki** — each research area gets its own sub-wiki with isolated indexes. No cross-topic noise.
 - **Parallel research agents** — 5 standard, 8 deep, 10 retardmax. Each agent searches from a different angle.
-- **`_index.md` navigation** — every directory has an index. Claude reads indexes first, never scans blindly.
+- **`_index.md` navigation** — every existing wiki-managed directory has an index. Claude reads indexes first, never scans blindly.
 - **Articles are synthesized**, not copied — they explain, contextualize, cross-reference.
 - **Raw is immutable** — once ingested, sources are never modified.
 - **Multi-wiki aware** — queries peek at sibling wiki indexes for overlap.
@@ -548,7 +548,7 @@ The hub (`~/wiki/`) has no `.obsidian/` to avoid nested vault confusion. If you 
 
 What works out of the box:
 
-- `.obsidian/` config created on init with sane defaults
+- `.obsidian/` config can be created on init with sane defaults
 - `[[wikilinks]]` power the graph view
 - `aliases` in frontmatter enable search by alternate names
 - `tags` in frontmatter are natively read

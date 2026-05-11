@@ -34,13 +34,14 @@ Initialize a new wiki. Parse arguments:
    - `HUB/topics/` directory
    - NO `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, `config.md`, or `.obsidian/` at the hub level.
 
-2. Create the topic wiki directory structure:
+2. Create the core topic wiki directory structure:
    - `inbox/`, `inbox/.processed/`
-   - `inventory/`, `inventory/items/`, `inventory/candidates/`, `inventory/entities/`, `inventory/corpora/`, `inventory/views/`
-   - `datasets/`
    - `raw/`, `raw/articles/`, `raw/papers/`, `raw/repos/`, `raw/notes/`, `raw/data/`
    - `wiki/`, `wiki/concepts/`, `wiki/topics/`, `wiki/references/`, `wiki/theses/`
    - `output/`
+   - Do not create `inventory/` or `datasets/` during init. Those layers are
+     created lazily by `/wiki:inventory`, `/wiki:dataset`, or lint when a
+     partially existing layer needs repair.
    - For local wikis (`--local`): append `.wiki/` to the project's `.gitignore`.
 
 3. Create `.obsidian/` directory with minimal vault config:
@@ -76,7 +77,10 @@ Initialize a new wiki. Parse arguments:
      }
      ```
 
-4. Create empty `_index.md` in every directory following the format in `references/wiki-structure.md`. Use today's date. Set all counts to 0.
+4. Create empty `_index.md` only in the directories created during init,
+   following the format in `references/wiki-structure.md`. Use today's date.
+   Set all counts to 0. Do not write empty indexes for optional layers that do
+   not exist yet.
 
 5. Create `log.md` with initial entry:
    ```
@@ -201,7 +205,7 @@ The user is new or hasn't initialized a wiki yet. Instead of dumping a command l
 
 **Step 2: On user response,** derive a slug from their topic (lowercase, hyphens, max 40 chars) and run the full init protocol:
 1. Create the hub if it doesn't exist (at the resolved HUB path from config, or ask the user where to create it if no config exists — never assume `~/wiki/`)
-2. Create the topic wiki at `HUB/topics/<slug>/` with full directory structure
+2. Create the topic wiki at `HUB/topics/<slug>/` with the core directory structure
 3. Register in wikis.json and update hub _index.md
 4. Create config.md using the user's topic description
 

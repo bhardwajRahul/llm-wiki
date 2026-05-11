@@ -88,7 +88,10 @@ with clear fields.
 
 ## Directory Layout
 
-Inventory lives at the wiki root:
+Inventory lives at the wiki root and is created lazily. A wiki with no
+`inventory/` directory has no inventory records yet; read-only commands should
+report that state without creating files. Write commands create the root and
+only the category directory they need.
 
 ```text
 inventory/
@@ -122,6 +125,7 @@ The subdirectories are intentionally broad:
   other bounded bodies of material.
 - `views/`: generated inventory views such as "P0 blocked candidates" or
   "active corpora by license." Views are derived and may be regenerated.
+  Created only when a saved view is written.
 
 ## Chat And Saved Views
 
@@ -367,7 +371,9 @@ Lint should treat missing `inventory/` as a migration opportunity for older
 wikis, not as corruption:
 
 - Missing `inventory/` on an existing wiki: suggestion, not critical.
-- `lint --fix`: may create empty inventory directories and indexes only.
+- `lint --fix`: may repair indexes for an inventory layer that already exists,
+  but should not create a completely absent `inventory/` tree just to populate
+  empty placeholders.
 - Output files that look like inventory: suggestion with migration commands.
 - Lint must never auto-convert output artifacts into inventory records.
 
@@ -394,9 +400,9 @@ wikis, not as corruption:
   persist beyond the current report.
 - `plan` and `project`: may link to inventory records for work queues and
   dependencies, but project goals stay in `WHY.md`.
-- `lint`: creates missing empty inventory structure and reports migration
-  candidates; it never decides a pivot or writes records without the explicit
-  inventory migration workflow.
+- `lint`: repairs indexes for an inventory layer that already exists and
+  reports migration candidates; it never creates a blank optional layer, decides
+  a pivot, or writes records without the explicit inventory migration workflow.
 - `inventory/`: durable tracking records and next-action state.
 
 Inventory records can point at the other layers, but they do not replace them.

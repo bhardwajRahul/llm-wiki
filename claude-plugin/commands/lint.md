@@ -24,7 +24,9 @@ Read the linting rules at `skills/wiki-manager/references/linting.md`. Then run 
 Execute checks from `references/linting.md`. Order matters: C13 (alias rewrite) must run before C2 and C11 so downstream checks see canonical field names, and C11 (placement) must run before C3 so the index pass sees final file locations.
 
 #### 1. C1: Structure (Critical)
-Verify all required directories and `_index.md` files exist, including the `inventory/` and `datasets/` layers when present.
+Verify all required directories and `_index.md` files exist. Treat completely
+absent `inventory/` and `datasets/` layers as unused optional layers, not
+critical structure failures.
 
 #### 2. C13: Frontmatter Aliases (Warning, runs early)
 For every `.md` file's frontmatter, rewrite legacy keys and enum values to canonical form using the alias tables in `references/linting.md`. This is how frontmatter schema evolution is handled — there is no migration command. Fix first so subsequent checks see canonical fields.
@@ -84,8 +86,11 @@ Flag wiki articles lacking the `volatility` field. See `references/linting.md` �
 #### 15. C16: Inventory Structure and Migration Candidates (Suggestion)
 Check the inventory layer from `references/inventory.md` and `references/linting.md` § C16:
 
-1. Verify `inventory/`, `inventory/items/`, `inventory/candidates/`, `inventory/entities/`, `inventory/corpora/`, and `inventory/views/` have `_index.md` files. Missing inventory structure is a migration opportunity for older wikis, not corruption.
-2. If `--fix` is set, create only the missing inventory directories and empty indexes. Do not migrate content.
+1. If `inventory/` is missing entirely, report that no inventory layer exists
+   yet as a suggestion and do not create it just for lint.
+2. If `inventory/` exists, verify `inventory/_index.md` and indexes for any
+   existing subdirectories. If `--fix` is set, repair only the missing indexes
+   for the existing layer or subdirectories.
 3. Validate inventory record frontmatter when records exist.
 4. Scan `output/**/*.md` for artifacts that look like durable inventory records, such as ingest queues, source backlogs, watch lists, candidate lists, or corpus inventories.
 5. Report suggested `inventory migrate-output <path> --dry-run` commands with
@@ -96,9 +101,15 @@ Check the inventory layer from `references/inventory.md` and `references/linting
 #### 16. C17: Dataset Registry Structure and Migration Candidates (Suggestion)
 Check the dataset registry from `references/datasets.md` and `references/linting.md` § C17:
 
-1. Verify `datasets/` has `_index.md`. Missing dataset registry structure is a migration opportunity for older wikis, not corruption.
-2. For each `datasets/<slug>/MANIFEST.md`, verify `datasets/<slug>/_index.md`, `samples/_index.md`, `profiles/_index.md`, and `queries/_index.md`.
-3. If `--fix` is set, create only missing dataset directories and empty indexes. Do not migrate content.
+1. If `datasets/` is missing entirely, report that no dataset registry exists
+   yet as a suggestion and do not create it just for lint.
+2. If `datasets/` exists, verify `datasets/_index.md`. For each
+   `datasets/<slug>/MANIFEST.md`, verify `datasets/<slug>/_index.md`.
+   Verify `samples/_index.md`, `profiles/_index.md`, and `queries/_index.md`
+   only when those subdirectories already exist.
+3. If `--fix` is set, repair only missing indexes for existing dataset
+   directories. Do not create empty sample/profile/query folders or migrate
+   content.
 4. Validate dataset manifest frontmatter when manifests exist.
 5. Scan `output/**/*.md` for artifacts that look like dataset manifests, such as corpus descriptions, archive inventories, dump summaries, parquet/sqlite/duckdb notes, or data profile reports.
 6. Report suggested `dataset migrate-output <path> --dry-run` commands. Never auto-convert outputs, raw files, or inventory records into dataset manifests.
@@ -110,7 +121,7 @@ For each `.md` file in `wiki/` (excluding `_index.md`), verify that frontmatter 
 
 For each fixable issue, apply the auto-fix from the rules table in `references/linting.md`. Report what was fixed.
 
-IMPORTANT: Only auto-fix issues with clear, unambiguous fixes — missing index entries, broken stats, legacy `_project.md` → `WHY.md` migration (C8c), stale `output/_index.md` when `projects/` exists, legacy frontmatter keys/values (C13), files in the wrong canonical `raw/` or `wiki/` directory (C11), missing empty inventory directories/indexes (C16), missing empty dataset registry directories/indexes (C17), etc. Do NOT auto-fix content quality issues. Do NOT create `WHY.md` with placeholder goals (C8a is warn-only — manufactured rationale is worse than the missing file). Do NOT move files into projects — C9 candidates are human-authored via `/wiki:project new` + `/wiki:project add`. Do NOT migrate output artifacts into inventory or dataset records — C16/C17 migration is explicit via `/wiki:inventory migrate-output --apply` or `/wiki:dataset migrate-output --apply`. Never auto-delete unknown directories (C12) — warn only. On slug collisions during a C11 placement move, skip and warn. Do NOT rewrite articles.
+IMPORTANT: Only auto-fix issues with clear, unambiguous fixes — missing index entries, broken stats, legacy `_project.md` → `WHY.md` migration (C8c), stale `output/_index.md` when `projects/` exists, legacy frontmatter keys/values (C13), files in the wrong canonical `raw/` or `wiki/` directory (C11), missing indexes inside existing inventory or dataset layers (C16/C17), etc. Do NOT auto-fix content quality issues. Do NOT create `WHY.md` with placeholder goals (C8a is warn-only — manufactured rationale is worse than the missing file). Do NOT create a completely absent optional inventory or dataset tree just to make placeholders. Do NOT move files into projects — C9 candidates are human-authored via `/wiki:project new` + `/wiki:project add`. Do NOT migrate output artifacts into inventory or dataset records — C16/C17 migration is explicit via `/wiki:inventory migrate-output --apply` or `/wiki:dataset migrate-output --apply`. Never auto-delete unknown directories (C12) — warn only. On slug collisions during a C11 placement move, skip and warn. Do NOT rewrite articles.
 
 ### Report
 

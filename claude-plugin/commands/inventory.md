@@ -58,16 +58,21 @@ Priorities:
 
 ### Ensure Structure
 
-Before any write:
+Inventory structure is lazy. Do not create it during read-only operations, and
+do not populate empty category folders until a command needs them.
 
-1. Ensure these directories exist, each with `_index.md`:
-   - `inventory/`
-   - `inventory/items/`
-   - `inventory/candidates/`
-   - `inventory/entities/`
-   - `inventory/corpora/`
-   - `inventory/views/`
-2. If any are missing, create only the missing directory and empty index files. This is a structural migration path for older wikis; it does not migrate existing content.
+Before a write:
+
+1. Ensure `inventory/` exists with `_index.md`.
+2. Ensure only the target subdirectory exists with `_index.md`:
+   - `add item` → `inventory/items/`
+   - `add entity` → `inventory/entities/`
+   - `add corpus` → `inventory/corpora/`
+   - `add ingest-candidate`, `add question`, `add task`, `add artifact`, or `add watch` → `inventory/candidates/`
+   - `save-view` → `inventory/views/`
+3. If a wiki has a partially existing inventory layer, create missing indexes
+   only for directories that already exist or that the current write needs. Do
+   not create all empty inventory subdirectories as a side effect.
 
 ### Add
 
@@ -85,21 +90,23 @@ Before any write:
 
 ### List
 
-1. Read `inventory/_index.md` first.
-2. If filters are present, search inventory records by frontmatter.
-3. Present a compact chat-friendly result. Default to a Markdown table with
+1. If `inventory/` or `inventory/_index.md` is missing, report that there are
+   no inventory records yet and do not create files.
+2. Read `inventory/_index.md` first.
+3. If filters are present, search inventory records by frontmatter.
+4. Present a compact chat-friendly result. Default to a Markdown table with
    title, kind, status, priority, next action, and updated date.
-4. Use `--view` to choose columns:
+5. Use `--view` to choose columns:
    - `summary`: counts by kind/status plus the top records by priority
    - `actions`: records with `next_action`, sorted by priority then updated
    - `items`: item records with status, priority, quantity, next action, and updated date
    - `records`: one row per record with title/kind/status/priority/updated
    - `sources`: title plus compact source/origin pointers
-5. Use `--format list` for short bullets when there are only a few records or
+6. Use `--format list` for short bullets when there are only a few records or
    when table cells would wrap badly. Use `--limit N` to cap the rows shown in
    chat. If more rows exist, report the hidden count and where the full index
    or saved view lives.
-6. Do not read every record body just to list inventory. Use indexes and
+7. Do not read every record body just to list inventory. Use indexes and
    frontmatter first; open full records only when requested fields are not in an
    index or the user asks for detail.
 

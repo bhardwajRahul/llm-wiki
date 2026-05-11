@@ -20,7 +20,7 @@ No LLM calls. Validates wiki file structure, frontmatter schema, index integrity
 
 ### What it checks
 
-- C1: Every directory has `_index.md`
+- C1: Every existing wiki-managed directory has `_index.md`
 - C2: Required frontmatter fields present, enum values valid
 - C3: Index entries match actual files (no stale entries, no unlisted files)
 - C4: See Also links resolve to existing articles
@@ -32,7 +32,7 @@ No LLM calls. Validates wiki file structure, frontmatter schema, index integrity
 
 ### Defect fixtures
 
-`generate-defect-fixtures.sh` creates 11 broken wikis from the golden fixture, one per lint rule. Each has exactly one defect. The structural test verifies each defect is correctly present (negative testing).
+`generate-defect-fixtures.sh` creates broken wikis from the golden fixture, one per lint rule. Each has exactly one defect. The structural test verifies each defect is correctly present (negative testing).
 
 ## Layer 2: Behavioral Evals (~$2-5/run, on PR merge)
 

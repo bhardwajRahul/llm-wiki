@@ -18,7 +18,7 @@ echo "=== Layer 1: Structural Validation ==="
 # ─── Golden wiki positive tests ───────────────────────────────────
 
 echo ""
-echo "--- C1: Structure (every directory has _index.md) ---"
+echo "--- C1: Structure (every existing wiki-managed directory has _index.md) ---"
 
 for dirname in raw raw/articles raw/papers raw/repos raw/notes raw/data \
                wiki wiki/concepts wiki/topics wiki/references wiki/theses \

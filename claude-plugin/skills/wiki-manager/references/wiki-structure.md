@@ -19,11 +19,14 @@ HUB/                               # resolved from ~/.config/llm-wiki/config.jso
 
 ## Topic Sub-Wiki (HUB/topics/<name>/)
 
-All content lives here. Each topic wiki has the full structure:
+All content lives here. Init creates a core structure first; optional layers are
+created lazily when a command needs them. This keeps new wikis fast to create
+and avoids blank scaffolding for inventory, datasets, and generated sidecars
+that may never be used.
 
 ```
 HUB/topics/<name>/
-├── .obsidian/                     # Obsidian vault config
+├── .obsidian/                     # Optional Obsidian vault config
 ├── _index.md                      # Master index: stats, quick nav, recent changes
 ├── .librarian/                    # Optional: wiki-only maintenance reports
 │   ├── REPORT.md
@@ -35,7 +38,7 @@ HUB/topics/<name>/
 ├── log.md                         # Topic-level activity log
 ├── inbox/                         # Drop zone for this topic
 │   └── .processed/
-├── inventory/                     # Durable tracking records (see inventory.md)
+├── inventory/                     # Lazy: durable tracking records (see inventory.md)
 │   ├── _index.md
 │   ├── items/                     # Physical/digital items, parts, tools, assets
 │   │   ├── _index.md
@@ -52,14 +55,14 @@ HUB/topics/<name>/
 │   └── views/                     # Derived chat/list views over inventory
 │       ├── _index.md
 │       └── *.md
-├── datasets/                      # Dataset manifests for large/external data
+├── datasets/                      # Lazy: dataset manifests for large/external data
 │   ├── _index.md
 │   └── <dataset-slug>/
 │       ├── _index.md
 │       ├── MANIFEST.md
-│       ├── samples/_index.md
-│       ├── profiles/_index.md
-│       └── queries/_index.md
+│       ├── samples/_index.md      # Lazy: created by dataset sample
+│       ├── profiles/_index.md     # Lazy: created by dataset profile
+│       └── queries/_index.md      # Lazy: created for query recipes
 ├── raw/                           # Immutable source material
 │   ├── _index.md
 │   ├── articles/
@@ -111,6 +114,8 @@ for dataset manifests, and [projects.md](projects.md) for the full projects
 architecture (lifecycle, multi-membership, explicit `--project <slug>` scoping).
 Files under `inventory/views/` are derived list/table views. They are not
 inventory records and should not be treated as authoritative tracking state.
+Missing optional roots (`inventory/`, `datasets/`, `.obsidian/`, `.librarian/`,
+or `.audit/`) mean the layer has not been used yet.
 
 ## Local Wiki (--local flag)
 
@@ -142,7 +147,9 @@ When a command runs, first resolve the hub path (HUB) from `~/.config/llm-wiki/c
 
 ## _index.md Format
 
-Every directory has an `_index.md`. This is the agent's primary navigation aid.
+Every existing wiki-managed directory has an `_index.md`. This is the agent's
+primary navigation aid. Optional directories do not need placeholder indexes
+before they exist.
 
 ```markdown
 # [Directory Name] Index
@@ -184,8 +191,8 @@ Additionally includes:
 ## Quick Navigation
 
 - [All Sources](raw/_index.md)
-- [Inventory](inventory/_index.md)
-- [Datasets](datasets/_index.md)
+- [Inventory](inventory/_index.md) — include only when `inventory/` exists
+- [Datasets](datasets/_index.md) — include only when `datasets/` exists
 - [Concepts](wiki/concepts/_index.md)
 - [Topics](wiki/topics/_index.md)
 - [References](wiki/references/_index.md)

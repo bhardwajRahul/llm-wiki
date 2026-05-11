@@ -51,14 +51,14 @@ All content lives here. One topic per wiki. Isolated indexes, focused queries.
 ├── log.md                         # Activity log for this topic
 ├── inbox/                         # Drop zone — user dumps files here
 │   └── .processed/
-├── inventory/                     # Durable tracking records
+├── inventory/                     # Lazy: durable tracking records
 │   ├── _index.md
 │   ├── items/*.md                 # Physical/digital items, parts, tools, assets
 │   ├── candidates/*.md            # Ingest candidates, questions, tasks, watch items
 │   ├── entities/*.md              # People, orgs, projects, standards bodies
 │   ├── corpora/*.md               # Source collections, archives, datasets, forums
 │   └── views/*.md                 # Derived chat/list views over inventory
-├── datasets/                      # Manifests for large/external data
+├── datasets/                      # Lazy: manifests for large/external data
 │   ├── _index.md
 │   └── <dataset-slug>/
 │       ├── MANIFEST.md
@@ -90,7 +90,7 @@ Same structure as a topic wiki but at `<project>/.wiki/`. Add `.wiki/` to `.giti
 ## Core Principles
 
 1. **One topic, one wiki.** Never mix unrelated topics. The hub is just a registry.
-2. **Indexes are navigation.** Every directory has `_index.md` with a contents table. Read indexes first, never scan blindly. Keep them current.
+2. **Indexes are navigation.** Every existing wiki-managed directory has `_index.md` with a contents table. Read indexes first, never scan blindly. Keep them current. Optional layers do not need placeholder indexes before they exist.
 3. **Raw is immutable.** Once ingested, sources are never modified. All synthesis happens in `wiki/`.
 4. **Articles are synthesized, not copied.** Draw from multiple sources, contextualize, connect. Think textbook, not clipboard.
 5. **Dual-linking.** Every cross-reference uses both formats on the same line: `[[slug|Name]] ([Name](../category/slug.md))`. Obsidian reads the wikilink, the agent reads the markdown link, GitHub renders it. Not locked into any tool.
@@ -102,7 +102,7 @@ Same structure as a topic wiki but at `<project>/.wiki/`. Add `.wiki/` to `.giti
 
 ## File Formats
 
-### _index.md (every directory)
+### _index.md (every existing wiki-managed directory)
 
 ```markdown
 # [Directory Name] Index
@@ -279,7 +279,7 @@ Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `
 
 ### Init
 
-Create a topic wiki. Always require a topic name. If the hub doesn't exist, create it first (just wikis.json + _index.md + log.md + topics/). Create the full topic wiki structure, empty _index.md files, config.md, log.md, and optionally .obsidian/ vault config.
+Create a topic wiki. Always require a topic name. If the hub doesn't exist, create it first (just wikis.json + _index.md + log.md + topics/). Create the core topic wiki structure, empty _index.md files for created directories, config.md, log.md, and optionally .obsidian/ vault config. Create `inventory/`, `datasets/`, and per-dataset sample/profile/query folders lazily when those commands need them.
 
 ### Ingest
 
@@ -485,8 +485,9 @@ evidence; research, audit, librarian, refresh, plan, assess, and output may
 propose records for durable follow-ups, but should not create large backlogs
 without a sample preview and explicit approval.
 
-Migration path: `lint --fix` may create missing empty inventory directories and
-indexes, but it must never convert output artifacts. Output-to-inventory
+Migration path: `lint --fix` may repair indexes for an inventory layer that
+already exists, but it should not create a completely absent empty inventory
+tree and it must never convert output artifacts. Output-to-inventory
 migration is explicit, dry-run-first, and additive.
 
 ### Dataset
@@ -513,8 +514,9 @@ only manifest frontmatter when needed. Never inspect samples, profiles, queries,
 or the underlying dataset for a plain list. Use compact table/list views such as
 `summary`, `manifests`, `schema`, and `locations`.
 
-Migration path: `lint --fix` may create missing empty `datasets/` indexes and
-per-dataset sample/profile/query indexes, but it must never convert content.
+Migration path: `lint --fix` may repair indexes for a dataset registry that
+already exists, but it should not create a completely absent empty `datasets/`
+tree or unused per-dataset sample/profile/query folders, and it must never convert content.
 Output-to-dataset migration is explicit, dry-run-first, and additive.
 
 ### Lint
@@ -523,12 +525,12 @@ Health checks with auto-fix capability. Lint **is** the migration path — there
 
 - **Mechanical (C11/C12/C13)** — `raw/` + `wiki/` file placement and frontmatter schema. Fully auto-fixable.
 - **Project-level (C8/C9)** — `output/projects/` structure, `WHY.md` presence, staleness detection, and grouping candidates. Migration of legacy `_project.md` manifests (from pre-v0.2 wikis) is auto-fixed (C8c); everything else is surfaced as suggestions or ready-to-paste commands.
-- **Inventory-level (C16)** — `inventory/` structure, record/view schemas, and output-to-inventory migration candidates. Missing empty structure is auto-creatable; content migration is human-gated.
-- **Dataset-level (C17)** — `datasets/` structure, manifest schema, and output-to-dataset migration candidates. Missing empty structure is auto-creatable; content migration is human-gated.
+- **Inventory-level (C16)** — `inventory/` structure, record/view schemas, and output-to-inventory migration candidates. Missing empty structure is a suggestion; partially existing structure is repairable; content migration is human-gated.
+- **Dataset-level (C17)** — `datasets/` structure, manifest schema, and output-to-dataset migration candidates. Missing empty structure is a suggestion; partially existing structure is repairable; content migration is human-gated.
 
 **Checks**: structure integrity, frontmatter validity (plus legacy key/value aliases C13), canonical placement of raw/wiki files (C11), unknown-file quarantine for raw/wiki/inventory/datasets/root (C12), index consistency, link integrity, source provenance (dangling refs, unresolved retraction markers), tag hygiene, coverage, project `WHY.md` presence (C8a), project staleness via source chain (C8b), legacy `_project.md` migration to `WHY.md` (C8c), project candidates (C9), inventory migration candidates (C16), dataset migration candidates (C17), deep fact-checking (optional).
 
-**Auto-fix** (`--fix`): rewrite legacy frontmatter keys/values to canonical (C13), move misplaced raw/wiki files to their canonical directory (C11), quarantine unknown files to `inbox/.unknown/` (C12), migrate legacy `_project.md` to `WHY.md` (C8c), create missing empty inventory directories/indexes (C16), create missing empty dataset directories/indexes (C17), missing indexes, orphan files, dead index entries, statistics mismatch, missing bidirectional links, empty frontmatter fields, dangling source references, regenerate projects-aware `output/_index.md`. Never auto-delete unknown directories. Never auto-create `WHY.md` with placeholder goals (C8a is warn-only — manufactured rationale is worse than missing). Never auto-move files into projects (C9 is human-authored via `/wiki:project`). Never auto-migrate output artifacts into inventory or dataset records (C16/C17 are explicit via `/wiki:inventory migrate-output --apply` and `/wiki:dataset migrate-output --apply`). On slug collisions during a placement move, skip and warn.
+**Auto-fix** (`--fix`): rewrite legacy frontmatter keys/values to canonical (C13), move misplaced raw/wiki files to their canonical directory (C11), quarantine unknown files to `inbox/.unknown/` (C12), migrate legacy `_project.md` to `WHY.md` (C8c), repair missing indexes inside existing inventory/dataset layers (C16/C17), missing indexes, orphan files, dead index entries, statistics mismatch, missing bidirectional links, empty frontmatter fields, dangling source references, regenerate projects-aware `output/_index.md`. Never auto-delete unknown directories. Never auto-create `WHY.md` with placeholder goals (C8a is warn-only — manufactured rationale is worse than missing). Never create completely absent optional inventory or dataset trees just to populate placeholders. Never auto-move files into projects (C9 is human-authored via `/wiki:project`). Never auto-migrate output artifacts into inventory or dataset records (C16/C17 are explicit via `/wiki:inventory migrate-output --apply` and `/wiki:dataset migrate-output --apply`). On slug collisions during a placement move, skip and warn.
 
 **Schema evolution**: when canonical paths or frontmatter fields for `raw/`, `wiki/`, `inventory/`, or `datasets/` change, update the rules in `skills/wiki-manager/references/linting.md` (C11/C16/C17 placement maps, C12 allowlist, C13 alias table). When the project model changes, update C8/C9 and `projects.md`. Never write version-specific migration code. Lint rules are the schema.
 

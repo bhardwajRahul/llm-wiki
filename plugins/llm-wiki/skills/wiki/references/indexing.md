@@ -26,6 +26,9 @@ Before using any `_index.md`, check staleness:
 2. Count rows in the `_index.md` contents table
 3. If counts differ → index is stale → rebuild inline before proceeding
 
+If an optional layer such as `inventory/` or `datasets/` is completely absent,
+treat its count as 0 instead of creating a placeholder index during a read.
+
 ### Rebuild Inline
 
 When an index is stale:
@@ -89,8 +92,8 @@ But these updates are optional. If skipped (e.g., due to a crash or concurrent w
 The root `_index.md` statistics are derived from actual file counts, not manual tracking:
 - Sources: count .md files in `raw/` subdirectories (excluding `_index.md`)
 - Articles: count .md files in `wiki/` subdirectories (excluding `_index.md`)
-- Inventory records: count .md files in `inventory/` subdirectories (excluding `_index.md`)
-- Dataset manifests: count `datasets/*/MANIFEST.md`
+- Inventory records: count .md files in `inventory/` subdirectories (excluding `_index.md`), or 0 if `inventory/` is absent
+- Dataset manifests: count `datasets/*/MANIFEST.md`, or 0 if `datasets/` is absent
 - Outputs: count .md files in `output/` (excluding `_index.md`)
 
 ## Cross-Wiki Index Peek
