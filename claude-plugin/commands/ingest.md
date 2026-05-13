@@ -7,9 +7,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:
 ## Your task
 
 **Resolve the wiki.** Do NOT search the filesystem or read reference files — follow these steps:
-1. Read `$HOME/.config/llm-wiki/config.json`. If it has `resolved_path` → HUB = that value, skip to step 3. If only `hub_path`, expand leading `~` only (not tildes in `com~apple~CloudDocs`), set HUB, write `resolved_path` back, skip to step 3.
+1. Read `$HOME/.config/llm-wiki/config.json`. If it has `hub_path`, expand leading `~` only (not tildes in `com~apple~CloudDocs`) and prefer that path; use `resolved_path` only as a fallback cache when the expanded `hub_path` is unavailable and `resolved_path` is initialized. If config has only `resolved_path`, use it. Do not write machine-specific `resolved_path` into shared configs.
 2. If no config → read `$HOME/wiki/_index.md`. If it exists → HUB = `$HOME/wiki`. If nothing found, ask the user where to create the wiki.
-3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup; CWD has `.wiki/` → use it; else → HUB.
+3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup with portable path resolution (`<HUB>`, `~`, absolute, or HUB-relative); if the registry path is stale, fall back to `HUB/topics/<name>`; CWD has `.wiki/` → use it; else → HUB.
 4. Read `<wiki>/_index.md` to verify. If missing and `--new-topic <name>` is set → create the topic wiki (see below). If missing and no `--new-topic` → stop with "No wiki found. Use `--new-topic <name>` to create one, or run `/wiki init` first."
 
 Read the ingestion protocol at `skills/wiki-manager/references/ingestion.md` and the structure spec at `skills/wiki-manager/references/wiki-structure.md`. Then ingest source material.
@@ -51,7 +51,7 @@ When `--new-topic` is set, override the standard resolution:
 1. Derive a slug from the topic name: lowercase, hyphens, no special chars, max 40 chars
 2. If HUB doesn't exist, create it (wikis.json + _index.md + log.md + topics/)
 3. Create the new topic wiki at `HUB/topics/<slug>/` following the full init protocol (directory structure, .obsidian/, empty _index.md files, config.md, log.md)
-4. Register in `HUB/wikis.json` and update hub `_index.md`
+4. Register in `HUB/wikis.json` using a portable relative path (`topics/<slug>`) and update hub `_index.md`
 5. Target this new wiki for ingestion
 
 ### `--project <slug>` flag

@@ -1,6 +1,6 @@
 # Wiki Directory Structure
 
-> **Configurable hub path**: The hub location is read from `~/.config/llm-wiki/config.json` (`resolved_path` field). If no config exists, `~/wiki/` is the fallback. Throughout this document, `HUB/` means "the resolved hub path". See [hub-resolution.md](hub-resolution.md) for the full resolution protocol (tilde expansion, space handling, iCloud paths).
+> **Configurable hub path**: The hub location is read from `~/.config/llm-wiki/config.json` (`hub_path` field preferred; `resolved_path` is a legacy fallback). If no config exists, `~/wiki/` is the fallback. Throughout this document, `HUB/` means "the resolved hub path". See [hub-resolution.md](hub-resolution.md) for the full resolution protocol (tilde expansion, space handling, iCloud paths).
 
 ## Hub (HUB/)
 
@@ -126,7 +126,7 @@ Same structure as above but rooted at `<project>/.wiki/` without `wikis.json` or
 When a command runs, first resolve the hub path (HUB) from `~/.config/llm-wiki/config.json` (see `hub-resolution.md`). Then resolve which wiki to use:
 
 1. `--local` flag present → `<cwd>/.wiki/`
-2. `--wiki <name>` flag present → look up name in `HUB/wikis.json`
+2. `--wiki <name>` flag present → look up name in `HUB/wikis.json`; resolve `<HUB>`, leading `~`, absolute, and HUB-relative paths, and fall back to `HUB/topics/<name>` when a registry path is stale
 3. Current directory has `.wiki/` → use it
 4. Otherwise → HUB
 
@@ -137,13 +137,18 @@ When a command runs, first resolve the hub path (HUB) from `~/.config/llm-wiki/c
   "default": "<HUB>",
   "wikis": {
     "hub": { "path": "<HUB>", "description": "Global knowledge base" },
-    "<topic>": { "path": "<HUB>/topics/<topic>", "description": "..." }
+    "<topic>": { "path": "topics/<topic>", "description": "..." }
   },
   "local_wikis": [
     { "path": "/absolute/path/.wiki", "description": "..." }
   ]
 }
 ```
+
+Topic paths inside the shared hub should be relative (`topics/<topic>`) or use
+the `<HUB>` token. Avoid storing `/Users/<name>/...` absolute paths for
+hub-owned topic wikis; those break when an iCloud wiki is opened from another
+Mac with a different home directory.
 
 ## _index.md Format
 

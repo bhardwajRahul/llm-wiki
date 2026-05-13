@@ -9,9 +9,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(mkdir:*), Bash(mv
 Manage projects — folders inside a topic wiki's `output/projects/` directory that group related outputs. The only required file in a project is `WHY.md`, which captures the goal/rationale in plain markdown.
 
 **Resolve the wiki.** Do NOT search the filesystem or read reference files — follow these steps:
-1. Read `$HOME/.config/llm-wiki/config.json`. If it has `resolved_path` → HUB = that value, skip to step 3. If only `hub_path`, expand leading `~` only (not tildes in `com~apple~CloudDocs`), set HUB, write `resolved_path` back, skip to step 3.
+1. Read `$HOME/.config/llm-wiki/config.json`. If it has `hub_path`, expand leading `~` only (not tildes in `com~apple~CloudDocs`) and prefer that path; use `resolved_path` only as a fallback cache when the expanded `hub_path` is unavailable and `resolved_path` is initialized. If config has only `resolved_path`, use it. Do not write machine-specific `resolved_path` into shared configs.
 2. If no config → read `$HOME/wiki/_index.md`. If it exists → HUB = `$HOME/wiki`. If nothing found, ask the user where to create the wiki.
-3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup; CWD has `.wiki/` → use it; else → HUB.
+3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup with portable path resolution (`<HUB>`, `~`, absolute, or HUB-relative); if the registry path is stale, fall back to `HUB/topics/<name>`; CWD has `.wiki/` → use it; else → HUB.
 4. Read `<wiki>/_index.md` if found. Variant: **wiki-neutral** — see deviation below for the step-4 fallback.
 
 Read the projects architecture at `skills/wiki-manager/references/projects.md` for the full rationale — particularly *why* `WHY.md` is the only required file (it holds the precious, non-derivable rationale) and *why* everything else is derived from filesystem state.

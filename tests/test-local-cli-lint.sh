@@ -84,6 +84,93 @@ else
   log_fail "--fix moves misplaced wiki files" "$fix_output"
 fi
 
+portable_home="$tmpdir/portable-home"
+portable_hub="$portable_home/Library/Mobile Documents/com~apple~CloudDocs/wiki"
+mkdir -p "$portable_home/.config/llm-wiki" "$portable_hub/topics/portable-topic"
+cp -R "$GOLDEN/." "$portable_hub/topics/portable-topic/"
+cat > "$portable_home/.config/llm-wiki/config.json" <<'JSON'
+{
+  "hub_path": "~/Library/Mobile Documents/com~apple~CloudDocs/wiki",
+  "resolved_path": "/Users/olduser/Library/Mobile Documents/com~apple~CloudDocs/wiki"
+}
+JSON
+cat > "$portable_hub/_index.md" <<'EOF'
+# Hub Index
+EOF
+cat > "$portable_hub/wikis.json" <<'JSON'
+{
+  "default": "<HUB>",
+  "wikis": {
+    "hub": { "path": "<HUB>", "description": "Hub" },
+    "portable-topic": {
+      "path": "/Users/olduser/Library/Mobile Documents/com~apple~CloudDocs/wiki/topics/portable-topic",
+      "description": "Portable topic"
+    }
+  },
+  "local_wikis": []
+}
+JSON
+
+expect_success \
+  "portable hub_path beats stale resolved_path and registry path" \
+  env HOME="$portable_home" "$CLI" lint --wiki portable-topic
+
+lag_home="$tmpdir/lag-home"
+lag_hub="$lag_home/Library/Mobile Documents/com~apple~CloudDocs/wiki"
+stale_resolved_hub="$tmpdir/stale-resolved-hub"
+mkdir -p "$lag_home/.config/llm-wiki" "$lag_hub/topics/lag-topic" "$stale_resolved_hub"
+cp -R "$GOLDEN/." "$lag_hub/topics/lag-topic/"
+cat > "$lag_home/.config/llm-wiki/config.json" <<JSON
+{
+  "hub_path": "~/Library/Mobile Documents/com~apple~CloudDocs/wiki",
+  "resolved_path": "$stale_resolved_hub"
+}
+JSON
+cat > "$lag_hub/wikis.json" <<'JSON'
+{
+  "default": "<HUB>",
+  "wikis": {
+    "hub": { "path": "<HUB>", "description": "Hub" },
+    "lag-topic": { "path": "topics/lag-topic", "description": "Lag topic" }
+  },
+  "local_wikis": []
+}
+JSON
+cat > "$stale_resolved_hub/_index.md" <<'EOF'
+# Stale Hub Index
+EOF
+
+expect_success \
+  "existing hub_path wins even when hub _index is not present yet" \
+  env HOME="$lag_home" "$CLI" lint --wiki lag-topic
+
+relative_hub="$tmpdir/relative-hub"
+mkdir -p "$relative_hub/topics/relative-topic"
+cp -R "$GOLDEN/." "$relative_hub/topics/relative-topic/"
+cat > "$relative_hub/wikis.json" <<'JSON'
+{
+  "default": "<HUB>",
+  "wikis": {
+    "hub": { "path": "<HUB>", "description": "Hub" },
+    "relative-topic": { "path": "topics/relative-topic", "description": "Relative topic" }
+  },
+  "local_wikis": []
+}
+JSON
+
+expect_success \
+  "relative wikis.json paths resolve from hub" \
+  "$CLI" lint --hub "$relative_hub" --wiki relative-topic
+
+bad_registry_hub="$tmpdir/bad-registry-hub"
+mkdir -p "$bad_registry_hub/topics/bad-registry-topic"
+cp -R "$GOLDEN/." "$bad_registry_hub/topics/bad-registry-topic/"
+printf '' > "$bad_registry_hub/wikis.json"
+
+expect_success \
+  "topic directory fallback works when wikis.json is unreadable" \
+  "$CLI" lint --hub "$bad_registry_hub" --wiki bad-registry-topic
+
 echo ""
 echo "==========================================="
 printf "Results: \033[32m%d passed\033[0m, \033[31m%d failed\033[0m, %d total\n" "$PASS" "$FAIL" "$TOTAL"

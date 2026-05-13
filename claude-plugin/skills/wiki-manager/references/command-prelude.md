@@ -17,11 +17,11 @@ The prelude appeared verbatim in 14 command files. Every time the hub resolution
 
 Every command that needs a wiki follows these steps in order:
 
-1. **Resolve HUB.** Follow the protocol in [`hub-resolution.md`](hub-resolution.md). Short version: read `~/.config/llm-wiki/config.json` (expand `~` to `$HOME`). If it has `resolved_path`, HUB = that value, done. If no config exists, try `$HOME/wiki/_index.md` as fallback. That's it — one or two file reads at most.
+1. **Resolve HUB.** Follow the protocol in [`hub-resolution.md`](hub-resolution.md). Short version: read `~/.config/llm-wiki/config.json` (expand `~` to `$HOME`). Prefer `hub_path`, expanding only the leading `~` on the current machine. Treat `resolved_path` as a legacy fallback cache, not the source of truth; use it only when no `hub_path` exists or when the expanded `hub_path` is unavailable and `resolved_path` is initialized. If no config exists, try `$HOME/wiki/_index.md` as fallback.
 
 2. **Resolve wiki location.** The target wiki is determined by this order (first match wins):
    1. `--local` flag → `.wiki/` in the current directory
-   2. `--wiki <name>` flag → look up in `HUB/wikis.json`
+   2. `--wiki <name>` flag → look up in `HUB/wikis.json`, resolving `<HUB>`, `~`, absolute, and HUB-relative paths; if a registry path is stale, fall back to `HUB/topics/<name>`
    3. Current directory contains a `.wiki/` → use it
    4. Otherwise → HUB (use the hub's active topic wiki, or fail per the command's wiki-requirement variant below)
 

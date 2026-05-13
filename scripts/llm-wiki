@@ -888,43 +888,94 @@ def append_lint_log(ctx: LintContext) -> None:
         handle.write(entry)
 
 
+def expand_leading_tilde(value: str) -> Path:
+    if value == "~":
+        return Path.home()
+    if value.startswith("~/"):
+        return Path.home() / value[2:]
+    return Path(value)
+
+
+def initialized_wiki_root(path: Path) -> bool:
+    return (path / "_index.md").exists()
+
+
 def resolve_hub(args: argparse.Namespace) -> Path:
     if args.hub:
-        return Path(args.hub).expanduser()
+        return expand_leading_tilde(str(args.hub))
     config = Path.home() / ".config" / "llm-wiki" / "config.json"
     if config.exists():
         try:
             data = json.loads(config.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:
             raise SystemExit(f"invalid hub config {config}: {exc}") from exc
-        if data.get("resolved_path"):
-            return Path(str(data["resolved_path"])).expanduser()
-        if data.get("hub_path"):
-            hub_path = str(data["hub_path"])
-            if hub_path == "~":
-                return Path.home()
-            if hub_path.startswith("~/"):
-                return Path.home() / hub_path[2:]
-            return Path(hub_path)
+        hub_path = data.get("hub_path")
+        hub_candidate = expand_leading_tilde(str(hub_path)) if hub_path else None
+        resolved_path = data.get("resolved_path")
+        resolved_candidate = (
+            expand_leading_tilde(str(resolved_path)) if resolved_path else None
+        )
+
+        if hub_candidate:
+            # resolved_path is a convenience cache and may be stale when the
+            # config is synced between machines. Prefer the portable hub_path
+            # unless it is unavailable and the legacy cache clearly points at
+            # an initialized hub.
+            if hub_candidate.exists() or not (
+                resolved_candidate and initialized_wiki_root(resolved_candidate)
+            ):
+                return hub_candidate
+        if resolved_candidate:
+            return resolved_candidate
     fallback = Path.home() / "wiki"
     return fallback
 
 
+def resolve_registry_path(raw_path: str, hub: Path) -> Path:
+    if raw_path in {".", "<HUB>", "HUB"}:
+        return hub
+    if raw_path.startswith("<HUB>/"):
+        return hub / raw_path[len("<HUB>/") :]
+    if raw_path.startswith("HUB/"):
+        return hub / raw_path[len("HUB/") :]
+
+    path = expand_leading_tilde(raw_path)
+    if path.is_absolute():
+        return path
+    return hub / path
+
+
 def resolve_wiki_root(args: argparse.Namespace) -> Path:
     if args.path:
-        return Path(args.path).expanduser()
+        return expand_leading_tilde(str(args.path))
     if args.local:
         return Path.cwd() / ".wiki"
     hub = resolve_hub(args)
     if args.wiki:
         registry = hub / "wikis.json"
+        fallback_topic = hub / "topics" / args.wiki
         if not registry.exists():
+            if initialized_wiki_root(fallback_topic):
+                return fallback_topic
             raise SystemExit(f"wiki registry not found: {registry}")
-        data = json.loads(registry.read_text(encoding="utf-8"))
+        try:
+            data = json.loads(registry.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            if initialized_wiki_root(fallback_topic):
+                return fallback_topic
+            raise SystemExit(f"invalid wiki registry {registry}: {exc}") from exc
         entry = data.get("wikis", {}).get(args.wiki)
         if not entry or not entry.get("path"):
+            if initialized_wiki_root(fallback_topic):
+                return fallback_topic
             raise SystemExit(f"wiki not found in registry: {args.wiki}")
-        return Path(str(entry["path"])).expanduser()
+        registry_path = resolve_registry_path(str(entry["path"]), hub)
+        if (
+            not initialized_wiki_root(registry_path)
+            and initialized_wiki_root(fallback_topic)
+        ):
+            return fallback_topic
+        return registry_path
     local = Path.cwd() / ".wiki"
     if local.exists():
         return local

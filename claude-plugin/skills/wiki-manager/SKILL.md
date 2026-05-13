@@ -31,14 +31,13 @@ You manage an LLM-compiled knowledge base. Source documents are ingested into `r
 
 ## Hub Path
 
-**Resolution**: At the start of every operation, resolve **HUB** by reading `~/.config/llm-wiki/config.json` first. If it has `resolved_path`, use that value directly. If it has only `hub_path`, expand the leading `~` only (not tildes in `com~apple~CloudDocs`), set HUB, and write `resolved_path` back. If no config file exists, try `~/wiki/_index.md` as a fallback. See [references/hub-resolution.md](references/hub-resolution.md) for the full protocol.
+**Resolution**: At the start of every operation, resolve **HUB** by reading `~/.config/llm-wiki/config.json` first. Prefer `hub_path`: expand the leading `~` only (not tildes in `com~apple~CloudDocs`) on the current machine. Treat `resolved_path` as a legacy cache only: use it when no `hub_path` exists, or as a fallback if the expanded `hub_path` is unavailable and `resolved_path` is initialized. Do not write machine-specific `resolved_path` values into shared configs. If no config file exists, try `~/wiki/_index.md` as a fallback. See [references/hub-resolution.md](references/hub-resolution.md) for the full protocol.
 
 The config file looks like:
 
 ```json
 {
-  "hub_path": "~/Library/Mobile Documents/com~apple~CloudDocs/wiki",
-  "resolved_path": "/Users/jane/Library/Mobile Documents/com~apple~CloudDocs/wiki"
+  "hub_path": "~/Library/Mobile Documents/com~apple~CloudDocs/wiki"
 }
 ```
 
@@ -51,7 +50,7 @@ If no config exists and `~/wiki/` has `_index.md`, that works too. But config is
 Resolution order:
 
 1. `--local` flag → `.wiki/` in current project
-2. `--wiki <name>` flag → named wiki from `HUB/wikis.json`
+2. `--wiki <name>` flag → named wiki from `HUB/wikis.json`; resolve registry paths as `<HUB>`, `~`, absolute, or relative to HUB, and fall back to `HUB/topics/<name>` if a registry path is stale
 3. Current directory has `.wiki/` → use it
 4. Otherwise → HUB (the hub)
 
@@ -211,7 +210,7 @@ Automatically run a quick structural check when any of these triggers occur:
 
 4. **Missing directories**: Verify all expected subdirectories exist in the topic wiki (`raw/articles/`, `wiki/concepts/`, `inventory/items/`, `inventory/candidates/`, `datasets/`, etc.). If missing → create them with empty `_index.md`.
 
-5. **wikis.json sync**: Check that all topic sub-wikis under `HUB/topics/` are registered in `wikis.json`. If a directory exists but isn't registered → add it. If registered but directory is missing → remove the entry.
+5. **wikis.json sync**: Check that all topic sub-wikis under `HUB/topics/` are registered in `wikis.json`. Store hub-owned topic paths as portable relative paths (`topics/<slug>`), not `/Users/<name>/...` absolute paths. If a directory exists but isn't registered → add it. If a registered path is stale but `HUB/topics/<name>` exists → repair the path. If registered but no matching directory exists → remove the entry.
 
 6. **Log existence**: Verify `log.md` exists in the active wiki and at the hub. If missing → create it.
 

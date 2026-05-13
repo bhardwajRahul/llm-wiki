@@ -20,7 +20,11 @@ Defaults to `~/wiki/`. Optionally configured via `~/.config/llm-wiki/config.json
 { "hub_path": "~/Library/Mobile Documents/com~apple~CloudDocs/wiki" }
 ```
 
-If the config exists, use `hub_path` (expand `~`) instead of `~/wiki/` everywhere below. Store as **HUB**. Use `/wiki config hub-path <path>` to set it up, or create the JSON manually.
+If the config exists, prefer `hub_path` (expand only the leading `~`) instead of
+`~/wiki/` everywhere below. Treat `resolved_path` from older configs as a
+machine-specific fallback cache, not as the source of truth; do not write it
+into shared configs. Store the selected path as **HUB**. Use
+`/wiki config hub-path <path>` to set it up, or create the JSON manually.
 
 ### Hub (~/wiki/)
 
@@ -258,14 +262,21 @@ spaces in markdown, use angle-bracket destinations:
 
 ```json
 {
-  "default": "~/wiki",
+  "default": "<HUB>",
   "wikis": {
-    "hub": { "path": "~/wiki", "description": "Hub" },
-    "<name>": { "path": "~/wiki/topics/<name>", "description": "..." }
+    "hub": { "path": "<HUB>", "description": "Hub" },
+    "<name>": { "path": "topics/<name>", "description": "..." }
   },
   "local_wikis": []
 }
 ```
+
+Resolve `wikis.json` paths as `<HUB>`, leading `~`, absolute, or relative to
+HUB. For topic wikis inside the shared hub, store portable relative paths like
+`topics/<name>`, not `/Users/<name>/...` absolute paths; absolute user-home
+paths break when an iCloud wiki is opened from another Mac. If a registry path
+is stale but `HUB/topics/<name>/_index.md` exists, use that topic path and
+repair the registry on the next sync.
 
 ### log.md
 
@@ -637,7 +648,7 @@ Auto-run lightweight checks after write operations:
 2. Index freshness: file counts match index rows, including inventory and dataset indexes. Auto-fix mismatches.
 3. Orphan detection: files not in any index → add them.
 4. Missing directories, including inventory and dataset dirs → create with empty _index.md.
-5. wikis.json sync: all topic dirs registered, no ghost entries.
+5. wikis.json sync: all topic dirs registered with portable relative paths (`topics/<slug>`), stale absolute paths repaired when `HUB/topics/<slug>` exists, no ghost entries.
 
 Silent when clean. Auto-fix trivial issues. Warn on structural problems. Never block the user.
 

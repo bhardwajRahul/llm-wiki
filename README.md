@@ -19,6 +19,8 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, th
 
 ## Changelog
 
+**v0.8.4** — **Portable iCloud hub resolution.** Shared wiki folders now survive moving between Macs with different `/Users/<name>/...` paths: agents prefer portable `hub_path`, treat legacy `resolved_path` values as fallback caches, resolve `wikis.json` paths relative to the current hub, and fall back to populated `topics/<slug>/` directories when registry entries are stale or unreadable.
+
 **v0.8.0** — **Inventory tracking and dataset manifests.** Added first-class `/wiki:inventory` for durable items, candidates, entities, corpora, saved views, and opinionated migration previews, plus `/wiki:dataset` manifests for large or external datasets that should be indexed by the wiki without being copied into it. Lint, query, ingest, research, audit, plan, and output workflows now know how to surface inventory and dataset state while keeping raw evidence, compiled knowledge, and generated artifacts separate.
 
 **v0.7.0** — **PDF, message archive, and Wayback adapters.** PDF ingest now prefers real markdown extraction over metadata stubs, with `pdftotext` plus Python-library fallback guidance. Collection ingestion now covers CSV/TSV/JSON/JSONL message archives as per-message markdown sources and Internet Archive CDX inventories as readability-to-markdown Wayback snapshot imports.
@@ -217,12 +219,18 @@ Codex needs r+w to its own `$HOME/.codex` directory for plugin install, marketpl
 
 ### Hub resolution and `~/wiki`
 
-As of v0.4.2, hub resolution checks `~/.config/llm-wiki/config.json` first and only falls back to `~/wiki` when no config exists. If your wiki lives on iCloud or any non-default path, set the config and you don't need `$HOME/wiki` in the sandbox at all:
+Hub resolution checks `~/.config/llm-wiki/config.json` first and only falls back to `~/wiki` when no config exists. If your wiki lives on iCloud or any non-default path, set the config and you don't need `$HOME/wiki` in the sandbox at all:
 
 ```bash
 # Set once — agents will resolve from config, never touch ~/wiki
 /wiki config hub-path "~/Library/Mobile Documents/com~apple~CloudDocs/wiki"
 ```
+
+Use a portable `hub_path` with `~` for iCloud-shared hubs. Older configs may
+contain `resolved_path`; llm-wiki treats it as a fallback cache because an
+absolute `/Users/<name>/...` path from one Mac will not be valid on another.
+The shared `wikis.json` should likewise store hub topic paths as
+`topics/<slug>`, not absolute user-home paths.
 
 If you prefer `~/wiki` as a symlink to iCloud, nono's Seatbelt follows symlinks — the target path must be allowed, not the symlink itself.
 

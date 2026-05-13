@@ -7,9 +7,9 @@ allowed-tools: Read, Write, Edit, Glob, Bash(ls:*), Bash(wc:*), Bash(mkdir:*), B
 ## Your task
 
 **Resolve the wiki.** Do NOT search the filesystem or read reference files — follow these steps:
-1. Read `$HOME/.config/llm-wiki/config.json`. If it has `resolved_path` → HUB = that value, skip to step 3. If only `hub_path`, expand leading `~` only (not tildes in `com~apple~CloudDocs`), set HUB, write `resolved_path` back, skip to step 3.
+1. Read `$HOME/.config/llm-wiki/config.json`. If it has `hub_path`, expand leading `~` only (not tildes in `com~apple~CloudDocs`) and prefer that path; use `resolved_path` only as a fallback cache when the expanded `hub_path` is unavailable and `resolved_path` is initialized. If config has only `resolved_path`, use it. Do not write machine-specific `resolved_path` into shared configs.
 2. If no config → read `$HOME/wiki/_index.md`. If it exists → HUB = `$HOME/wiki`. If nothing found, ask the user where to create the wiki.
-3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup; CWD has `.wiki/` → use it; else → HUB.
+3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup with portable path resolution (`<HUB>`, `~`, absolute, or HUB-relative); if the registry path is stale, fall back to `HUB/topics/<name>`; CWD has `.wiki/` → use it; else → HUB.
 4. Read `<wiki>/_index.md` if found. Variant: **wiki-neutral** — `wiki.md` is the router, init, and config command, so "wiki missing" is not always an error; the init subcommand creates the wiki, status shows an empty hub gracefully, and the natural-language router explains how to create one.
 
 You are the llm-wiki knowledge base manager. Read the skill at `skills/wiki-manager/SKILL.md` and structure reference at `skills/wiki-manager/references/wiki-structure.md` for full conventions.
@@ -91,7 +91,7 @@ Initialize a new wiki. Parse arguments:
 
 6. Ask the user: "What is this wiki about?" Use their answer to create `config.md` with title, description, scope, and today's date.
 
-7. Register in `HUB/wikis.json` and update hub `_index.md` topic wiki table. For local wikis, add to the `local_wikis` array.
+7. Register in `HUB/wikis.json` with a portable relative path (`topics/<slug>`) and update hub `_index.md` topic wiki table. For local wikis, add to the `local_wikis` array with its absolute local path.
 
 8. Report what was created and suggest:
    - `/wiki:research "topic" --sources 10` — auto-research to bootstrap
@@ -250,29 +250,27 @@ Set a custom hub location. Creates `~/.config/llm-wiki/config.json`.
 **Steps:**
 
 1. If `<path>` is provided:
-   - Expand `~` in the path to get the absolute path
+   - Expand only a leading `~` in the path to validate it on this machine.
    - Check if the path exists as a directory. If not, offer to create it.
-   - Write `~/.config/llm-wiki/config.json` (create `~/.config/llm-wiki/` if needed) with BOTH the user-facing path and the pre-computed absolute path:
+   - Write `~/.config/llm-wiki/config.json` (create `~/.config/llm-wiki/` if needed) with the user-facing portable path:
      ```json
      {
-       "hub_path": "<path as the user typed it>",
-       "resolved_path": "<absolute path with ~ expanded>"
+       "hub_path": "<path as the user typed it>"
      }
      ```
-     The `resolved_path` is consumed by hub resolution so tilde expansion never runs again. See `references/hub-resolution.md`.
+     Do not write `resolved_path` for normal shared hubs; it bakes in this machine's `/Users/<name>/...` path and can break iCloud-shared wiki folders on another Mac. Older configs that already have `resolved_path` remain readable as a fallback.
    - Suggest creating a symlink for maximum robustness:
-     > For fastest hub resolution, also run: `ln -s "<resolved_path>" ~/wiki`
+     > For shell convenience, optionally run: `ln -s "<expanded path>" ~/wiki`
      > This makes `~/wiki/` always resolve immediately, even without reading config.
    - If a wiki already exists at the OLD hub location (previous config path or `~/wiki/` fallback):
      - Ask: "Move existing wiki data from `<old>` to `<new>`? (y/n)"
-     - If yes: move contents (`mv <old>/* <new>/`), update `wikis.json` paths to reflect new base
+     - If yes: move contents (`mv <old>/* <new>/`), update hub-owned `wikis.json` topic paths to relative `topics/<slug>` entries
      - If no: just update the config — user will move data manually
    - Report: "Hub path set to `<path>`. All wiki commands now use this location."
 
 2. If no `<path>` provided (just `config hub-path`):
    - Read `~/.config/llm-wiki/config.json` if it exists
-   - Report current hub path (use `resolved_path` if present, otherwise `hub_path`)
-   - If `resolved_path` is missing from config, compute it now and write it back
+   - Report current hub path (prefer `hub_path`; mention `resolved_path` only if it is the only value or was used as a fallback)
    - Report: "Current hub path: `<path>`" or "No hub configured. Run `config hub-path <path>` to set one."
 
 #### `config` (no subcommand)
