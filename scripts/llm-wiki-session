@@ -41,8 +41,8 @@ CONTENT_KEY_RE = re.compile(
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "schema_version": SCHEMA_VERSION,
-    "enabled": False,
-    "mode": "capture-only",
+    "enabled": True,
+    "mode": "balanced",
     "auto_capture": {
         "tool_events": DEFAULT_TOOL_THRESHOLD,
         "pre_compact": True,
@@ -51,8 +51,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "stop": True,
     },
     "rehydrate": {
-        "session_start": False,
-        "user_prompt": False,
+        "session_start": True,
+        "user_prompt": True,
         "strict": False,
     },
     "raw_transcripts": False,
@@ -117,7 +117,12 @@ AGGRESSIVE_CONFIG = {
 }
 
 MODE_CONFIGS = {
-    "off": {**DEFAULT_CONFIG, "mode": "off"},
+    "off": {
+        **DEFAULT_CONFIG,
+        "enabled": False,
+        "mode": "off",
+        "rehydrate": {"session_start": False, "user_prompt": False, "strict": False},
+    },
     "capture-only": {**DEFAULT_CONFIG, **CAPTURE_ONLY_CONFIG},
     "balanced": {**DEFAULT_CONFIG, **BALANCED_CONFIG},
     "aggressive": {**DEFAULT_CONFIG, **AGGRESSIVE_CONFIG},
@@ -1042,7 +1047,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--local", action="store_true", help="Use .wiki/.sessions in the current directory.")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    enable = sub.add_parser("enable", help="Enable automated session capture in HUB/.sessions/config.json.")
+    enable = sub.add_parser("enable", help="Enable or reconfigure automated session capture in HUB/.sessions/config.json.")
     enable.add_argument("--mode", choices=sorted(MODE_CONFIGS), default="balanced")
     enable.add_argument("--tool-events", type=int, help="Override automated tool-event checkpoint threshold.")
     enable.add_argument("--force", action="store_true", help="Replace existing config instead of merging.")
@@ -1059,7 +1064,7 @@ def build_parser() -> argparse.ArgumentParser:
     hook.add_argument("--topic", help="Attach a topic tag to this event/state.")
     hook.add_argument("--summary", help="Manual summary to append to state.")
     hook.add_argument("--trigger", help="Override capture trigger name.")
-    hook.add_argument("--if-enabled", action="store_true", help="No-op unless .sessions/config.json has enabled=true.")
+    hook.add_argument("--if-enabled", action="store_true", help="Honor .sessions/config.json enabled=false; default is enabled when no config exists.")
     hook.add_argument("--max-event-bytes", type=int, default=MAX_EVENT_PREVIEW_CHARS)
     hook.set_defaults(func=run_hook)
 

@@ -23,10 +23,10 @@ in `references/sessions.md`.
 
 ### Parse $ARGUMENTS
 
-- `enable [--mode capture-only|balanced|aggressive] [--tool-events N]`: enable
-automated capture by writing `HUB/.sessions/config.json`. Default mode is
-`balanced`; default threshold is 50 observed tool events.
-- `disable`: set `enabled: false` in `HUB/.sessions/config.json`.
+- `enable [--mode capture-only|balanced|aggressive] [--tool-events N]`: re-enable
+or reconfigure automated capture by writing `HUB/.sessions/config.json`. Default
+mode is `balanced`; default threshold is 50 observed tool events.
+- `disable`: opt out by setting `enabled: false` in `HUB/.sessions/config.json`.
 - `status`: report whether capture is enabled, where `.sessions/` lives, and how
 many sessions are indexed.
 - `capture`: force a manual digest checkpoint for the current or specified
@@ -42,8 +42,9 @@ note from the distilled digest. Do not copy raw transcripts.
 
 ### Policy
 
-1. Automated capture is opt-in. Enabling writes config; hooks must still be
-installed/trusted in the target harness.
+1. Automated capture is default-on when trusted hooks are installed. Users can
+opt out with `session disable`, which writes `enabled: false` and causes hooks
+using `--if-enabled` to no-op.
 2. Hooks should be fast and deterministic: append redacted JSONL event metadata,
 update state, and write markdown digests at checkpoints. Do not call an LLM from
 every tool hook.
@@ -57,7 +58,10 @@ strict forced continuation remains opt-in and must have loop guards.
 ### Examples
 
 ```bash
-# Opt in to automated capture and soft rehydration.
+# Opt out of automated capture.
+scripts/llm-wiki-session --hub "$HUB" disable
+
+# Re-enable or tune automated capture and soft rehydration.
 scripts/llm-wiki-session --hub "$HUB" enable --mode balanced --tool-events 50
 
 # Capture now with a short human summary.

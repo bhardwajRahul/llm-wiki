@@ -19,7 +19,7 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, co
 
 ## Changelog
 
-**Unreleased** — **Automated session capture.** Added an opt-in `session` workflow and deterministic `llm-wiki-session` helper that writes redacted hook events, state JSON, and markdown digests under `HUB/.sessions/`; Codex plugin packaging now bundles disabled-by-default lifecycle hooks that activate after `session enable`.
+**Unreleased** — **Automated session capture.** Added a default-on `session` workflow and deterministic `llm-wiki-session` helper that writes redacted hook events, state JSON, and markdown digests under `HUB/.sessions/`; users can opt out with `session disable`, and promotion into topic wikis remains explicit.
 
 **v0.10.2** — **Collector production hardening.** Collection-family topic slugs now prefer kind-first names such as `memes-bitcoin`, the scale boundary treats 500 rows as large and 501+ as huge, and media downloads call out timeouts, file-size caps, content-type checks, and IPv4 retry for hosts that hang.
 
@@ -68,7 +68,8 @@ Canonical explicit invocation:
 @wiki collect "bitcoin memes" --wiki memes-bitcoin
 @wiki ingest https://example.com/article
 @wiki audit --project coldcard-threat-model
-@wiki session enable --mode balanced
+@wiki session status
+@wiki session disable   # optional opt-out
 @wiki ll "codex plugin install gotchas"
 ```
 
@@ -367,7 +368,9 @@ checks without an agent:
 ./scripts/llm-wiki archive --hub /path/to/hub topic old-interest --reason "No longer active"
 ./scripts/llm-wiki archive --hub /path/to/hub list --archived
 ./scripts/llm-wiki archive --hub /path/to/hub restore old-interest
-./scripts/llm-wiki-session --hub /path/to/hub enable --mode balanced
+./scripts/llm-wiki-session --hub /path/to/hub status
+./scripts/llm-wiki-session --hub /path/to/hub disable   # optional opt-out
+./scripts/llm-wiki-session --hub /path/to/hub enable --mode balanced --tool-events 50
 ./scripts/llm-wiki-session --hub /path/to/hub rehydrate --cwd "$PWD"
 ```
 
@@ -409,7 +412,9 @@ folder move plus `wikis.json`, hub index, and log updates.
 | `/wiki:archive topic <slug> --reason "why"` | Move a topic wiki to `topics/.archive/<slug>` and hide it from default context |
 | `/wiki:archive restore <slug>` | Restore an archived topic wiki to active status |
 | `/wiki:archive peek <query>` | Search archived topic indexes without reading archived articles |
-| `/wiki:session enable --mode balanced` | Opt in to automated redacted session capture and soft rehydration |
+| `/wiki:session status` | Show automated session-capture mode, root, and indexed session count |
+| `/wiki:session disable` | Opt out of automated redacted session capture |
+| `/wiki:session enable --mode balanced` | Re-enable or tune automated capture and soft rehydration |
 | `/wiki:session capture` | Force a manual session digest checkpoint |
 | `/wiki:session rehydrate` | Print compact context from matching session digests |
 | `/wiki:session promote <id> --topic <slug>` | Promote a distilled digest into a topic raw note |

@@ -36,7 +36,7 @@ HUB/.sessions/
 
 Use the same layout under `.wiki/.sessions/` for local project wikis.
 
-- `config.json` controls opt-in automation and rehydration.
+- `config.json` controls automation and rehydration. If it is absent, capture defaults to `balanced`; `enabled: false` is the opt-out switch.
 - `registry.jsonl` is append-only lifecycle metadata such as `session_seen` and
   `digest_written`.
 - `queue/*.jsonl` stores small redacted hook events. Do not store full prompts,
@@ -53,7 +53,7 @@ private. It should not be compiled as ordinary topic content. A future generated
 
 ## Config Modes
 
-Default mode after opt-in should be `balanced`:
+Default mode is `balanced`, even before a config file exists:
 
 ```json
 {
@@ -81,7 +81,7 @@ Modes:
 
 | Mode | Capture | Rehydrate | Use when |
 |---|---|---|---|
-| `off` | none | none | Disabled |
+| `off` | none | none | Disabled / user opt-out |
 | `capture-only` | automatic checkpoints | no injected context | Maximum privacy/least surprise |
 | `balanced` | automatic checkpoints | SessionStart/UserPromptSubmit soft context | Recommended default |
 | `aggressive` | more frequent checkpoints | soft context | Long, high-context work |
@@ -144,7 +144,7 @@ The command reads the harness hook JSON object from stdin and should:
 1. resolve HUB from `~/.config/llm-wiki/config.json` unless `--hub` or `--local`
    is supplied;
 2. exit 0 without writing if `--if-enabled` is set and `.sessions/config.json`
-   is missing or disabled;
+   has `enabled: false`; missing config means default-on balanced capture;
 3. append a redacted event to `queue/YYYY-MM-DD.jsonl`;
 4. update `state/<harness>/<session_id>.json`;
 5. write a digest if a capture trigger fired;
@@ -158,8 +158,8 @@ background worker instead of doing it inline inside every tool hook.
 
 Codex plugins can bundle hooks in `hooks/hooks.json`. Plugin-bundled hooks still
 require the user to review/trust them. The bundled llm-wiki Codex hook should
-call the copied helper in the plugin root and use `--if-enabled`, so installing
-the plugin does not capture anything until the user enables sessions.
+call the copied helper in the plugin root and use `--if-enabled`, so users can
+turn capture off with `session disable` without editing hook manifests.
 
 Useful Codex events:
 
@@ -227,3 +227,4 @@ not the raw transcript. Append the topic `log.md` entry. Compilation into
 - Do not auto-promote session material into topic wikis.
 - Do not let hook failures block normal agent work; fail closed to no capture,
   not to broken tool execution.
+- To opt out, run `llm-wiki-session disable` or ask `@wiki session disable`; this writes `enabled: false`.

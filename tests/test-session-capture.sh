@@ -58,16 +58,24 @@ cat > "$hub/topics/demo/log.md" <<'MD'
 # Demo Log
 MD
 
-skip_hub="$tmpdir/skip-wiki"
-mkdir -p "$skip_hub/topics"
-touch "$skip_hub/_index.md" "$skip_hub/log.md"
-echo '{"wikis":{}}' > "$skip_hub/wikis.json"
-printf '{"session_id":"skip","hook_event_name":"PostToolUse","cwd":"%s","tool_name":"Bash"}' "$PWD" \
-  | "$SESSION" --hub "$skip_hub" hook --harness codex --if-enabled
-if [ ! -e "$skip_hub/.sessions" ]; then
-  log_pass "--if-enabled hook no-ops before opt-in"
+default_hub="$tmpdir/default-on-wiki"
+mkdir -p "$default_hub/topics"
+touch "$default_hub/_index.md" "$default_hub/log.md"
+echo '{"wikis":{}}' > "$default_hub/wikis.json"
+printf '{"session_id":"default-on","hook_event_name":"PostToolUse","cwd":"%s","tool_name":"Bash"}' "$PWD" \
+  | "$SESSION" --hub "$default_hub" hook --harness codex --if-enabled
+if [ -f "$default_hub/.sessions/state/codex/default-on.json" ]; then
+  log_pass "--if-enabled hook captures by default when no config exists"
 else
-  log_fail "--if-enabled hook no-ops before opt-in" "created $skip_hub/.sessions"
+  log_fail "--if-enabled hook captures by default when no config exists" "missing default-on state"
+fi
+"$SESSION" --hub "$default_hub" disable >/dev/null
+printf '{"session_id":"disabled","hook_event_name":"PostToolUse","cwd":"%s","tool_name":"Bash"}' "$PWD" \
+  | "$SESSION" --hub "$default_hub" hook --harness codex --if-enabled
+if [ ! -f "$default_hub/.sessions/state/codex/disabled.json" ]; then
+  log_pass "session disable makes --if-enabled hook no-op"
+else
+  log_fail "session disable makes --if-enabled hook no-op" "created disabled session state"
 fi
 
 if "$SESSION" --hub "$hub" enable --mode balanced --tool-events 2 >/dev/null \
