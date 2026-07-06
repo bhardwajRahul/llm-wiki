@@ -177,9 +177,9 @@ See [references/librarian.md](references/librarian.md).
 Flow: Scan the active topic's compiled `wiki/` layer → score staleness, quality,
 source-chain integrity, and link health → write `.librarian/scan-results.json`
 and `.librarian/REPORT.md` → recommend ranked next actions. Optional
-`--passes schema` may write a proposal output for topic-local schema
-improvements. Schemas are default for new topic wikis; older wikis can migrate
-with `llm-wiki schema migrate --apply` or `llm-wiki lint --fix`. Librarian
+`--passes conventions` (or legacy `schema`) may write a proposal output for
+topic-guide improvements. Topic guides are default for new topic wikis; older
+wikis can adopt one with `llm-wiki schema adopt` or `llm-wiki lint --fix`. Librarian
 must not rewrite `schema.md` without explicit user acceptance.
 Librarian is the article-health advisor; it does not replace lint's structural
 checks or audit's broader trust review.

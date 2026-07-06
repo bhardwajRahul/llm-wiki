@@ -127,9 +127,9 @@ After all articles are scored:
 5. For articles the user selects to refresh: invoke the refresh protocol from `commands/refresh.md` for that article.
 6. For articles the user selects to verify: update `verified:` to today in the article's frontmatter.
 
-#### 3b. Schema Advisory and Migration Pass
+#### 3b. Topic-Guide Conventions Pass
 
-Run only when `schema` is included in `--passes`.
+Run only when `conventions` or legacy `schema` is included in `--passes`.
 
 1. Check whether `<wiki-root>/schema.md` exists. If it exists, treat the schema
    as advisory unless it explicitly declares a stricter mode.
@@ -141,9 +141,9 @@ Run only when `schema` is included in `--passes`.
    - recurring output/project names and prefixes.
 3. If no schema exists and the wiki is small (roughly fewer than 10 compiled
    articles) with no obvious repeated category/link/source confusion, report
-   `schema migration recommended: default advisory schema` and suggest
-   `llm-wiki schema migrate --apply` or `llm-wiki lint --fix`. Do not write a
-   proposal for tiny wikis unless the user asked for a schema design.
+   `topic guide recommended: default advisory starter` and suggest
+   `llm-wiki schema adopt` or `llm-wiki lint --fix`. Do not write a
+   proposal for tiny wikis unless the user asked for a topic-guide design.
 4. If a schema would help, write
    `output/schema-proposal-<topic>-YYYY-MM-DD.md`. The proposal may recommend
    entity types, relationship verbs, article subtypes, source conventions, and

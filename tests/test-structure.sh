@@ -38,7 +38,7 @@ if [ -f "$GOLDEN/schema.md" ]; then log_pass "schema.md exists"; else log_fail "
 if grep -q "^schema_state: advisory" "$GOLDEN/schema.md" 2>/dev/null; then
   log_pass "schema.md starts in advisory mode"
 else
-  log_fail "schema.md missing advisory schema_state" "schema migration"
+  log_fail "schema.md missing advisory schema_state" "topic guide adoption"
 fi
 
 echo ""

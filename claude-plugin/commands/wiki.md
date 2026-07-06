@@ -210,12 +210,12 @@ Show wiki status. Before reading any `_index.md`, stale-check it: count `.md` fi
    - Count actual files for accuracy
    - Show: title, location, source/article/inventory/dataset/output counts, inbox pending, last compiled/lint dates, last 5 recent changes
    - If the topic is active and has no root `schema.md`, show one non-blocking
-     migration nudge. For small/simple wikis:
-     `Schema migration available: schemas are now default. Add an advisory starter with: llm-wiki schema migrate --apply <wiki-root>`
+     topic-guide adoption nudge. For small/simple wikis:
+     `Optional topic guide missing. Existing wiki is valid. Add a starter with: llm-wiki schema adopt <wiki-root>`
      For established wikis with roughly 10+ compiled articles and no recent
      `output/schema-proposal-*.md` or `.librarian/REPORT.md` covering schema
      advice:
-     `Schema migration available: run /wiki:librarian scan --passes staleness,quality,schema for a proposal, then apply the useful parts to schema.md.`
+     `Optional topic guide missing. Run /wiki:librarian scan --passes staleness,quality,conventions for a proposal, then apply the useful parts to schema.md.`
    - Do not block normal status/query/compile/ingest on this nudge. Do not
      auto-create `schema.md`, proposal outputs, or dismissal files from status.
      Suppress the nudge when a schema or recent schema proposal already exists.

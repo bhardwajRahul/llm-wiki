@@ -55,8 +55,8 @@ There is no `/wiki:migrate` command and there should never be one. Lint rules **
 
 - [ ] Master `_index.md` exists
 - [ ] `config.md` exists
-- [ ] `schema.md` exists. Missing schema is an Info-level migration prompt for
-  older wikis, not a structural failure.
+- [ ] `schema.md` exists. Missing topic guide is an Info-level adoption prompt
+  for older wikis, not a structural failure.
 - [ ] Every existing wiki-managed subdirectory under `raw/`, `wiki/`, `inventory/`, and `datasets/` has `_index.md` where applicable. Optional lazy roots that are completely absent are not C1 failures.
 - [ ] `output/` has `_index.md`
 - [ ] Every `.md` file (excluding `_index.md` and `config.md`) has valid YAML frontmatter delimited by `---`
@@ -484,7 +484,7 @@ Validates the hub-level archive lifecycle described in `archive.md`.
 | **C13** Older compiled article missing safe schema fields | Infer `category`, `summary`, `created`, `updated`, `tags` for theses, and `volatility` as described above |
 | **C14** Article below freshness score threshold | **Warn/Info only** — composite score below `freshness_threshold` (default 70). Report score breakdown and suggest `/wiki:refresh`. |
 | **C15** Missing volatility field | Add `volatility: warm` — safe default |
-| Missing `schema.md` | Add a default human-owned `schema_state: advisory` starter schema; existing content is unchanged |
+| Missing `schema.md` | Add a default human-owned `schema_state: advisory` starter topic guide; existing content is unchanged |
 | **C16** Missing inventory directories/indexes | Repair missing indexes for existing inventory directories; do not create a completely absent inventory tree or empty unused category folders |
 | **C16** Output looks like inventory | Warn only — suggest `/wiki:inventory migrate-output <path> --dry-run`; never auto-migrate |
 | **C17** Missing dataset registry directories/indexes | Repair missing indexes for existing dataset directories; do not create a completely absent dataset tree or empty unused sample/profile/query folders |

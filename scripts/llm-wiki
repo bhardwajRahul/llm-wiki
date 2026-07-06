@@ -564,23 +564,23 @@ def check_structure(ctx: LintContext) -> None:
 
 
 def ensure_topic_schema(ctx: LintContext) -> None:
-    """Nudge or create the default topic schema.
+    """Nudge or create the default topic guide.
 
-    Schemas are default from v0.14 onward, but existing wikis should not become
-    structurally broken merely because they have not migrated yet. Missing
-    schema.md is therefore an info-level migration prompt during read-only lint
-    and an additive file creation during lint --fix.
+    Topic guides are default from v0.15 onward, but existing wikis should not
+    become structurally broken merely because they have not adopted one yet.
+    Missing schema.md is therefore an info-level adoption prompt during
+    read-only lint and an additive file creation during lint --fix.
     """
     schema = ctx.root / "schema.md"
     if schema.exists():
         return
     if ctx.fix:
         schema.write_text(default_schema_text(ctx.root), encoding="utf-8")
-        ctx.fixed(f"Created default schema.md at {ctx.rel(schema)}.")
+        ctx.fixed(f"Created starter topic guide at {ctx.rel(schema)}.")
     else:
         ctx.issue(
             "info",
-            "schema.md is missing; schemas are now default. Run `llm-wiki schema migrate --apply` or `llm-wiki lint --fix` to add an advisory starter schema.",
+            "Optional topic guide missing. Existing wiki is valid. Run `llm-wiki schema adopt` or `llm-wiki lint --fix` to add a starter `schema.md`.",
             schema,
             fixable=True,
         )
@@ -592,22 +592,25 @@ def default_schema_text(root: Path, state: str = "advisory") -> str:
     return "\n".join(
         [
             "---",
-            f"title: {yaml_quote(title + ' Schema')}",
+            f"title: {yaml_quote(title + ' Topic Guide')}",
             f"schema_state: {state}",
             f"created: {today}",
             f"updated: {today}",
-            'summary: "Topic-local vocabulary, relationship, and migration conventions for this llm-wiki topic."',
+            'summary: "Human-owned topic guide for local vocabulary, relationships, source boundaries, and conventions."',
             "---",
             "",
-            f"# {title} Schema",
+            f"# {title} Topic Guide",
             "",
-            "> This file is human-owned. The librarian may propose changes, but it should not rewrite this schema without explicit user approval.",
+            "> This is not a database schema and it does not make existing wiki content invalid.",
+            "> It is a human-owned guide for local vocabulary, relationships, source boundaries, and conventions.",
+            "> The librarian may propose improvements, but agents should not rewrite this file without explicit approval.",
             "",
             "## State",
             "",
             f"- `schema_state`: `{state}`",
-            "- `advisory` means report mismatches as suggestions only.",
-            "- `strict` means warn on violations; strict mode still must not auto-rewrite content.",
+            "- `advisory` means suggestions only.",
+            "- Keep this advisory until the librarian's topic-guide suggestions are consistently low-noise.",
+            "- `strict` is an advanced, explicit opt-in; it still never permits automatic content rewrites.",
             "",
             "## Entity Types",
             "",
@@ -637,12 +640,12 @@ def default_schema_text(root: Path, state: str = "advisory") -> str:
             "- Use inventory for durable tracking state, not factual evidence.",
             "- Use dataset manifests for large, mutable, binary, remote, or query-oriented data.",
             "",
-            "## Migration Notes",
+            "## Adoption Notes",
             "",
-            "- Existing articles do not need immediate rewrites to adopt this schema.",
-            "- Librarian schema scans should propose changes in `output/schema-proposal-*.md`.",
+            "- Existing articles do not need immediate rewrites to adopt this guide.",
+            "- Librarian topic-guide scans should propose changes in `output/schema-proposal-*.md`.",
             "- Promote only the small conventions that fit this topic; delete unused starter rows.",
-            "- Switch `schema_state` to `strict` only after advisory reports are low-noise.",
+            "- Prefer staying advisory unless the human explicitly wants stricter convention warnings.",
             "",
         ]
     )
@@ -1824,20 +1827,28 @@ def run_schema(args: argparse.Namespace) -> int:
         if args.json:
             print(json.dumps(payload, indent=2, sort_keys=True))
         else:
-            print(f"llm-wiki schema: {root}")
+            print(f"llm-wiki topic guide: {root}")
             print(f"State: {payload['state']}")
-            print(f"Schema: {'present' if payload['schema_exists'] else 'missing'} ({payload['schema']})")
+            print(f"Topic guide: {'present' if payload['schema_exists'] else 'missing'} ({payload['schema']})")
             print(f"Articles: {payload['article_count']}")
-            print(f"Schema proposals: {payload['proposal_count']}")
+            print(f"Topic-guide proposals: {payload['proposal_count']}")
             if not payload["schema_exists"]:
-                print("Next: llm-wiki schema migrate --apply")
+                print("Next: llm-wiki schema adopt")
         return 0
     if subcommand == "migrate":
-        return schema_migrate(root, apply=args.apply, state=args.state, json_output=args.json)
+        return schema_migrate(root, apply=args.apply, state=args.state, json_output=args.json, command="migrate")
+    if subcommand == "adopt":
+        return schema_migrate(
+            root,
+            apply=not args.dry_run,
+            state=args.state,
+            json_output=args.json,
+            command="adopt",
+        )
     raise SystemExit("unknown schema subcommand")
 
 
-def schema_migrate(root: Path, apply: bool, state: str, json_output: bool = False) -> int:
+def schema_migrate(root: Path, apply: bool, state: str, json_output: bool = False, command: str = "migrate") -> int:
     if state not in {"advisory", "strict"}:
         raise SystemExit("schema state must be advisory or strict")
     schema = root / "schema.md"
@@ -1848,7 +1859,7 @@ def schema_migrate(root: Path, apply: bool, state: str, json_output: bool = Fals
         action = "already-present"
     elif apply:
         schema.write_text(default_schema_text(root, state=state), encoding="utf-8")
-        append_log(root, "schema", f"created default {state} schema.md")
+        append_log(root, "schema", f"created starter {state} topic guide schema.md")
         changed = True
         action = "created"
         payload = schema_status_payload(root)
@@ -1860,22 +1871,26 @@ def schema_migrate(root: Path, apply: bool, state: str, json_output: bool = Fals
         "schema": str(schema),
         "action": action,
         "changed": changed,
+        "command": command,
         "state": payload["state"] if schema.exists() else state,
         "apply": apply,
     }
     if json_output:
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
-    print(f"llm-wiki schema migrate: {root}")
+    print(f"llm-wiki schema {command}: {root}")
     if action == "already-present":
-        print(f"Schema already exists: {schema}")
-        print("No migration applied.")
+        print(f"Topic guide already exists: {schema}")
+        print("No changes applied.")
     elif action == "created":
-        print(f"Created {state} schema: {schema}")
-        print("Next: review schema.md, trim unused starter conventions, then run librarian with schema advice.")
+        print(f"Created {state} topic guide: {schema}")
+        print("Next: review schema.md, trim unused starter conventions, then run librarian with topic-guide advice.")
     else:
-        print(f"Would create default {state} schema: {schema}")
-        print("Dry run only. Re-run with --apply to write schema.md.")
+        print(f"Would create default {state} topic guide: {schema}")
+        if command == "adopt":
+            print("Dry run only. Re-run without --dry-run to write schema.md.")
+        else:
+            print("Dry run only. Re-run with --apply to write schema.md.")
     return 0
 
 
@@ -2103,10 +2118,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     schema = subparsers.add_parser(
         "schema",
-        help="Show or apply the default topic schema migration.",
+        help="Manage the topic guide (`schema.md`).",
         description=(
-            "Schemas are default for topic wikis. Use status to inspect a wiki, "
-            "or migrate --apply to add an advisory starter schema.md."
+            "Topic guides are default for topic wikis. Use status to inspect a wiki, "
+            "or adopt to add an advisory starter topic guide (`schema.md`)."
         ),
     )
     schema.add_argument("--local", action="store_true", help="Target .wiki/ in the current directory.")
@@ -2120,7 +2135,7 @@ def build_parser() -> argparse.ArgumentParser:
     schema.add_argument("--json", action="store_true", help="Print JSON.")
     schema_sub = schema.add_subparsers(dest="schema_command", required=True)
 
-    schema_status = schema_sub.add_parser("status", help="Show schema migration state.")
+    schema_status = schema_sub.add_parser("status", help="Show topic-guide state.")
     schema_status.add_argument("path", nargs="?", help="Wiki root path.")
     schema_status.add_argument("--local", action="store_true", default=argparse.SUPPRESS, help="Target .wiki/ in the current directory.")
     schema_status.add_argument("--wiki", default=argparse.SUPPRESS, help="Named wiki from the hub registry.")
@@ -2135,7 +2150,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     schema_migrate_parser = schema_sub.add_parser(
         "migrate",
-        help="Create a default advisory schema.md, dry-run by default.",
+        help="Legacy alias: preview/write a starter topic guide, dry-run by default.",
     )
     schema_migrate_parser.add_argument("path", nargs="?", help="Wiki root path.")
     schema_migrate_parser.add_argument("--local", action="store_true", default=argparse.SUPPRESS, help="Target .wiki/ in the current directory.")
@@ -2155,6 +2170,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="Initial schema_state for the generated schema.md.",
     )
     schema_migrate_parser.add_argument("--json", action="store_true", default=argparse.SUPPRESS, help="Print JSON.")
+
+    schema_adopt_parser = schema_sub.add_parser(
+        "adopt",
+        help="Create a starter topic guide if schema.md is missing.",
+    )
+    schema_adopt_parser.add_argument("path", nargs="?", help="Wiki root path.")
+    schema_adopt_parser.add_argument("--local", action="store_true", default=argparse.SUPPRESS, help="Target .wiki/ in the current directory.")
+    schema_adopt_parser.add_argument("--wiki", default=argparse.SUPPRESS, help="Named wiki from the hub registry.")
+    schema_adopt_parser.add_argument("--hub", default=argparse.SUPPRESS, help="Override hub path for --wiki resolution.")
+    schema_adopt_parser.add_argument(
+        "--include-archived",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Allow schema operations on an explicitly targeted archived wiki.",
+    )
+    schema_adopt_parser.add_argument("--dry-run", action="store_true", help="Preview without writing schema.md.")
+    schema_adopt_parser.add_argument(
+        "--state",
+        choices=["advisory", "strict"],
+        default="advisory",
+        help="Initial schema_state for the generated schema.md.",
+    )
+    schema_adopt_parser.add_argument("--json", action="store_true", default=argparse.SUPPRESS, help="Print JSON.")
 
     schema.set_defaults(func=run_schema)
 

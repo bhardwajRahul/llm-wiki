@@ -1,20 +1,23 @@
 ---
-title: "Test Wiki Schema"
+title: "Test Wiki Topic Guide"
 schema_state: advisory
 created: 2026-01-10
 updated: 2026-01-10
-summary: "Topic-local vocabulary, relationship, and migration conventions for this llm-wiki topic."
+summary: "Human-owned topic guide for local vocabulary, relationships, source boundaries, and conventions."
 ---
 
-# Test Wiki Schema
+# Test Wiki Topic Guide
 
-> This file is human-owned. The librarian may propose changes, but it should not rewrite this schema without explicit user approval.
+> This is not a database schema and it does not make existing wiki content invalid.
+> It is a human-owned guide for local vocabulary, relationships, source boundaries, and conventions.
+> The librarian may propose improvements, but agents should not rewrite this file without explicit approval.
 
 ## State
 
 - `schema_state`: `advisory`
-- `advisory` means report mismatches as suggestions only.
-- `strict` means warn on violations; strict mode still must not auto-rewrite content.
+- `advisory` means suggestions only.
+- Keep this advisory until the librarian's topic-guide suggestions are consistently low-noise.
+- `strict` is an advanced, explicit opt-in; it still never permits automatic content rewrites.
 
 ## Entity Types
 
@@ -44,9 +47,9 @@ summary: "Topic-local vocabulary, relationship, and migration conventions for th
 - Use inventory for durable tracking state, not factual evidence.
 - Use dataset manifests for large, mutable, binary, remote, or query-oriented data.
 
-## Migration Notes
+## Adoption Notes
 
-- Existing articles do not need immediate rewrites to adopt this schema.
-- Librarian schema scans should propose changes in `output/schema-proposal-*.md`.
+- Existing articles do not need immediate rewrites to adopt this guide.
+- Librarian topic-guide scans should propose changes in `output/schema-proposal-*.md`.
 - Promote only the small conventions that fit this topic; delete unused starter rows.
-- Switch `schema_state` to `strict` only after advisory reports are low-noise.
+- Prefer staying advisory unless the human explicitly wants stricter convention warnings.

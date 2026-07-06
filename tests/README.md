@@ -22,8 +22,8 @@ No LLM calls. Validates wiki file structure, default `schema.md`, frontmatter sc
 ### What it checks
 
 - C1: Every existing wiki-managed directory has `_index.md`
-- Schema defaults: golden wikis include advisory `schema.md`; missing schemas
-  are info-level migration prompts and `schema migrate --apply` writes a starter
+- Topic guide defaults: golden wikis include advisory `schema.md`; missing guides
+  are info-level prompts and `schema adopt` writes a starter
 - C2: Required frontmatter fields present, enum values valid
 - C3: Index entries match actual files (no stale entries, no unlisted files)
 - C4: See Also links resolve to existing articles

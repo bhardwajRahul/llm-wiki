@@ -137,15 +137,15 @@ quality_score = ((depth + source_quality + coherence + utility) / 4) * 20
 
 Range: 20 (worst possible — all 1s) to 100 (all 5s). Articles below 50 are surfaced for review.
 
-## Schema Advisory and Migration Pass
+## Topic-Guide Conventions Pass
 
-The schema pass helps topic wikis converge on a local vocabulary and helps
-older wikis migrate to the default `schema.md` convention without content
-rewrites.
+The conventions pass helps topic wikis converge on a local vocabulary and helps
+older wikis adopt the default `schema.md` topic guide without content rewrites.
+`schema.md` is a human-owned topic guide, not a database schema.
 
 ### Canonical Files
 
-- Human-owned schema: `<wiki-root>/schema.md` (default for new wikis)
+- Human-owned topic guide: `<wiki-root>/schema.md` (default for new wikis)
 - Optional derived cache: `<wiki-root>/.librarian/schema.json`
 - Proposal output:
   `output/schema-proposal-<topic>-YYYY-MM-DD.md`
@@ -155,11 +155,11 @@ subtypes, source conventions, and inventory/dataset boundaries. It must not
 redefine global llm-wiki primitives such as raw source types, article
 categories, inventory kinds, or required frontmatter.
 
-### Migration States
+### Adoption States
 
 | State | Meaning | Behavior |
 |-------|---------|----------|
-| `missing` | Older wiki has no `schema.md` | Valid; report a non-blocking migration action |
+| `missing` | Older wiki has no `schema.md` | Valid; report a non-blocking adoption action |
 | `proposed` | Librarian wrote a proposal output | Human reviews before adoption |
 | `advisory` | `schema.md` exists | Report mismatches as suggestions |
 | `strict` | Explicit opt-in in `schema.md` | Warn on violations; never auto-rewrite content |
@@ -168,8 +168,8 @@ categories, inventory kinds, or required frontmatter.
 
 Recommend a schema proposal when a topic is active and has roughly 10+ compiled
 articles, or when indexes reveal repeated category/link/source ambiguity. For
-small or one-off wikis without `schema.md`, recommend the default migration
-helper (`llm-wiki schema migrate --apply` or `llm-wiki lint --fix`) instead of
+small or one-off wikis without `schema.md`, recommend the default adoption
+helper (`llm-wiki schema adopt` or `llm-wiki lint --fix`) instead of
 writing a large proposal.
 
 ### Proposal Sources
@@ -184,8 +184,8 @@ Derive proposals from observed reality:
 
 ### Scan Behavior
 
-When `schema` is included in `--passes`, add a `schema` object to
-`scan-results.json`:
+When `conventions` (or legacy `schema`) is included in `--passes`, add a
+`schema` object to `scan-results.json`:
 
 ```json
 {
@@ -203,14 +203,14 @@ Render the same information in `REPORT.md` under `## Schema Advice`.
 
 The scan must not create or rewrite `schema.md`; applying a proposal is a
 separate, explicit user decision. If no schema exists and no proposal is useful,
-render a migration recommendation instead:
+render an adoption recommendation instead:
 
 ```json
 {
   "state": "missing",
-  "migration": "default-schema-recommended",
+  "migration": "default-topic-guide-recommended",
   "recommendations": [
-    "Run llm-wiki schema migrate --apply to add an advisory starter schema",
+    "Run llm-wiki schema adopt to add an advisory starter topic guide",
     "Keep schema_state: advisory until librarian reports are low-noise"
   ]
 }

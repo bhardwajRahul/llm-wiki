@@ -70,7 +70,7 @@ cp -R "$GOLDEN/." "$schema_migrate/"
 rm -f "$schema_migrate/schema.md"
 
 expect_success \
-  "missing schema is an info-level migration prompt, not a lint failure" \
+  "missing schema is an info-level topic-guide prompt, not a lint failure" \
   "$CLI" lint "$schema_migrate"
 
 set +e
@@ -78,7 +78,7 @@ schema_dry_output="$("$CLI" schema migrate "$schema_migrate" 2>&1)"
 schema_dry_rc=$?
 set -e
 if [ "$schema_dry_rc" -eq 0 ] \
-  && grep -q "Would create default advisory schema" <<<"$schema_dry_output" \
+  && grep -q "Would create default advisory topic guide" <<<"$schema_dry_output" \
   && [ ! -e "$schema_migrate/schema.md" ]; then
   log_pass "schema migrate dry-run does not write schema.md"
 else
@@ -86,17 +86,33 @@ else
 fi
 
 set +e
-schema_apply_output="$("$CLI" schema migrate --apply "$schema_migrate" 2>&1)"
+schema_apply_output="$("$CLI" schema adopt "$schema_migrate" 2>&1)"
 schema_apply_rc=$?
 set -e
 if [ "$schema_apply_rc" -eq 0 ] \
-  && grep -q "Created advisory schema" <<<"$schema_apply_output" \
+  && grep -q "Created advisory topic guide" <<<"$schema_apply_output" \
   && [ -f "$schema_migrate/schema.md" ] \
   && grep -q "schema_state: advisory" "$schema_migrate/schema.md" \
   && "$CLI" schema status "$schema_migrate" | grep -q "State: advisory"; then
-  log_pass "schema migrate --apply creates advisory schema.md"
+  log_pass "schema adopt creates advisory schema.md"
 else
-  log_fail "schema migrate --apply creates advisory schema.md" "$schema_apply_output"
+  log_fail "schema adopt creates advisory schema.md" "$schema_apply_output"
+fi
+
+schema_migrate_compat="$tmpdir/schema-migrate-compat"
+mkdir "$schema_migrate_compat"
+cp -R "$GOLDEN/." "$schema_migrate_compat/"
+rm -f "$schema_migrate_compat/schema.md"
+set +e
+schema_compat_output="$("$CLI" schema migrate --apply "$schema_migrate_compat" 2>&1)"
+schema_compat_rc=$?
+set -e
+if [ "$schema_compat_rc" -eq 0 ] \
+  && grep -q "Created advisory topic guide" <<<"$schema_compat_output" \
+  && [ -f "$schema_migrate_compat/schema.md" ]; then
+  log_pass "schema migrate --apply remains a compatibility alias"
+else
+  log_fail "schema migrate --apply remains a compatibility alias" "$schema_compat_output"
 fi
 
 set +e

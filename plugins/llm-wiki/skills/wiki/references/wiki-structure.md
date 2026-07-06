@@ -120,8 +120,8 @@ Files under `inventory/views/` are derived list/table views. They are not
 inventory records and should not be treated as authoritative tracking state.
 Missing optional roots (`inventory/`, `datasets/`, `.obsidian/`, `.librarian/`,
 or `.audit/`) mean the layer has not been used yet. Missing `schema.md` means
-an older wiki has not been migrated; it remains valid, but status/lint should
-offer a non-blocking migration path.
+an older wiki has not adopted a topic guide; it remains valid, but status/lint should
+offer a non-blocking adoption path.
 
 ## Local Wiki (--local flag)
 
@@ -269,25 +269,27 @@ freshness_threshold: 70
 [Any wiki-specific conventions beyond defaults]
 ```
 
-## schema.md Format
+## Topic Guide (`schema.md`) Format
 
-`schema.md` is default for new topic wikis and is human-owned. It captures the
-topic-local vocabulary that helps agents avoid taxonomy drift: entity types,
-relationship verbs, article subtypes, source conventions, inventory/dataset
-boundaries, and migration notes. It must not redefine global llm-wiki
-primitives such as raw source folders, article categories, inventory kinds, or
-required frontmatter.
+`schema.md` is default for new topic wikis and is human-owned. It is a topic
+guide, not a database schema: it captures the local vocabulary that helps
+agents avoid taxonomy drift, including entity types, relationship verbs, article
+subtypes, source conventions, inventory/dataset boundaries, and adoption notes.
+It must not redefine global llm-wiki primitives such as raw source folders,
+article categories, inventory kinds, or required frontmatter.
 
 ```markdown
 ---
-title: "Wiki Title Schema"
+title: "Wiki Title Topic Guide"
 schema_state: advisory
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-summary: "Topic-local vocabulary, relationship, and migration conventions."
+summary: "Human-owned topic guide for local vocabulary and conventions."
 ---
 
-# Wiki Title Schema
+# Wiki Title Topic Guide
+
+> This is not a database schema and it does not make existing wiki content invalid.
 
 ## State
 
@@ -313,21 +315,22 @@ summary: "Topic-local vocabulary, relationship, and migration conventions."
 [Topic-specific evidence and boundary rules]
 ```
 
-Migration states:
+Adoption states:
 
 | State | Meaning | Behavior |
 |-------|---------|----------|
-| `missing` | Older wiki without `schema.md` | Valid; show non-blocking migration nudge |
+| `missing` | Older wiki without `schema.md` | Valid; show non-blocking adoption nudge |
 | `proposed` | Librarian wrote `output/schema-proposal-*.md` | Human reviews and edits before adoption |
 | `advisory` | `schema.md` exists | Report mismatches as suggestions |
 | `strict` | Explicit opt-in in `schema.md` | Warn on violations; never auto-rewrite content |
 
-Migration helpers:
+Topic-guide helpers:
 
 - `llm-wiki schema status <wiki-root>` shows whether a wiki has a schema.
-- `llm-wiki schema migrate <wiki-root>` previews the default schema.
-- `llm-wiki schema migrate --apply <wiki-root>` writes an advisory starter.
-- `llm-wiki lint --fix <wiki-root>` may also create the default schema.
+- `llm-wiki schema adopt <wiki-root>` writes an advisory starter when missing.
+- `llm-wiki schema adopt --dry-run <wiki-root>` previews the starter.
+- `llm-wiki schema migrate --apply <wiki-root>` remains as a compatibility alias.
+- `llm-wiki lint --fix <wiki-root>` may also create the default topic guide.
 
 ## Source File Format (raw/)
 

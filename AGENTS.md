@@ -152,30 +152,29 @@ Last updated: YYYY-MM-DD
 
 Master `_index.md` additionally has Statistics and Quick Navigation sections.
 
-### Topic Schema (schema.md)
+### Topic Guide (`schema.md`)
 
 ```yaml
 ---
-title: "Topic Schema"
+title: "Topic Guide"
 schema_state: advisory
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-summary: "Topic-local vocabulary, relationship, and migration conventions."
+summary: "Human-owned topic guide for local vocabulary and conventions."
 ---
 ```
 
-`schema.md` is human-owned and default for topic wikis. It may define
-topic-local entity types, relationship verbs, article subtypes, source
-conventions, and inventory/dataset boundaries. It must not redefine global
-llm-wiki primitives such as raw source folders, article categories, inventory
-kinds, or required frontmatter. `schema_state: advisory` reports mismatches as
-suggestions; `strict` is explicit opt-in and still never permits automatic
-article rewrites.
+`schema.md` is a **topic guide**, not a database schema. It is human-owned and
+default for topic wikis. It may define topic-local entity types, relationship
+verbs, article subtypes, source conventions, and inventory/dataset boundaries.
+It must not redefine global llm-wiki primitives such as raw source folders,
+article categories, inventory kinds, or required frontmatter.
+`schema_state: advisory` means suggestions only. `strict` is advanced explicit
+opt-in and still never permits automatic article rewrites.
 
-Existing wikis without `schema.md` are valid. Migrate them with
-`llm-wiki schema migrate --apply` for a starter schema, or run a librarian
-schema pass first for established wikis and copy only the useful proposal parts
-into `schema.md`.
+Existing wikis without `schema.md` are valid. Adopt a starter guide with
+`llm-wiki schema adopt`, or run a librarian conventions pass first for
+established wikis and copy only the useful proposal parts into `schema.md`.
 
 ### Raw Source (raw/)
 
@@ -354,7 +353,7 @@ whether to restore it or choose a different slug. Create the core topic wiki
 structure, empty `_index.md` files for created directories, config.md, log.md,
 schema.md, and optionally .obsidian/ vault config. Create `inventory/`, `datasets/`, and
 per-dataset sample/profile/query folders lazily when those commands need them.
-Start `schema.md` in `schema_state: advisory` with a small default vocabulary;
+Start `schema.md` as a human-owned topic guide in `schema_state: advisory` with a small default vocabulary;
 the human can trim it later and opt into strict mode only explicitly.
 
 ### Ingest
@@ -785,12 +784,12 @@ content.
 ### Librarian
 
 Content-level wiki maintenance: staleness detection, quality scoring, factual
-verification, semantic coherence, deduplication, and proposal-only topic schema
+verification, semantic coherence, deduplication, and proposal-only topic-guide
 advice. Produces scored reports — never modifies content without confirmation.
 Archived topics are skipped by default.
 
 **Subcommands**:
-- **scan**: Score all wiki articles for staleness and quality. Two-tier: quick metadata scan first, deep content read only for articles below threshold or with `volatility: hot`. Checkpoints after each article for crash recovery. Results to `.librarian/scan-results.json` and `.librarian/REPORT.md`. `--passes schema` may write `output/schema-proposal-<topic>-YYYY-MM-DD.md`; it must not create/update `schema.md` without explicit acceptance.
+- **scan**: Score all wiki articles for staleness and quality. Two-tier: quick metadata scan first, deep content read only for articles below threshold or with `volatility: hot`. Checkpoints after each article for crash recovery. Results to `.librarian/scan-results.json` and `.librarian/REPORT.md`. `--passes conventions` (or legacy `schema`) may write `output/schema-proposal-<topic>-YYYY-MM-DD.md`; it must not create/update `schema.md` without explicit acceptance.
 - **report**: Display the latest scan report.
 - **fix <id>**: Apply a proposed fix from the report (Phase 3 — not yet implemented).
 
@@ -799,17 +798,17 @@ Archived topics are skipped by default.
 **Quality scoring** (0-100): four dimensions at 25 points each — source diversity, content depth, cross-reference density, summary quality. Articles scoring below 40 on either dimension are flagged.
 
 Flags: `--article <path>` (single article), `--resume` (from checkpoint),
-`--passes <list>` (staleness, quality, optional schema — future:
+`--passes <list>` (staleness, quality, optional conventions/schema — future:
 verification, coherence, dedup).
 
-Schemas are the default for topic wikis. New wikis should include an advisory
-`schema.md` starter file. Existing wikis without `schema.md` remain valid, but
-status/resume and lint may show a non-blocking migration nudge. The migration
-path is:
+Topic guides are the default for topic wikis. New wikis should include an
+advisory `schema.md` starter file. Existing wikis without `schema.md` remain
+valid, but status/resume and lint may show a non-blocking adoption nudge. The
+adoption path is:
 
-1. Small/simple wiki: create the default advisory schema with
-   `llm-wiki schema migrate --apply` or `llm-wiki lint --fix`.
-2. Established wiki: run the librarian schema pass first, then apply only the
+1. Small/simple wiki: create the default advisory topic guide with
+   `llm-wiki schema adopt` or `llm-wiki lint --fix`.
+2. Established wiki: run the librarian conventions pass first, then apply only the
    useful parts of the proposal into the human-owned `schema.md`.
 3. Keep `schema_state: advisory` until reports are low-noise; switch to
    `strict` only by explicit user decision.

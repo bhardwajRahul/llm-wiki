@@ -19,40 +19,17 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, co
 
 ## Changelog
 
-**v0.14.0** — **Default topic schemas.** Adds advisory `schema.md` by default, safe migration helpers for older wikis, proposal-only librarian schema updates, deterministic docs/lint checks, and clarifies the optional index/server layer as a rebuildable non-authoritative cache.
+**v0.15.0** — **Topic guides.** Reframes `schema.md` as a human-owned topic guide, adds the friendlier `llm-wiki schema adopt` helper, keeps `schema migrate --apply` as a compatibility alias, and updates librarian docs to talk about conventions proposals instead of database-style schema migrations.
 
-**v0.12.0** — **Feedback curator.**
-- Captures high-signal user corrections, preferences, approvals, and plan acceptance as redacted candidates under `HUB/.sessions/feedback/`.
-- Ignores generic acknowledgements like `ok`, `thanks`, and `cool`.
-- Adds `@wiki feedback list|show|capture|promote` for review, manual capture, and promotion.
-- Promotes selected candidates explicitly into topic `raw/notes/`; nothing is auto-promoted.
-- Includes recent feedback candidates in session digests for review during rehydration and lessons-learned workflows.
+**v0.14.0** — **Default topic guides.** Adds advisory `schema.md` by default, safe adoption helpers for older wikis, proposal-only librarian convention updates, deterministic docs/lint checks, and clarifies the optional index/server layer as a rebuildable non-authoritative cache.
+
+**v0.12.0** — **Feedback curator.** Captures high-signal corrections, preferences, approvals, and plan acceptance as redacted feedback candidates under `HUB/.sessions/feedback/`; ignores generic acknowledgements; adds review/manual-capture/promotion workflows; and keeps promotion into topic `raw/notes/` explicit.
 
 **v0.11.1** — **Session helper compatibility.** Small hotfix so automated session capture works on Python 3.9/macOS system Python as well as newer Python runtimes.
 
-**v0.11.0** — **Automated session capture.**
-- Default-on redacted session checkpoints under `HUB/.sessions/`.
-- New `@wiki session status|disable|enable|capture|list|show|rehydrate|promote` workflow.
-- `session disable` opt-out writes `enabled: false`, making trusted hooks no-op.
-- Compact context rehydration for future turns/sessions.
-- Captured digests stay operational until explicitly promoted into topic `raw/notes/`.
-- Codex hook bundle plus tested Claude-shaped hook payload handling.
+**v0.11.0** — **Automated session capture.** Default-on redacted checkpoints under `HUB/.sessions/`, opt-out via `session disable`, compact context rehydration, explicit digest promotion, and a tested Codex hook bundle.
 
-**v0.10.2** — **Collector production hardening.** Collection-family topic slugs now prefer kind-first names such as `memes-bitcoin`, the scale boundary treats 500 rows as large and 501+ as huge, and media downloads call out timeouts, file-size caps, content-type checks, and IPv4 retry for hosts that hang.
-
-**v0.10.1** — **Collector media downloads.** `/wiki:collect` now downloads bounded public binary media into `output/assets/collect-<slug>/` by default for media-bearing collections, records local paths and hashes in the catalog, and keeps `--media reference` as the no-download opt-out.
-
-**v0.10.0** — **Collector catalogs.** Added `/wiki:collect` for provenance-rich catalogs of examples, artifacts, media, memes, tools, entities, and source candidates. Collect infers scale, captures aliases and found-in-context provenance, handles binaries as referenced assets by default, writes `output/collect-...` catalogs, and promotes only selected durable subsets into inventory, raw sources, wiki articles, or datasets.
-
-**v0.9.0** — **Topic archive lifecycle.** Whole topic wikis can now be archived under `topics/.archive/` so old interests stay preserved but out of normal context. Query, ingest, compile, research, output, inventory, datasets, projects, librarian, refresh, audit, lint, init, and routing now distinguish active material from explicitly included archived context.
-
-**v0.8.7** — **iCloud permission diagnostics.** When macOS lets Codex stat an iCloud hub path but denies actual reads or directory listings, the local CLI now reports the real privacy-permission problem instead of calling the registry invalid or suggesting a machine-local fallback path.
-
-**v0.8.6** — **Lint repair correctness.** `lint --fix` now repairs legacy article frontmatter, rewrites fuzzy raw source refs to exact paths when resolution is unambiguous, regenerates stale directory indexes, ignores maintenance backup indexes under `.librarian/`, and creates an explicit uncompiled-source coverage reference instead of leaving raw coverage gaps as endless suggestions.
-
-**v0.8.5** — **Safer lint defaults.** Hub-level lint now stays scoped to the shared registry instead of recursively auditing every topic by accident, and `lint --fix` preserves absent lazy `inventory/` and `datasets/` layers unless those layers already exist or the current workflow needs them.
-
-**v0.8.4** — **Portable iCloud hub resolution.** Shared wiki folders now survive moving between Macs with different `/Users/<name>/...` paths: agents prefer portable `hub_path`, treat legacy `resolved_path` values as fallback caches, resolve `wikis.json` paths relative to the current hub, and fall back to populated `topics/<slug>/` directories when registry entries are stale or unreadable.
+**v0.10.2** — **Collector production hardening.** Collection-family topic slugs now prefer kind-first names such as `memes-bitcoin`, the scale boundary treats 500 rows as large and 501+ as huge, and media downloads call out timeouts, file-size caps, content-type checks, and IPv4 retry.
 
 ## Install
 
@@ -384,8 +361,8 @@ checks without an agent:
 ./scripts/llm-wiki lint /path/to/wiki
 ./scripts/llm-wiki lint --fix /path/to/wiki
 ./scripts/llm-wiki schema status /path/to/wiki
-./scripts/llm-wiki schema migrate /path/to/wiki        # dry-run
-./scripts/llm-wiki schema migrate --apply /path/to/wiki # write advisory schema.md
+./scripts/llm-wiki schema adopt /path/to/wiki          # add starter topic guide
+./scripts/llm-wiki schema adopt --dry-run /path/to/wiki # preview without writing
 ./scripts/llm-wiki archive --hub /path/to/hub topic old-interest --reason "No longer active"
 ./scripts/llm-wiki archive --hub /path/to/hub list --archived
 ./scripts/llm-wiki archive --hub /path/to/hub restore old-interest
@@ -399,8 +376,8 @@ checks without an agent:
 This local helper covers structural checks and safe migrations that do not
 require an LLM. The agentic `/wiki:lint` workflow remains the full protocol for
 editorial and deep verification passes. The local schema helper creates only a
-starter advisory `schema.md`; run librarian schema advice for established
-wikis before adopting topic-specific vocabulary. The local archive helper
+starter advisory topic guide (`schema.md`); run librarian conventions advice
+for established wikis before adopting topic-specific vocabulary. The local archive helper
 performs the deterministic folder move plus `wikis.json`, hub index, and log
 updates.
 
@@ -474,7 +451,7 @@ updates.
 | `/wiki:audit report` | Display the latest umbrella audit report |
 | `/wiki:librarian` | Focused wiki maintenance: staleness and quality scan for the `wiki/` layer |
 | `/wiki:librarian --article <path>` | Scan a single article |
-| `/wiki:librarian scan --passes staleness,quality,schema` | Generate schema advice/proposals for established wikis without rewriting `schema.md` |
+| `/wiki:librarian scan --passes staleness,quality,conventions` | Generate topic-guide advice/proposals for established wikis without rewriting `schema.md` |
 | `/wiki:librarian report` | Display the latest librarian scan report |
 | `/wiki:refresh [<article-path>|--due]` | Re-check article sources for changed facts and offer human-gated updates |
 | `/wiki:output <type>` | Generate: summary, report, study-guide, slides, timeline, glossary, comparison |
@@ -516,14 +493,14 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
     │   ├── output/                     # Generated artifacts
     │   ├── _index.md
     │   ├── config.md
-    │   ├── schema.md                  # Topic-local vocabulary/conventions
+    │   ├── schema.md                  # Human-owned topic guide
     │   └── log.md
     ├── woodworking/                    # Another topic wiki
     ├── .archive/                       # Archived topic wikis, hidden by default
     └── ...
 ```
 
-The hub is just a registry — no content directories, no `.obsidian/`. All content lives in topic sub-wikis with isolated indexes, articles, and a human-owned advisory `schema.md`. Init creates the core wiki skeleton first; optional inventory and dataset layers are created when you use them. Queries stay focused. The multi-wiki peek finds overlap across topics when relevant.
+The hub is just a registry — no content directories, no `.obsidian/`. All content lives in topic sub-wikis with isolated indexes, articles, and a human-owned advisory topic guide (`schema.md`). Init creates the core wiki skeleton first; optional inventory and dataset layers are created when you use them. Queries stay focused. The multi-wiki peek finds overlap across topics when relevant.
 
 ### The Flow
 
