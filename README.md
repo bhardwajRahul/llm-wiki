@@ -19,6 +19,11 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, co
 
 ## Changelog
 
+**v0.14.0** — **Default topic schemas and migration helper.**
+- Makes `schema.md` a default topic-wiki file for local vocabulary, relationships, source boundaries, and migration notes.
+- Adds deterministic `llm-wiki schema status|migrate --apply` plus `lint --fix` creation of an advisory starter schema for older wikis.
+- Keeps migration safe: missing schemas are an info-level nudge, existing wikis remain valid, and librarian proposals never rewrite `schema.md` without explicit acceptance.
+
 **v0.13.0** — **Librarian schema migration groundwork.**
 - Adds deterministic docs/version consistency checks so command tables, manifests, generated mirrors, and reference lists do not drift silently.
 - Stabilizes local lint fixtures with a deterministic test date override.
@@ -387,6 +392,9 @@ checks without an agent:
 ```bash
 ./scripts/llm-wiki lint /path/to/wiki
 ./scripts/llm-wiki lint --fix /path/to/wiki
+./scripts/llm-wiki schema status /path/to/wiki
+./scripts/llm-wiki schema migrate /path/to/wiki        # dry-run
+./scripts/llm-wiki schema migrate --apply /path/to/wiki # write advisory schema.md
 ./scripts/llm-wiki archive --hub /path/to/hub topic old-interest --reason "No longer active"
 ./scripts/llm-wiki archive --hub /path/to/hub list --archived
 ./scripts/llm-wiki archive --hub /path/to/hub restore old-interest
@@ -397,10 +405,13 @@ checks without an agent:
 ./scripts/llm-wiki-session --hub /path/to/hub feedback list --unpromoted
 ```
 
-This local helper covers structural checks that do not require an LLM. The
-agentic `/wiki:lint` workflow remains the full protocol for editorial and deep
-verification passes. The local archive helper performs the deterministic
-folder move plus `wikis.json`, hub index, and log updates.
+This local helper covers structural checks and safe migrations that do not
+require an LLM. The agentic `/wiki:lint` workflow remains the full protocol for
+editorial and deep verification passes. The local schema helper creates only a
+starter advisory `schema.md`; run librarian schema advice for established
+wikis before adopting topic-specific vocabulary. The local archive helper
+performs the deterministic folder move plus `wikis.json`, hub index, and log
+updates.
 
 ## Commands
 
@@ -472,7 +483,7 @@ folder move plus `wikis.json`, hub index, and log updates.
 | `/wiki:audit report` | Display the latest umbrella audit report |
 | `/wiki:librarian` | Focused wiki maintenance: staleness and quality scan for the `wiki/` layer |
 | `/wiki:librarian --article <path>` | Scan a single article |
-| `/wiki:librarian scan --passes staleness,quality,schema` | Optionally generate a schema proposal for established wikis without changing articles |
+| `/wiki:librarian scan --passes staleness,quality,schema` | Generate schema advice/proposals for established wikis without rewriting `schema.md` |
 | `/wiki:librarian report` | Display the latest librarian scan report |
 | `/wiki:refresh [<article-path>|--due]` | Re-check article sources for changed facts and offer human-gated updates |
 | `/wiki:output <type>` | Generate: summary, report, study-guide, slides, timeline, glossary, comparison |
@@ -514,13 +525,14 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
     │   ├── output/                     # Generated artifacts
     │   ├── _index.md
     │   ├── config.md
+    │   ├── schema.md                  # Topic-local vocabulary/conventions
     │   └── log.md
     ├── woodworking/                    # Another topic wiki
     ├── .archive/                       # Archived topic wikis, hidden by default
     └── ...
 ```
 
-The hub is just a registry — no content directories, no `.obsidian/`. All content lives in topic sub-wikis with isolated indexes and articles. Init creates the core wiki skeleton first; optional inventory and dataset layers are created when you use them. Queries stay focused. The multi-wiki peek finds overlap across topics when relevant.
+The hub is just a registry — no content directories, no `.obsidian/`. All content lives in topic sub-wikis with isolated indexes, articles, and a human-owned advisory `schema.md`. Init creates the core wiki skeleton first; optional inventory and dataset layers are created when you use them. Queries stay focused. The multi-wiki peek finds overlap across topics when relevant.
 
 ### The Flow
 

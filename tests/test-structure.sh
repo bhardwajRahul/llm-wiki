@@ -34,6 +34,12 @@ done
 
 if [ -f "$GOLDEN/_index.md" ]; then log_pass "master _index.md exists"; else log_fail "master _index.md missing" "C1"; fi
 if [ -f "$GOLDEN/config.md" ]; then log_pass "config.md exists"; else log_fail "config.md missing" "C1"; fi
+if [ -f "$GOLDEN/schema.md" ]; then log_pass "schema.md exists"; else log_fail "schema.md missing" "C1"; fi
+if grep -q "^schema_state: advisory" "$GOLDEN/schema.md" 2>/dev/null; then
+  log_pass "schema.md starts in advisory mode"
+else
+  log_fail "schema.md missing advisory schema_state" "schema migration"
+fi
 
 echo ""
 echo "--- C2: Frontmatter (required fields) ---"

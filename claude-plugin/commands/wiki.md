@@ -89,7 +89,10 @@ Initialize a new wiki. Parse arguments:
    ## [YYYY-MM-DD] init | Wiki initialized
    ```
 
-6. Ask the user: "What is this wiki about?" Use their answer to create `config.md` with title, description, scope, and today's date.
+6. Ask the user: "What is this wiki about?" Use their answer to create
+   `config.md` with title, description, scope, and today's date. Also create a
+   starter `schema.md` in `schema_state: advisory` with a small default
+   vocabulary; it is human-owned and can be trimmed later.
 
 7. Before registering, check both `HUB/topics/<slug>/` and
    `HUB/topics/.archive/<slug>/`, plus any `wikis.json` entry with that slug.
@@ -206,11 +209,13 @@ Show wiki status. Before reading any `_index.md`, stale-check it: count `.md` fi
    - Read `config.md` for title and description
    - Count actual files for accuracy
    - Show: title, location, source/article/inventory/dataset/output counts, inbox pending, last compiled/lint dates, last 5 recent changes
-   - If the topic is active, has roughly 10+ compiled articles, has no root
-     `schema.md`, has no recent `output/schema-proposal-*.md`, and has no
-     recent `.librarian/REPORT.md` already covering schema advice, show one
-     optional next-run migration nudge:
-     `Optional upgrade: this wiki is large enough to benefit from a librarian schema pass. It will only write a report/proposal, not change articles. Run: /wiki:librarian scan --passes staleness,quality,schema`
+   - If the topic is active and has no root `schema.md`, show one non-blocking
+     migration nudge. For small/simple wikis:
+     `Schema migration available: schemas are now default. Add an advisory starter with: llm-wiki schema migrate --apply <wiki-root>`
+     For established wikis with roughly 10+ compiled articles and no recent
+     `output/schema-proposal-*.md` or `.librarian/REPORT.md` covering schema
+     advice:
+     `Schema migration available: run /wiki:librarian scan --passes staleness,quality,schema for a proposal, then apply the useful parts to schema.md.`
    - Do not block normal status/query/compile/ingest on this nudge. Do not
      auto-create `schema.md`, proposal outputs, or dismissal files from status.
      Suppress the nudge when a schema or recent schema proposal already exists.

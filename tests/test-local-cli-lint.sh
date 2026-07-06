@@ -63,6 +63,53 @@ expect_failure_contains \
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
+
+schema_migrate="$tmpdir/schema-migrate"
+mkdir "$schema_migrate"
+cp -R "$GOLDEN/." "$schema_migrate/"
+rm -f "$schema_migrate/schema.md"
+
+expect_success \
+  "missing schema is an info-level migration prompt, not a lint failure" \
+  "$CLI" lint "$schema_migrate"
+
+set +e
+schema_dry_output="$("$CLI" schema migrate "$schema_migrate" 2>&1)"
+schema_dry_rc=$?
+set -e
+if [ "$schema_dry_rc" -eq 0 ] \
+  && grep -q "Would create default advisory schema" <<<"$schema_dry_output" \
+  && [ ! -e "$schema_migrate/schema.md" ]; then
+  log_pass "schema migrate dry-run does not write schema.md"
+else
+  log_fail "schema migrate dry-run does not write schema.md" "$schema_dry_output"
+fi
+
+set +e
+schema_apply_output="$("$CLI" schema migrate --apply "$schema_migrate" 2>&1)"
+schema_apply_rc=$?
+set -e
+if [ "$schema_apply_rc" -eq 0 ] \
+  && grep -q "Created advisory schema" <<<"$schema_apply_output" \
+  && [ -f "$schema_migrate/schema.md" ] \
+  && grep -q "schema_state: advisory" "$schema_migrate/schema.md" \
+  && "$CLI" schema status "$schema_migrate" | grep -q "State: advisory"; then
+  log_pass "schema migrate --apply creates advisory schema.md"
+else
+  log_fail "schema migrate --apply creates advisory schema.md" "$schema_apply_output"
+fi
+
+set +e
+schema_json_output="$("$CLI" schema status "$schema_migrate" --json 2>&1)"
+schema_json_rc=$?
+set -e
+if [ "$schema_json_rc" -eq 0 ] \
+  && python3 -c 'import json,sys; data=json.load(sys.stdin); assert data["state"] == "advisory"; assert data["schema_exists"] is True' <<<"$schema_json_output"; then
+  log_pass "schema status supports --json after subcommand"
+else
+  log_fail "schema status supports --json after subcommand" "$schema_json_output"
+fi
+
 mkdir "$tmpdir/wiki"
 cp -R "$GOLDEN/." "$tmpdir/wiki/"
 mv "$tmpdir/wiki/wiki/concepts/sample-concept.md" \

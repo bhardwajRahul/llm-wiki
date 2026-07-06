@@ -127,7 +127,7 @@ After all articles are scored:
 5. For articles the user selects to refresh: invoke the refresh protocol from `commands/refresh.md` for that article.
 6. For articles the user selects to verify: update `verified:` to today in the article's frontmatter.
 
-#### 3b. Optional Schema Advisory Pass
+#### 3b. Schema Advisory and Migration Pass
 
 Run only when `schema` is included in `--passes`.
 
@@ -141,15 +141,18 @@ Run only when `schema` is included in `--passes`.
    - recurring output/project names and prefixes.
 3. If no schema exists and the wiki is small (roughly fewer than 10 compiled
    articles) with no obvious repeated category/link/source confusion, report
-   `schema skipped: wiki too small` and do not write a proposal.
+   `schema migration recommended: default advisory schema` and suggest
+   `llm-wiki schema migrate --apply` or `llm-wiki lint --fix`. Do not write a
+   proposal for tiny wikis unless the user asked for a schema design.
 4. If a schema would help, write
    `output/schema-proposal-<topic>-YYYY-MM-DD.md`. The proposal may recommend
    entity types, relationship verbs, article subtypes, source conventions, and
    inventory/dataset boundaries.
 5. Do **not** create or update `schema.md` during the scan. Applying a proposal
-   is a separate explicit user decision.
+   is a separate explicit user decision. The deterministic migration helper may
+   create a default advisory `schema.md`, but the librarian scan itself must not.
 6. Add schema findings to `scan-results.json` and `REPORT.md` under a
-   `Schema Advice` section, including whether the state is `absent`,
+   `Schema Advice` section, including whether the state is `missing`,
    `proposed`, `advisory`, or `strict`.
 
 #### 4. Generate Reports

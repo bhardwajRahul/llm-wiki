@@ -58,7 +58,7 @@ All content lives here. One topic per wiki. Isolated indexes, focused queries.
 ├── .audit/                        # Optional: umbrella audit reports
 ├── _index.md                      # Master index: stats, navigation, recent changes
 ├── config.md                      # Title, scope, conventions
-├── schema.md                      # Optional: topic-local vocabulary/conventions
+├── schema.md                      # Topic-local vocabulary/conventions (default)
 ├── log.md                         # Activity log for this topic
 ├── inbox/                         # Drop zone — user dumps files here
 │   └── .processed/
@@ -147,6 +147,31 @@ Last updated: YYYY-MM-DD
 ```
 
 Master `_index.md` additionally has Statistics and Quick Navigation sections.
+
+### Topic Schema (schema.md)
+
+```yaml
+---
+title: "Topic Schema"
+schema_state: advisory
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+summary: "Topic-local vocabulary, relationship, and migration conventions."
+---
+```
+
+`schema.md` is human-owned and default for topic wikis. It may define
+topic-local entity types, relationship verbs, article subtypes, source
+conventions, and inventory/dataset boundaries. It must not redefine global
+llm-wiki primitives such as raw source folders, article categories, inventory
+kinds, or required frontmatter. `schema_state: advisory` reports mismatches as
+suggestions; `strict` is explicit opt-in and still never permits automatic
+article rewrites.
+
+Existing wikis without `schema.md` are valid. Migrate them with
+`llm-wiki schema migrate --apply` for a starter schema, or run a librarian
+schema pass first for established wikis and copy only the useful proposal parts
+into `schema.md`.
 
 ### Raw Source (raw/)
 
@@ -311,7 +336,7 @@ asks for archived content or structural maintenance.
 ## [YYYY-MM-DD] operation | Description
 ```
 
-Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `thesis`, `collect`, `output`, `assess`, `refresh`, `librarian`, `audit`, `plan`, `project`, `inventory`, `dataset`, `archive`, `ll`
+Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `thesis`, `collect`, `output`, `assess`, `refresh`, `librarian`, `audit`, `plan`, `project`, `inventory`, `dataset`, `schema`, `archive`, `ll`
 
 ## Operations
 
@@ -323,8 +348,10 @@ create a new active topic over an existing `HUB/topics/<slug>` or
 `HUB/topics/.archive/<slug>`; if an archived topic has the requested slug, ask
 whether to restore it or choose a different slug. Create the core topic wiki
 structure, empty `_index.md` files for created directories, config.md, log.md,
-and optionally .obsidian/ vault config. Create `inventory/`, `datasets/`, and
+schema.md, and optionally .obsidian/ vault config. Create `inventory/`, `datasets/`, and
 per-dataset sample/profile/query folders lazily when those commands need them.
+Start `schema.md` in `schema_state: advisory` with a small default vocabulary;
+the human can trim it later and opt into strict mode only explicitly.
 
 ### Ingest
 
@@ -682,7 +709,7 @@ Health checks with auto-fix capability. Lint **is** the migration path — there
 
 **Checks**: structure integrity, frontmatter validity (plus legacy key/value aliases C13), canonical placement of raw/wiki files (C11), unknown-file quarantine for raw/wiki/inventory/datasets/root (C12), index consistency, link integrity, source provenance (dangling refs, unresolved retraction markers), tag hygiene, coverage, project `WHY.md` presence (C8a), project staleness via source chain (C8b), legacy `_project.md` migration to `WHY.md` (C8c), project candidates (C9), inventory migration candidates (C16), dataset migration candidates (C17), archive registry drift and active/archive collisions (C19), deep fact-checking (optional).
 
-**Auto-fix** (`--fix`): rewrite legacy frontmatter keys/values to canonical (C13), move misplaced raw/wiki files to their canonical directory (C11), quarantine unknown files to `inbox/.unknown/` (C12), migrate legacy `_project.md` to `WHY.md` (C8c), repair missing indexes inside existing inventory/dataset layers (C16/C17), repair unambiguous archive registry path/status drift (C19), missing indexes, orphan files, dead index entries, statistics mismatch, missing bidirectional links, empty frontmatter fields, dangling source references, regenerate projects-aware `output/_index.md`. Never auto-delete unknown directories. Never auto-create `WHY.md` with placeholder goals (C8a is warn-only — manufactured rationale is worse than missing). Never create completely absent optional inventory or dataset trees just to populate placeholders. Never auto-move files into projects (C9 is human-authored via `/wiki:project`). Never auto-migrate output artifacts into inventory or dataset records (C16/C17 are explicit via `/wiki:inventory migrate-output --apply` and `/wiki:dataset migrate-output --apply`). Never move topics into or out of archive during lint; archive/restore is explicit. On slug collisions during a placement move, skip and warn.
+**Auto-fix** (`--fix`): rewrite legacy frontmatter keys/values to canonical (C13), move misplaced raw/wiki files to their canonical directory (C11), quarantine unknown files to `inbox/.unknown` (C12), migrate legacy `_project.md` to `WHY.md` (C8c), add a default human-owned `schema.md` in advisory mode when missing, repair missing indexes inside existing inventory/dataset layers (C16/C17), repair unambiguous archive registry path/status drift (C19), missing indexes, orphan files, dead index entries, statistics mismatch, missing bidirectional links, empty frontmatter fields, dangling source references, regenerate projects-aware `output/_index.md`. Never auto-delete unknown directories. Never auto-create `WHY.md` with placeholder goals (C8a is warn-only — manufactured rationale is worse than missing). Never create completely absent optional inventory or dataset trees just to populate placeholders. Never auto-move files into projects (C9 is human-authored via `/wiki:project`). Never auto-migrate output artifacts into inventory or dataset records (C16/C17 are explicit via `/wiki:inventory migrate-output --apply` and `/wiki:dataset migrate-output --apply`). Never move topics into or out of archive during lint; archive/restore is explicit. On slug collisions during a placement move, skip and warn.
 
 **Schema evolution**: when canonical paths or frontmatter fields for `raw/`, `wiki/`, `inventory/`, `datasets/`, or archive lifecycle paths change, update the rules in `skills/wiki-manager/references/linting.md` (C11/C16/C17 placement maps, C12/C19 allowlists, C13 alias table). When the project model changes, update C8/C9 and `projects.md`. Never write version-specific migration code. Lint rules are the schema.
 
@@ -742,7 +769,7 @@ advice. Produces scored reports — never modifies content without confirmation.
 Archived topics are skipped by default.
 
 **Subcommands**:
-- **scan**: Score all wiki articles for staleness and quality. Two-tier: quick metadata scan first, deep content read only for articles below threshold or with `volatility: hot`. Checkpoints after each article for crash recovery. Results to `.librarian/scan-results.json` and `.librarian/REPORT.md`. Optional `--passes schema` may write `output/schema-proposal-<topic>-YYYY-MM-DD.md`; it must not create/update `schema.md` without explicit acceptance.
+- **scan**: Score all wiki articles for staleness and quality. Two-tier: quick metadata scan first, deep content read only for articles below threshold or with `volatility: hot`. Checkpoints after each article for crash recovery. Results to `.librarian/scan-results.json` and `.librarian/REPORT.md`. `--passes schema` may write `output/schema-proposal-<topic>-YYYY-MM-DD.md`; it must not create/update `schema.md` without explicit acceptance.
 - **report**: Display the latest scan report.
 - **fix <id>**: Apply a proposed fix from the report (Phase 3 — not yet implemented).
 
@@ -754,10 +781,17 @@ Flags: `--article <path>` (single article), `--resume` (from checkpoint),
 `--passes <list>` (staleness, quality, optional schema — future:
 verification, coherence, dedup).
 
-Schema migration for existing wikis is lazy and proposal-first. Existing wikis
-without `schema.md` remain valid and silent. Status/resume may show a one-line
-optional nudge for active wikis with roughly 10+ compiled articles and no
-recent schema proposal/report. Applying a schema proposal is explicit.
+Schemas are the default for topic wikis. New wikis should include an advisory
+`schema.md` starter file. Existing wikis without `schema.md` remain valid, but
+status/resume and lint may show a non-blocking migration nudge. The migration
+path is:
+
+1. Small/simple wiki: create the default advisory schema with
+   `llm-wiki schema migrate --apply` or `llm-wiki lint --fix`.
+2. Established wiki: run the librarian schema pass first, then apply only the
+   useful parts of the proposal into the human-owned `schema.md`.
+3. Keep `schema_state: advisory` until reports are low-noise; switch to
+   `strict` only by explicit user decision.
 
 ### Plan
 

@@ -21,10 +21,11 @@ HUB/                               # resolved from ~/.config/llm-wiki/config.jso
 
 ## Topic Sub-Wiki (HUB/topics/<name>/)
 
-All content lives here. Init creates a core structure first; optional layers are
-created lazily when a command needs them. This keeps new wikis fast to create
-and avoids blank scaffolding for inventory, datasets, and generated sidecars
-that may never be used.
+All content lives here. Init creates a core structure first, including a
+human-owned advisory `schema.md`. Optional layers are created lazily when a
+command needs them. This keeps new wikis fast to create and avoids blank
+scaffolding for inventory, datasets, and generated sidecars that may never be
+used.
 
 ```
 HUB/topics/<name>/
@@ -37,6 +38,7 @@ HUB/topics/<name>/
 │   ├── REPORT.md
 │   └── scan-results.json
 ├── config.md                      # Title, scope, conventions
+├── schema.md                      # Topic-local vocabulary/conventions
 ├── log.md                         # Topic-level activity log
 ├── inbox/                         # Drop zone for this topic
 │   └── .processed/
@@ -117,7 +119,9 @@ architecture (lifecycle, multi-membership, explicit `--project <slug>` scoping).
 Files under `inventory/views/` are derived list/table views. They are not
 inventory records and should not be treated as authoritative tracking state.
 Missing optional roots (`inventory/`, `datasets/`, `.obsidian/`, `.librarian/`,
-or `.audit/`) mean the layer has not been used yet.
+or `.audit/`) mean the layer has not been used yet. Missing `schema.md` means
+an older wiki has not been migrated; it remains valid, but status/lint should
+offer a non-blocking migration path.
 
 ## Local Wiki (--local flag)
 
@@ -240,7 +244,7 @@ Append-only chronological activity log. Every wiki operation appends an entry. N
 
 Each entry: `## [YYYY-MM-DD] operation | Description`
 
-Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `output`, `refresh`, `librarian`, `audit`, `plan`, `project`, `inventory`, `dataset`, `archive`, `ll`, `assess`
+Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `output`, `refresh`, `librarian`, `audit`, `plan`, `project`, `inventory`, `dataset`, `schema`, `archive`, `ll`, `assess`
 
 Useful for: `grep "^## \[" log.md | tail -10` to see recent activity.
 
@@ -264,6 +268,66 @@ freshness_threshold: 70
 
 [Any wiki-specific conventions beyond defaults]
 ```
+
+## schema.md Format
+
+`schema.md` is default for new topic wikis and is human-owned. It captures the
+topic-local vocabulary that helps agents avoid taxonomy drift: entity types,
+relationship verbs, article subtypes, source conventions, inventory/dataset
+boundaries, and migration notes. It must not redefine global llm-wiki
+primitives such as raw source folders, article categories, inventory kinds, or
+required frontmatter.
+
+```markdown
+---
+title: "Wiki Title Schema"
+schema_state: advisory
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+summary: "Topic-local vocabulary, relationship, and migration conventions."
+---
+
+# Wiki Title Schema
+
+## State
+
+- `schema_state`: `advisory`
+
+## Entity Types
+
+| Type | Meaning |
+|------|---------|
+| `concept` | Bounded idea or mechanism. |
+
+## Relationship Verbs
+
+- `cites`
+- `supports`
+- `contradicts`
+- `supersedes`
+- `depends-on`
+- `implements`
+
+## Source Conventions
+
+[Topic-specific evidence and boundary rules]
+```
+
+Migration states:
+
+| State | Meaning | Behavior |
+|-------|---------|----------|
+| `missing` | Older wiki without `schema.md` | Valid; show non-blocking migration nudge |
+| `proposed` | Librarian wrote `output/schema-proposal-*.md` | Human reviews and edits before adoption |
+| `advisory` | `schema.md` exists | Report mismatches as suggestions |
+| `strict` | Explicit opt-in in `schema.md` | Warn on violations; never auto-rewrite content |
+
+Migration helpers:
+
+- `llm-wiki schema status <wiki-root>` shows whether a wiki has a schema.
+- `llm-wiki schema migrate <wiki-root>` previews the default schema.
+- `llm-wiki schema migrate --apply <wiki-root>` writes an advisory starter.
+- `llm-wiki lint --fix <wiki-root>` may also create the default schema.
 
 ## Source File Format (raw/)
 

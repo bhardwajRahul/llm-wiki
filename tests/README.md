@@ -4,7 +4,7 @@ Three-layer test suite for the llm-wiki Claude Code plugin.
 
 ## Layer 1: Structural Validation ($0, every push)
 
-No LLM calls. Validates wiki file structure, frontmatter schema, index integrity, cross-references, and file placement against a golden wiki fixture.
+No LLM calls. Validates wiki file structure, default `schema.md`, frontmatter schema, index integrity, cross-references, and file placement against a golden wiki fixture.
 
 ```bash
 # Generate defect fixtures (run once, or after changing golden-wiki)
@@ -22,6 +22,8 @@ No LLM calls. Validates wiki file structure, frontmatter schema, index integrity
 ### What it checks
 
 - C1: Every existing wiki-managed directory has `_index.md`
+- Schema defaults: golden wikis include advisory `schema.md`; missing schemas
+  are info-level migration prompts and `schema migrate --apply` writes a starter
 - C2: Required frontmatter fields present, enum values valid
 - C3: Index entries match actual files (no stale entries, no unlisted files)
 - C4: See Also links resolve to existing articles
@@ -74,6 +76,6 @@ Copy `tests/ci/plugin-tests.yml` to `.github/workflows/` to enable:
 
 ## Fixtures
 
-- `fixtures/golden-wiki/` — minimal but complete wiki with 3 sources, 2 articles, correct indexes and cross-references
+- `fixtures/golden-wiki/` — minimal but complete wiki with 4 sources, 2 articles, advisory schema, correct indexes and cross-references
 - `fixtures/defects/` — generated broken wikis (one per lint rule)
 - `fixtures/expected-violations/` — expected lint output per defect (placeholder for future use)
