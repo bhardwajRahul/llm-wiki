@@ -35,7 +35,9 @@ Flags (apply to `scan`):
 
 - **--article <path>**: Scan only this article instead of the full wiki. Path relative to wiki root (e.g., `wiki/concepts/librarian-agent.md`).
 - **--resume**: Explicitly resume from checkpoint. Also happens automatically if `checkpoint.json` exists.
-- **--passes <list>**: Comma-separated list of passes to run. Default: `staleness,quality`. Future: `verification,coherence,dedup`.
+- **--passes <list>**: Comma-separated list of passes to run. Default:
+  `staleness,quality`. Optional: `schema` for a proposal-only topic schema
+  migration pass. Future: `verification,coherence,dedup`.
 - **--wiki <name|all>**: Target a specific topic wiki, or every registered topic wiki sequentially.
 - **--local**: Use project-local `.wiki/`.
 - **--include-archived**: Explicitly include archived topic wikis. Archived
@@ -124,6 +126,31 @@ After all articles are scored:
 
 5. For articles the user selects to refresh: invoke the refresh protocol from `commands/refresh.md` for that article.
 6. For articles the user selects to verify: update `verified:` to today in the article's frontmatter.
+
+#### 3b. Optional Schema Advisory Pass
+
+Run only when `schema` is included in `--passes`.
+
+1. Check whether `<wiki-root>/schema.md` exists. If it exists, treat the schema
+   as advisory unless it explicitly declares a stricter mode.
+2. Derive observed topic vocabulary from existing markdown:
+   - article titles, aliases, tags, and categories;
+   - See Also links and markdown link neighborhoods;
+   - raw source types, collection manifests, and source tags;
+   - inventory kinds/entities/corpora and dataset manifests when present;
+   - recurring output/project names and prefixes.
+3. If no schema exists and the wiki is small (roughly fewer than 10 compiled
+   articles) with no obvious repeated category/link/source confusion, report
+   `schema skipped: wiki too small` and do not write a proposal.
+4. If a schema would help, write
+   `output/schema-proposal-<topic>-YYYY-MM-DD.md`. The proposal may recommend
+   entity types, relationship verbs, article subtypes, source conventions, and
+   inventory/dataset boundaries.
+5. Do **not** create or update `schema.md` during the scan. Applying a proposal
+   is a separate explicit user decision.
+6. Add schema findings to `scan-results.json` and `REPORT.md` under a
+   `Schema Advice` section, including whether the state is `absent`,
+   `proposed`, `advisory`, or `strict`.
 
 #### 4. Generate Reports
 

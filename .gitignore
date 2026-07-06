@@ -5,6 +5,7 @@
 # Codex local/project-local state
 .codex/
 .tmp/
+__pycache__/
 
 # macOS
 .DS_Store

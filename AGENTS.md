@@ -54,10 +54,11 @@ All content lives here. One topic per wiki. Isolated indexes, focused queries.
 ```
 ~/wiki/topics/<name>/
 ├── .obsidian/                     # Obsidian vault config (optional)
-├── .librarian/                    # Optional: wiki-only maintenance reports
+├── .librarian/                    # Optional: maintenance reports + derived caches
 ├── .audit/                        # Optional: umbrella audit reports
 ├── _index.md                      # Master index: stats, navigation, recent changes
 ├── config.md                      # Title, scope, conventions
+├── schema.md                      # Optional: topic-local vocabulary/conventions
 ├── log.md                         # Activity log for this topic
 ├── inbox/                         # Drop zone — user dumps files here
 │   └── .processed/
@@ -735,10 +736,13 @@ content.
 
 ### Librarian
 
-Content-level wiki maintenance: staleness detection, quality scoring, factual verification, semantic coherence, deduplication. Produces scored reports — never modifies content without confirmation. Archived topics are skipped by default.
+Content-level wiki maintenance: staleness detection, quality scoring, factual
+verification, semantic coherence, deduplication, and proposal-only topic schema
+advice. Produces scored reports — never modifies content without confirmation.
+Archived topics are skipped by default.
 
 **Subcommands**:
-- **scan**: Score all wiki articles for staleness and quality. Two-tier: quick metadata scan first, deep content read only for articles below threshold or with `volatility: hot`. Checkpoints after each article for crash recovery. Results to `.librarian/scan-results.json` and `.librarian/REPORT.md`.
+- **scan**: Score all wiki articles for staleness and quality. Two-tier: quick metadata scan first, deep content read only for articles below threshold or with `volatility: hot`. Checkpoints after each article for crash recovery. Results to `.librarian/scan-results.json` and `.librarian/REPORT.md`. Optional `--passes schema` may write `output/schema-proposal-<topic>-YYYY-MM-DD.md`; it must not create/update `schema.md` without explicit acceptance.
 - **report**: Display the latest scan report.
 - **fix <id>**: Apply a proposed fix from the report (Phase 3 — not yet implemented).
 
@@ -746,7 +750,14 @@ Content-level wiki maintenance: staleness detection, quality scoring, factual ve
 
 **Quality scoring** (0-100): four dimensions at 25 points each — source diversity, content depth, cross-reference density, summary quality. Articles scoring below 40 on either dimension are flagged.
 
-Flags: `--article <path>` (single article), `--resume` (from checkpoint), `--passes <list>` (staleness, quality — future: verification, coherence, dedup).
+Flags: `--article <path>` (single article), `--resume` (from checkpoint),
+`--passes <list>` (staleness, quality, optional schema — future:
+verification, coherence, dedup).
+
+Schema migration for existing wikis is lazy and proposal-first. Existing wikis
+without `schema.md` remain valid and silent. Status/resume may show a one-line
+optional nudge for active wikis with roughly 10+ compiled articles and no
+recent schema proposal/report. Applying a schema proposal is explicit.
 
 ### Plan
 

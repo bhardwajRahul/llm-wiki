@@ -19,6 +19,12 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, co
 
 ## Changelog
 
+**v0.13.0** — **Librarian schema migration groundwork.**
+- Adds deterministic docs/version consistency checks so command tables, manifests, generated mirrors, and reference lists do not drift silently.
+- Stabilizes local lint fixtures with a deterministic test date override.
+- Documents the next-run librarian schema migration nudge for existing wikis: report/proposal first, explicit `schema.md` apply later.
+- Clarifies the optional index/server layer as a read-only, rebuildable acceleration cache rather than source-of-truth state.
+
 **v0.12.0** — **Feedback curator.**
 - Captures high-signal user corrections, preferences, approvals, and plan acceptance as redacted candidates under `HUB/.sessions/feedback/`.
 - Ignores generic acknowledgements like `ok`, `thanks`, and `cool`.
@@ -466,9 +472,14 @@ folder move plus `wikis.json`, hub index, and log updates.
 | `/wiki:audit report` | Display the latest umbrella audit report |
 | `/wiki:librarian` | Focused wiki maintenance: staleness and quality scan for the `wiki/` layer |
 | `/wiki:librarian --article <path>` | Scan a single article |
+| `/wiki:librarian scan --passes staleness,quality,schema` | Optionally generate a schema proposal for established wikis without changing articles |
 | `/wiki:librarian report` | Display the latest librarian scan report |
+| `/wiki:refresh [<article-path>|--due]` | Re-check article sources for changed facts and offer human-gated updates |
 | `/wiki:output <type>` | Generate: summary, report, study-guide, slides, timeline, glossary, comparison |
 | `/wiki:output <type> --retardmax` | Ship it now — rough but comprehensive, iterate later |
+| `/wiki:project new <slug> "goal"` | Group related outputs under `output/projects/<slug>/` with a plain `WHY.md` rationale |
+| `/wiki:project list\|show\|add\|archive` | Manage output project folders without duplicating project state into frontmatter |
+| `/wiki:retract <source-path> --reason "why"` | Remove a bad source, map blast radius, and flag downstream claims for review |
 | `/wiki:ll` | Extract lessons learned from the current session into the wiki |
 | `/wiki:ll --dry-run` | Preview extracted lessons without writing |
 | `/wiki:ll --rules` | Also suggest CLAUDE.md / AGENTS.md rule additions |

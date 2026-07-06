@@ -206,6 +206,14 @@ Show wiki status. Before reading any `_index.md`, stale-check it: count `.md` fi
    - Read `config.md` for title and description
    - Count actual files for accuracy
    - Show: title, location, source/article/inventory/dataset/output counts, inbox pending, last compiled/lint dates, last 5 recent changes
+   - If the topic is active, has roughly 10+ compiled articles, has no root
+     `schema.md`, has no recent `output/schema-proposal-*.md`, and has no
+     recent `.librarian/REPORT.md` already covering schema advice, show one
+     optional next-run migration nudge:
+     `Optional upgrade: this wiki is large enough to benefit from a librarian schema pass. It will only write a report/proposal, not change articles. Run: /wiki:librarian scan --passes staleness,quality,schema`
+   - Do not block normal status/query/compile/ingest on this nudge. Do not
+     auto-create `schema.md`, proposal outputs, or dismissal files from status.
+     Suppress the nudge when a schema or recent schema proposal already exists.
 
 3. List available subcommands
 

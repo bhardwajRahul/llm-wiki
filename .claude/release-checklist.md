@@ -19,6 +19,7 @@ Standard process for testing and shipping a new version of the llm-wiki plugin.
      ```
 
 1. **Bump `plugin.json`** — both files must match:
+   - `.claude-plugin/marketplace.json`
    - `claude-plugin/.claude-plugin/plugin.json`
    - `plugins/llm-wiki/.codex-plugin/plugin.json`
 
@@ -29,6 +30,7 @@ Standard process for testing and shipping a new version of the llm-wiki plugin.
    ./scripts/sync-codex-plugin.sh
    ./scripts/sync-opencode-plugin.sh
    ./tests/test-plugin-validate.sh
+   ./tests/test-docs-consistency.sh
    ./tests/test-structure.sh
    ./tests/test-local-cli-lint.sh
    ./tests/test-codex-sync.sh

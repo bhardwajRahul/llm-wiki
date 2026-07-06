@@ -1,6 +1,9 @@
 # Librarian Reference
 
-Content-level wiki maintenance: staleness detection, quality scoring, factual verification, semantic coherence, deduplication. This reference defines the scoring algorithms, report formats, and operational protocols for `/wiki:librarian`.
+Content-level wiki maintenance: staleness detection, quality scoring, factual
+verification, semantic coherence, deduplication, and proposal-only topic schema
+advice. This reference defines the scoring algorithms, report formats, and
+operational protocols for `/wiki:librarian`.
 
 ## Design Principles
 
@@ -9,6 +12,8 @@ Content-level wiki maintenance: staleness detection, quality scoring, factual ve
 3. **Checkpoint everything.** After scoring each article, write the result to `.librarian/checkpoint.json`. If the session drops, the next invocation resumes from where it left off.
 4. **Two-tier escalation.** Quick metadata-only scan first (cheap). Deep content read only for articles that score below threshold or have `volatility: hot`. Token cost scales with problem density, not wiki size.
 5. **Machine-readable first.** `.librarian/scan-results.json` is the source of truth. `REPORT.md` is rendered from it. Other skills read the JSON.
+6. **Proposal before migration.** Librarian may propose a topic `schema.md`, but
+   never creates or rewrites it during a scan. Schema adoption is explicit.
 
 ## Staleness Scoring (Pass 1)
 
@@ -130,6 +135,69 @@ quality_score = ((depth + source_quality + coherence + utility) / 4) * 20
 
 Range: 20 (worst possible — all 1s) to 100 (all 5s). Articles below 50 are surfaced for review.
 
+## Schema Advisory (Optional Pass)
+
+The schema pass helps established topic wikis converge on a local vocabulary
+without forcing existing wikis to migrate.
+
+### Canonical Files
+
+- Human-owned schema: `<wiki-root>/schema.md`
+- Optional derived cache: `<wiki-root>/.librarian/schema.json`
+- Proposal output:
+  `output/schema-proposal-<topic>-YYYY-MM-DD.md`
+
+`schema.md` may define topic-local entity types, relationship verbs, article
+subtypes, source conventions, and inventory/dataset boundaries. It must not
+redefine global llm-wiki primitives such as raw source types, article
+categories, inventory kinds, or required frontmatter.
+
+### Migration States
+
+| State | Meaning | Behavior |
+|-------|---------|----------|
+| `absent` | No `schema.md` exists | No warnings by default |
+| `proposed` | Librarian wrote a proposal output | No validation yet |
+| `advisory` | `schema.md` exists | Report mismatches as suggestions |
+| `strict` | Explicit opt-in in `schema.md` | Warn on violations; never auto-rewrite content |
+
+### Proposal Trigger
+
+Recommend a schema proposal when a topic is active and has roughly 10+ compiled
+articles, or when indexes reveal repeated category/link/source ambiguity. Skip
+small or one-off wikis.
+
+### Proposal Sources
+
+Derive proposals from observed reality:
+
+- article titles, aliases, tags, and categories;
+- See Also links and markdown link neighborhoods;
+- raw source types, collection manifests, and source tags;
+- inventory entities/corpora/items and dataset manifests;
+- recurring output/project prefixes.
+
+### Scan Behavior
+
+When `schema` is included in `--passes`, add a `schema` object to
+`scan-results.json`:
+
+```json
+{
+  "state": "proposed",
+  "proposal": "output/schema-proposal-meta-llm-wiki-2026-07-06.md",
+  "recommendations": [
+    "Adopt entity types for commands, workflows, runtimes, and artifacts",
+    "Use relationship verbs such as depends-on, supersedes, implements, cites"
+  ]
+}
+```
+
+Render the same information in `REPORT.md` under `## Schema Advice`.
+
+The scan must not create `schema.md`; applying a proposal is a separate,
+explicit user decision.
+
 ## Checkpoint Protocol
 
 The `.librarian/` directory lives inside each topic wiki (e.g., `~/wiki/topics/meta-llm-wiki/.librarian/`). Created on first scan.
@@ -188,6 +256,11 @@ The complete scan output. Source of truth for other skills.
       "quality": { "score": 85, "dimensions": { "depth": 4, "source_quality": 5, "coherence": 4, "utility": 4 }, "flags": [] },
       "tier": 1
     }
+  },
+  "schema": {
+    "state": "absent|proposed|advisory|strict",
+    "proposal": "output/schema-proposal-<topic>-YYYY-MM-DD.md",
+    "recommendations": []
   }
 }
 ```
@@ -223,6 +296,12 @@ Human-readable report generated from `scan-results.json`. Format:
 | Article | Score | Flags | Recommendation |
 |---------|-------|-------|----------------|
 | [Title](path) | 42/100 | thin-coverage, single-source | expand and add sources |
+
+## Schema Advice
+
+| State | Proposal | Recommendation |
+|-------|----------|----------------|
+| proposed | [Schema Proposal](../output/schema-proposal-topic-YYYY-MM-DD.md) | Review and explicitly apply if useful |
 
 ## All Articles (sorted by combined score)
 

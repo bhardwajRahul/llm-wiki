@@ -35,6 +35,7 @@ git -C ~/.claude/plugins/marketplaces/llm-wiki remote set-url origin https://git
 
 ```bash
 ./tests/test-plugin-validate.sh   # plugin manifest + command frontmatter
+./tests/test-docs-consistency.sh   # README command table + manifest/version drift
 ./tests/test-structure.sh          # wiki fixture validation (84 assertions)
 ./tests/test-local-cli-lint.sh     # local scripts/llm-wiki lint helper
 ./tests/test-session-capture.sh    # deterministic session capture helper
@@ -71,6 +72,7 @@ Requires `ANTHROPIC_API_KEY`. Costs ~$2-5 per run.
 - **Added a new lint rule**: add a defect fixture in `generate-defect-fixtures.sh` and a negative test case in `test-structure.sh`.
 - **Changed frontmatter schema** (new required field, renamed enum): update the golden wiki fixture files to match, update `test-structure.sh` field/enum lists, regenerate defect fixtures.
 - **Added a new command**: add a frontmatter check to `test-plugin-validate.sh` if it's not picked up by the wildcard. Add a behavioral eval in `promptfooconfig.yaml` for routing.
+- **Changed user-facing command docs or versions**: update README command rows and all plugin/marketplace manifest versions together, then run `test-docs-consistency.sh`.
 - **Changed the fuzzy router**: add or update test cases in `promptfooconfig.yaml` covering the new routing behavior plus negative controls.
 - **Added a new reference file**: `test-plugin-validate.sh` has three `for ref in ...` loops (Claude-side existence, Codex-side copied-reference validation, OpenCode-side symlink reachability) — add the new filename to all three.
 - **Changed directory structure** (new `raw/` or `wiki/` subdirectory): update `test-structure.sh` C1 directory list and C11 placement checks. Update the golden wiki fixture if needed.

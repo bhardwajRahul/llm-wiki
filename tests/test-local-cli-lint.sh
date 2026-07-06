@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 CLI="$PROJECT_ROOT/scripts/llm-wiki"
 GOLDEN="$SCRIPT_DIR/fixtures/golden-wiki"
+export LLM_WIKI_TODAY="${LLM_WIKI_TODAY:-2026-01-10}"
 PASS=0
 FAIL=0
 TOTAL=0

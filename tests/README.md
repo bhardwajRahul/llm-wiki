@@ -14,8 +14,9 @@ No LLM calls. Validates wiki file structure, frontmatter schema, index integrity
 ./tests/test-structure.sh
 ./tests/test-local-cli-lint.sh
 
-# Validate plugin manifest
+# Validate plugin manifest and docs/version consistency
 ./tests/test-plugin-validate.sh
+./tests/test-docs-consistency.sh
 ```
 
 ### What it checks
@@ -29,6 +30,8 @@ No LLM calls. Validates wiki file structure, frontmatter schema, index integrity
 - C6: No orphan sources (via defect fixture)
 - C11: File placement matches frontmatter type/category
 - C12: No unknown file types in raw/wiki directories
+- Docs consistency: README command table, plugin/marketplace versions, and
+  reference-file allowlists stay synchronized
 
 ### Defect fixtures
 

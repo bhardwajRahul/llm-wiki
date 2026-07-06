@@ -172,6 +172,16 @@ Flow: Read `_index.md` → identify relevant articles by summary/tag → read ar
 See [references/linting.md](references/linting.md).
 Flow: Check structure → indexes → links → content → coverage → report → optionally auto-fix. Default lint keeps active material healthy and reports archived topics as skipped. Use `--include-archived` or `--archived-only` for explicit archived structural maintenance.
 
+### Librarian
+See [references/librarian.md](references/librarian.md).
+Flow: Scan the active topic's compiled `wiki/` layer → score staleness, quality,
+source-chain integrity, and link health → write `.librarian/scan-results.json`
+and `.librarian/REPORT.md` → recommend ranked next actions. Optional
+`--passes schema` may write a proposal output for a topic-local `schema.md`,
+but it must not create or modify `schema.md` without explicit user acceptance.
+Librarian is the article-health advisor; it does not replace lint's structural
+checks or audit's broader trust review.
+
 ### Audit
 See [references/audit.md](references/audit.md).
 Flow: Run or reuse the librarian pass → inspect artifact dependency chains across `output/`, `wiki/`, and `raw/` → escalate with fresh source checks and targeted research until trust verdicts converge → write `.audit/REPORT.md`.
