@@ -19,16 +19,9 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, co
 
 ## Changelog
 
-**v0.14.0** — **Default topic schemas and migration helper.**
-- Makes `schema.md` a default topic-wiki file for local vocabulary, relationships, source boundaries, and migration notes.
-- Adds deterministic `llm-wiki schema status|migrate --apply` plus `lint --fix` creation of an advisory starter schema for older wikis.
-- Keeps migration safe: missing schemas are an info-level nudge, existing wikis remain valid, and librarian proposals never rewrite `schema.md` without explicit acceptance.
+**v0.14.0** — **Default topic schemas.** Adds advisory `schema.md` by default, safe `llm-wiki schema status|migrate --apply` / `lint --fix` migration helpers for older wikis, and proposal-only librarian schema updates.
 
-**v0.13.0** — **Librarian schema migration groundwork.**
-- Adds deterministic docs/version consistency checks so command tables, manifests, generated mirrors, and reference lists do not drift silently.
-- Stabilizes local lint fixtures with a deterministic test date override.
-- Documents the next-run librarian schema migration nudge for existing wikis: report/proposal first, explicit `schema.md` apply later.
-- Clarifies the optional index/server layer as a read-only, rebuildable acceleration cache rather than source-of-truth state.
+**v0.13.0** — **Schema migration groundwork.** Adds docs/version drift checks, deterministic lint fixtures, next-run librarian migration nudges, and clarifies the optional index/server layer as a rebuildable non-authoritative cache.
 
 **v0.12.0** — **Feedback curator.**
 - Captures high-signal user corrections, preferences, approvals, and plan acceptance as redacted candidates under `HUB/.sessions/feedback/`.
