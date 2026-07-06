@@ -19,6 +19,7 @@ import re
 import subprocess
 import sys
 import textwrap
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -212,15 +213,37 @@ def parse_timestamp(value: str) -> dt.datetime:
 
 def atomic_write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(f".{path.name}.tmp")
-    tmp.write_text(text, encoding="utf-8")
-    tmp.replace(path)
+    # Use one temp file per writer. Hook processes can write the same session
+    # state file concurrently, and a shared temp name lets one replace pull the
+    # temp out from under another writer.
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+    try:
+        tmp.write_text(text, encoding="utf-8")
+        os.replace(tmp, path)
+    finally:
+        if tmp.exists():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
 
 
 def read_json(path: Path, default: Any) -> Any:
     if not path.exists():
         return default
-    return json.loads(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8")
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # Defense in depth for any already-torn state files: keep the first
+        # valid object and drop trailing bytes. If the file starts with garbage,
+        # is truncated, or is empty, fall back to a fresh default instead of
+        # crashing a hook.
+        try:
+            obj, _ = json.JSONDecoder().raw_decode(text.lstrip())
+            return obj
+        except json.JSONDecodeError:
+            return default
 
 
 def write_json(path: Path, data: Any) -> None:

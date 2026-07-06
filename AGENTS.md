@@ -56,6 +56,10 @@ All content lives here. One topic per wiki. Isolated indexes, focused queries.
 ├── .obsidian/                     # Obsidian vault config (optional)
 ├── .librarian/                    # Optional: maintenance reports + derived caches
 ├── .audit/                        # Optional: umbrella audit reports
+├── .research-session.json         # Ephemeral: live recovery for --min-time research
+├── .thesis-session.json           # Ephemeral: live recovery for thesis runs
+├── .session-events.jsonl          # Durable: append-only event log for replayable provenance
+├── .session-checkpoint.json       # Durable: latest run summary for resume/audit
 ├── _index.md                      # Master index: stats, navigation, recent changes
 ├── config.md                      # Title, scope, conventions
 ├── schema.md                      # Topic-local vocabulary/conventions (default)
@@ -496,7 +500,19 @@ Each agent receives a standardized prompt template: Objective, Context, Current 
 
 **Phase 2b: Credibility Review** — after agents return, before ingestion: score each source on peer-review status (+2), recency (+1), author authority (+1), vendor primary source (-1), potential bias (-1), corroboration (+1 per agent, max +2). Tiers: High (4-6) → Medium (2-3) → Low (0-1) → Reject (<0). Bias signals do not stack.
 
-**Session Registry** (`--min-time`): Persists `.research-session.json` in wiki root — tracks round number, sources, articles, gaps, progress score. Enables crash recovery (resume from last completed round). Deleted on completion.
+**Session Files** (`--min-time` research, thesis, audit, refresh, output): use
+two ephemeral files plus two durable files in the wiki root.
+
+- *Ephemeral*: `.research-session.json` and `.thesis-session.json` track live
+  round number, sources, articles, gaps, and progress score for crash recovery.
+  Create at session start, update each round, delete on normal completion, and
+  leave in place with `status: "in_progress"` if interrupted.
+- *Durable*: `.session-events.jsonl` is an append-only event log, and
+  `.session-checkpoint.json` is the latest summary/checkpoint. Both persist
+  after normal completion; never delete them as routine cleanup.
+- *Resume*: on a new invocation, check active ephemeral files first. If absent,
+  read `.session-checkpoint.json` and the tail of `.session-events.jsonl` for
+  durable context. Warn when files are older than 7 days before resuming.
 
 **Progress Scoring**: Each round scored 0-100: sources×3 + articles×5 + cross-refs×2 + credibility×4. Trajectory triggers: 3 consecutive declines totaling 30+ points → warn. Score ≥80 + no gaps → early completion. Score <40 → change strategy.
 
@@ -755,6 +771,11 @@ user trust the current knowledge and outputs right now?
 - `weakened`
 - `contradicted`
 - `unresolved`
+
+**Provenance classification**: Audit reads `.session-events.jsonl` and
+`.session-checkpoint.json` to grade the audited run. Both present, recent, and
+matching the session id means `replayable`; missing or stale durable provenance
+means `partial`.
 
 Flags: `--artifact <path>`, `--project <slug>`, `--wiki-only`, `--outputs-only`,
 `--quick`, `--fresh`. Archived material is skipped by default unless the
