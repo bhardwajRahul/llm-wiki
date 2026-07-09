@@ -40,6 +40,19 @@ for cmd in "$PLUGIN_DIR"/commands/*.md; do
   fi
 done
 
+# The lessons-learned command writes a raw note, so its embedded template must
+# use the same frontmatter schema that lint accepts for raw/notes/*.md.
+LL_COMMAND="$PLUGIN_DIR/commands/ll.md"
+if grep -q '^type: notes$' "$LL_COMMAND" \
+  && grep -q '^ingested: YYYY-MM-DD$' "$LL_COMMAND" \
+  && grep -q '^lesson_kind: lessons-learned$' "$LL_COMMAND" \
+  && ! grep -q '^type: lessons-learned$' "$LL_COMMAND" \
+  && ! grep -q '^date: YYYY-MM-DD$' "$LL_COMMAND"; then
+  log_pass "commands/ll.md raw-note template matches lint schema"
+else
+  log_fail "commands/ll.md raw-note template schema drift" "expected type: notes, ingested, and lesson_kind"
+fi
+
 # SKILL.md exists
 echo ""
 echo "--- Skill files ---"

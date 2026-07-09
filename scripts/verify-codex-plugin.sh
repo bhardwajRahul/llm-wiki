@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SCOPE="project"
+SCOPE="user"
 PROJECT_ROOT="${PWD}"
 USER_HOME="${HOME}"
 MARKETPLACE_NAME="llm-wiki"
@@ -15,8 +15,8 @@ Usage: ./scripts/verify-codex-plugin.sh [options]
 Verify that Codex resolves @wiki to this repo's generated Codex wiki skill.
 
 Options:
-  --scope project|user   Verify project or user install (default: project)
-  --project-root <dir>   Project root for project scope (default: current dir)
+  --scope user           Verify the supported user install (default: user)
+  --project-root <dir>   Working directory for the prompt probe (default: current dir)
   --user-home <dir>      HOME used for Codex config lookup (default: current HOME)
   -h, --help             Show this help
 EOF
@@ -52,27 +52,29 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$SCOPE" in
-  project|user) ;;
+  user) ;;
+  project)
+    echo "Project-scoped plugin enablement is not supported by Codex 0.144." >&2
+    echo "Verify the user-scoped install with --scope user." >&2
+    exit 1
+    ;;
   *)
-    echo "Invalid scope: $SCOPE (expected project or user)" >&2
+    echo "Invalid scope: $SCOPE (expected user)" >&2
     exit 1
     ;;
 esac
 
 PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)"
 USER_HOME="$(cd "$USER_HOME" && pwd)"
-EXPECTED_SKILL_PATH="$ROOT/plugins/llm-wiki/skills/wiki/SKILL.md"
+SOURCE_PLUGIN_ROOT="$ROOT/plugins/llm-wiki"
+SOURCE_SKILL_PATH="$SOURCE_PLUGIN_ROOT/skills/wiki/SKILL.md"
+EXPECTED_VERSION="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["version"])' "$SOURCE_PLUGIN_ROOT/.codex-plugin/plugin.json")"
 TMP_OUTPUT="$(mktemp)"
-PROBE_DIR="$ROOT/.tmp/codex-runtime-probe"
+TMP_LIST="$(mktemp)"
 USER_CONFIG="$USER_HOME/.codex/config.toml"
-TARGET_CONFIG=""
-if [[ "$SCOPE" == "project" ]]; then
-  TARGET_CONFIG="$PROJECT_ROOT/.codex/config.toml"
-else
-  TARGET_CONFIG="$USER_CONFIG"
-fi
+TARGET_CONFIG="$USER_CONFIG"
 cleanup() {
-  rm -f "$TMP_OUTPUT"
+  rm -f "$TMP_OUTPUT" "$TMP_LIST"
 }
 trap cleanup EXIT
 
@@ -80,37 +82,6 @@ if [[ ! -f "$USER_CONFIG" ]]; then
   echo "Missing user Codex config:" >&2
   echo "  $USER_CONFIG" >&2
   echo "Run ./scripts/bootstrap-codex-plugin.sh first." >&2
-  exit 1
-fi
-
-MARKETPLACE_SOURCE="$(
-  python3 - "$USER_CONFIG" "$MARKETPLACE_NAME" <<'PY'
-import re
-import sys
-from pathlib import Path
-
-config = Path(sys.argv[1])
-marketplace = re.escape(sys.argv[2])
-text = config.read_text()
-match = re.search(
-    rf'(?ms)^\[marketplaces\.{marketplace}\]\n.*?^source = "(.*?)"$',
-    text,
-)
-print(match.group(1) if match else "")
-PY
-)"
-
-if [[ "$MARKETPLACE_SOURCE" != "$ROOT" ]]; then
-  echo "Codex marketplace '${MARKETPLACE_NAME}' does not point at this repo." >&2
-  if [[ -n "$MARKETPLACE_SOURCE" ]]; then
-    echo "Configured source:" >&2
-    echo "  $MARKETPLACE_SOURCE" >&2
-  else
-    echo "Configured source: <missing>" >&2
-  fi
-  echo "Expected source:" >&2
-  echo "  $ROOT" >&2
-  echo "Run ./scripts/bootstrap-codex-plugin.sh with a clean Codex home or remove the conflicting marketplace first." >&2
   exit 1
 fi
 
@@ -128,53 +99,106 @@ if ! grep -Fq "[plugins.\"$PLUGIN_KEY\"]" "$TARGET_CONFIG"; then
   exit 1
 fi
 
-mkdir -p "$PROBE_DIR"
+HOME="$USER_HOME" codex -C "$PROJECT_ROOT" plugin list --marketplace "$MARKETPLACE_NAME" --json >"$TMP_LIST"
+HOME="$USER_HOME" codex -C "$PROJECT_ROOT" debug prompt-input '@wiki test' >"$TMP_OUTPUT"
 
-if [[ "$SCOPE" == "project" ]]; then
-  HOME="$USER_HOME" codex -C "$PROJECT_ROOT" debug prompt-input '@wiki test' >"$TMP_OUTPUT"
-else
-  HOME="$USER_HOME" codex -C "$PROBE_DIR" debug prompt-input '@wiki test' >"$TMP_OUTPUT"
-fi
+INSTALLED_VERSION="$(python3 - "$TMP_LIST" "$PLUGIN_KEY" "$EXPECTED_VERSION" "$SOURCE_PLUGIN_ROOT" "$ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
 
-if grep -Fq 'wiki:wiki' "$TMP_OUTPUT" && grep -Fq "$EXPECTED_SKILL_PATH" "$TMP_OUTPUT"; then
-  echo "OK: Codex resolves @wiki from this repo."
-  echo "Skill path:"
-  echo "  $EXPECTED_SKILL_PATH"
-  exit 0
+data = json.load(open(sys.argv[1]))
+plugin_key, expected_version, source_root, marketplace_root = sys.argv[2:]
+plugin = next((item for item in data.get("installed", []) if item.get("pluginId") == plugin_key), None)
+if plugin is None:
+    raise SystemExit(f"FAIL: {plugin_key} is not installed")
+
+errors = []
+if not plugin.get("installed"):
+    errors.append("plugin is not installed")
+if not plugin.get("enabled"):
+    errors.append("plugin is not enabled in the selected scope")
+if plugin.get("version") != expected_version:
+    errors.append(f"installed version {plugin.get('version')!r} != expected {expected_version!r}")
+
+def same_path(actual, expected):
+    if not actual:
+        return False
+    return Path(actual).expanduser().resolve() == Path(expected).expanduser().resolve()
+
+source = plugin.get("source") or {}
+if source.get("source") != "local" or not same_path(source.get("path"), source_root):
+    errors.append(f"plugin source does not point at {source_root}")
+marketplace = plugin.get("marketplaceSource") or {}
+if marketplace.get("sourceType") != "local" or not same_path(marketplace.get("source"), marketplace_root):
+    errors.append(f"marketplace source does not point at {marketplace_root}")
+
+if errors:
+    raise SystemExit("FAIL: " + "; ".join(errors))
+print(plugin["version"])
+PY
+)"
+
+EXPECTED_CACHE_SKILL="$USER_HOME/.codex/plugins/cache/$MARKETPLACE_NAME/wiki/$INSTALLED_VERSION/skills/wiki/SKILL.md"
+if [[ ! -f "$EXPECTED_CACHE_SKILL" ]]; then
+  echo "FAIL: installed Codex cache is missing the wiki skill:" >&2
+  echo "  $EXPECTED_CACHE_SKILL" >&2
+  exit 1
 fi
 
 ACTUAL_SKILL_PATH="$(python3 - "$TMP_OUTPUT" <<'PY'
+import json
 import re
 import sys
 from pathlib import Path
 
-text = Path(sys.argv[1]).read_text()
-match = re.search(r'(/[^\n"]*skills/wiki/SKILL\.md)', text)
-print(match.group(1) if match else "")
+data = json.loads(Path(sys.argv[1]).read_text())
+
+def strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, list):
+        for item in value:
+            yield from strings(item)
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from strings(item)
+
+for text in strings(data):
+    for line in text.splitlines():
+        if "- wiki:wiki:" not in line:
+            continue
+        match = re.search(r"\(file: ([^)]+/skills/wiki/SKILL\.md)\)", line)
+        if match:
+            print(match.group(1))
+            raise SystemExit(0)
+print("")
 PY
 )"
 
-if [[ -n "$ACTUAL_SKILL_PATH" ]]; then
-  echo "FAIL: Codex resolved @wiki, but not from this repo." >&2
-  echo "Resolved skill path:" >&2
-  echo "  $ACTUAL_SKILL_PATH" >&2
-  echo "Expected skill path:" >&2
-  echo "  $EXPECTED_SKILL_PATH" >&2
-  echo "This usually means another Codex home already owns the 'llm-wiki-local' marketplace." >&2
+if [[ -z "$ACTUAL_SKILL_PATH" ]]; then
+  echo "FAIL: Codex did not expose wiki:wiki in the headless prompt." >&2
+  echo "Run ./scripts/bootstrap-codex-plugin.sh --scope $SCOPE again." >&2
   exit 1
 fi
 
-echo "PENDING: Codex did not expose @wiki in this headless session." >&2
-echo "The marketplace and config are present, but Codex may still require the interactive /plugins UI to materialize or enable the local plugin on first install." >&2
-echo >&2
-echo "Next step:" >&2
-echo "  1. Start Codex with HOME set to this Codex home (if non-default)." >&2
-echo "  2. Open /plugins and enable 'LLM Wiki'." >&2
-echo "  3. Restart Codex if needed, then rerun this verify script." >&2
-echo >&2
-echo "Expected skill path once active:" >&2
-echo "  $EXPECTED_SKILL_PATH" >&2
-echo >&2
-echo "Last 40 lines of prompt-input output:" >&2
-tail -40 "$TMP_OUTPUT" >&2 || true
-exit 2
+if ! python3 - "$ACTUAL_SKILL_PATH" "$EXPECTED_CACHE_SKILL" "$SOURCE_SKILL_PATH" <<'PY'
+import sys
+from pathlib import Path
+
+actual = Path(sys.argv[1]).expanduser().resolve()
+expected = {Path(path).expanduser().resolve() for path in sys.argv[2:]}
+raise SystemExit(0 if actual in expected else 1)
+PY
+then
+  echo "FAIL: Codex resolved wiki:wiki from an unexpected plugin:" >&2
+  echo "Resolved skill path:" >&2
+  echo "  $ACTUAL_SKILL_PATH" >&2
+  echo "Expected installed cache path:" >&2
+  echo "  $EXPECTED_CACHE_SKILL" >&2
+  exit 1
+fi
+
+echo "OK: Codex resolves @wiki from installed $PLUGIN_KEY version $INSTALLED_VERSION."
+echo "Skill path:"
+echo "  $ACTUAL_SKILL_PATH"

@@ -42,9 +42,10 @@ Standard process for testing and shipping a new version of the llm-wiki plugin.
    - If `/wiki` doesn't resolve, check that `~/.claude/commands/wiki.md` shim exists (delegates to `wiki:wiki`)
 
 4. **Invoke `@wiki test` in Codex** — verify the plugin resolves from a fresh session
-   - For repo-local validation, run `./scripts/bootstrap-codex-plugin.sh --scope project --verify`
-   - If verify reports `PENDING`, open `/plugins`, enable `LLM Wiki`, restart Codex if needed, and rerun the verify command
-   - If project scope fails outright, confirm the project is trusted before assuming the plugin is broken
+   - For repo-local validation, run `./scripts/bootstrap-codex-plugin.sh --scope user --verify`
+   - The bootstrap must materialize the plugin with `codex plugin add`; a clean-home test must not require `/plugins`
+   - Open `/hooks` separately to review and trust automated session-capture hooks when testing hook behavior
+   - Codex 0.144 does not load plugin enablement from project config; do not document `--scope project` as a supported install
 
 5. **Verify OpenCode skill loads** — start OpenCode with the instruction file and ask "what wiki commands do you know?"
    - Load via: `"instructions": ["plugins/llm-wiki-opencode/skills/wiki-manager/SKILL.md"]` in `opencode.json`
@@ -107,9 +108,8 @@ Standard process for testing and shipping a new version of the llm-wiki plugin.
 
 11. **Verify install**:
    - Claude Code: start a fresh session and run `/wiki status`
-   - Codex: start a fresh session and run `@wiki test` or `./scripts/verify-codex-plugin.sh --scope project`
+   - Codex: start a fresh session and run `@wiki test` or `./scripts/verify-codex-plugin.sh --scope user`
    - OpenCode: start a session with the SKILL.md loaded and ask "wiki status"
-   - If the Codex verify script reports `PENDING`, finish the first-time enable in `/plugins` and rerun it
 
 ## Post-ship: README
 
@@ -135,7 +135,6 @@ Standard process for testing and shipping a new version of the llm-wiki plugin.
 - OpenCode: loaded via `"instructions"` in `opencode.json` or copied to `~/.config/opencode/AGENTS.md`
 - Claude plugin cache path: `~/.claude/plugins/cache/llm-wiki/wiki/<version>/`
 - Claude marketplace repo: `~/.claude/plugins/marketplaces/llm-wiki/`
-- Codex project config path: `<project>/.codex/config.toml` (local, gitignored in this repo)
-- Codex user config path: `~/.codex/config.toml`
+- Codex plugin enablement config path: `~/.codex/config.toml`
 - Hub wiki path: `~/Library/Mobile Documents/com~apple~CloudDocs/wiki/`
 - The `/wiki` bare command needs `~/.claude/commands/wiki.md` shim (user-level, not in repo)

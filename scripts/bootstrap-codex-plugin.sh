@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SCOPE="project"
+SCOPE="user"
 PROJECT_ROOT="${PWD}"
 USER_HOME="${HOME}"
 PRINT_ONLY=0
@@ -14,12 +14,13 @@ usage() {
   cat <<'EOF'
 Usage: ./scripts/bootstrap-codex-plugin.sh [options]
 
-Register this repo as a local Codex marketplace source and write a managed
-plugin-enable block for @wiki.
+Register this repo as a local Codex marketplace source, install @wiki into the
+Codex plugin cache, and enable it in the user config.
 
 Options:
-  --scope project|user   Where to write config (default: project)
-  --project-root <dir>   Project root for project scope (default: current dir)
+  --scope user           Plugin enablement scope (default: user). Codex 0.144
+                         does not load plugin enablement from project config.
+  --project-root <dir>   Working directory for the optional verification probe
   --user-home <dir>      HOME used for Codex marketplace registration and
                          user-scope config writes (default: current HOME)
   --print                Print the managed TOML block without writing it
@@ -66,9 +67,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$SCOPE" in
-  project|user) ;;
+  user) ;;
+  project)
+    echo "Project-scoped plugin enablement is not supported by Codex 0.144." >&2
+    echo "Use --scope user; plugin hooks can still be enabled or disabled separately." >&2
+    exit 1
+    ;;
   *)
-    echo "Invalid scope: $SCOPE (expected project or user)" >&2
+    echo "Invalid scope: $SCOPE (expected user)" >&2
     exit 1
     ;;
 esac
@@ -99,6 +105,12 @@ fi
 
 if ! command -v codex >/dev/null 2>&1; then
   echo "codex binary not found in PATH" >&2
+  exit 1
+fi
+
+if ! HOME="$USER_HOME" codex plugin add --help >/dev/null 2>&1; then
+  echo "This Codex version does not support non-interactive plugin installation." >&2
+  echo "Upgrade Codex, then rerun this helper." >&2
   exit 1
 fi
 
@@ -138,47 +150,20 @@ else
   fi
 fi
 
-if [[ "$SCOPE" == "project" ]]; then
-  TARGET="$PROJECT_ROOT/.codex/config.toml"
-else
-  TARGET="$USER_HOME/.codex/config.toml"
-fi
+# `codex plugin add` is the supported materialization path. It copies the
+# plugin into ~/.codex/plugins/cache and writes the supported user-scope enable
+# block. Marketplace registration alone does not install the plugin.
+INSTALL_OUTPUT="$(HOME="$USER_HOME" codex plugin add "$PLUGIN_KEY" --json)"
+INSTALLED_PATH="$(python3 -c 'import json, sys; print(json.load(sys.stdin)["installedPath"])' <<<"$INSTALL_OUTPUT")"
+TARGET="$USER_CONFIG"
 
-mkdir -p "$(dirname "$TARGET")"
-
-python3 - "$TARGET" "$MANAGED_BLOCK" <<'PY'
-import re
-import sys
-from pathlib import Path
-
-target = Path(sys.argv[1])
-block = sys.argv[2]
-begin = "# BEGIN llm-wiki Codex bootstrap"
-end = "# END llm-wiki Codex bootstrap"
-managed = f"{begin}\n{block}\n{end}\n"
-
-if target.exists():
-    text = target.read_text()
-else:
-    text = ""
-
-pattern = re.compile(
-    rf"(?ms)^{re.escape(begin)}\n.*?^{re.escape(end)}\n?"
-)
-
-if pattern.search(text):
-    updated = pattern.sub(managed, text, count=1)
-else:
-    if text and not text.endswith("\n"):
-        text += "\n"
-    if text:
-        text += "\n"
-    updated = text + managed
-
-target.write_text(updated)
-PY
-
-echo "Wrote Codex plugin config:"
+echo "Installed Codex plugin:"
+echo "  $PLUGIN_KEY"
+echo "Installed cache:"
+echo "  $INSTALLED_PATH"
+echo "Enabled scope:"
+echo "  $SCOPE"
+echo "Codex plugin config:"
 echo "  $TARGET"
 echo "Source repo:"
 echo "  $ROOT"
@@ -186,9 +171,5 @@ echo "Codex home:"
 echo "  $USER_HOME"
 
 if [[ "$VERIFY" -eq 1 ]]; then
-  if [[ "$SCOPE" == "project" ]]; then
-    "$ROOT/scripts/verify-codex-plugin.sh" --scope project --project-root "$PROJECT_ROOT" --user-home "$USER_HOME"
-  else
-    "$ROOT/scripts/verify-codex-plugin.sh" --scope user --user-home "$USER_HOME"
-  fi
+  "$ROOT/scripts/verify-codex-plugin.sh" --scope user --project-root "$PROJECT_ROOT" --user-home "$USER_HOME"
 fi

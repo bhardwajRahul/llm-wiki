@@ -79,7 +79,7 @@ Requires `ANTHROPIC_API_KEY`. Costs ~$2-5 per run.
 - **Changed directory structure** (new `raw/` or `wiki/` subdirectory): update `test-structure.sh` C1 directory list and C11 placement checks. Update the golden wiki fixture if needed.
 - **Edited `claude-plugin/skills/wiki-manager/`**: both `test-codex-sync.sh` and `test-opencode-sync.sh` will fail until you re-run both sync scripts and commit `plugins/`. Never edit `plugins/llm-wiki/` or `plugins/llm-wiki-opencode/` by hand — they are generated. Codex gets copied references for marketplace caching; OpenCode keeps a symlink into the Claude source.
 - **Added a runtime-specific text rewrite to a sync script**: update the corresponding sync script's SKILL.md replacement list. References are runtime-neutral and shared verbatim — do not add per-file replacements there.
-- **Changed Codex install docs or bootstrap flow**: run `./tests/test-codex-runtime.sh` to verify the bootstrap flow either resolves `@wiki` from a clean scratch Codex home or cleanly reports that `/plugins` still needs to be opened once for first-time materialization.
+- **Changed Codex install docs or bootstrap flow**: run `./tests/test-codex-runtime.sh` to verify a user-scoped install materializes the plugin cache and resolves `@wiki` from a clean scratch Codex home without an interactive `/plugins` step. Codex 0.144 reads plugin enablement from user config, not project config; the test also guards the unsupported project-scope path.
 
 ### Test file locations
 

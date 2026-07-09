@@ -43,7 +43,8 @@ claude plugin install wiki@llm-wiki
 Install from GitHub:
 ```bash
 codex plugin marketplace add nvk/llm-wiki
-# Then open /plugins in Codex, enable "LLM Wiki", and use @wiki
+codex plugin add wiki@llm-wiki
+# Start a new Codex thread, then use @wiki
 ```
 
 Install from a local checkout with the managed bootstrap helper:
@@ -54,6 +55,7 @@ Install from a local checkout with the managed bootstrap helper:
 Or register the local checkout manually:
 ```bash
 codex plugin marketplace add /absolute/path/to/llm-wiki
+codex plugin add wiki@llm-wiki
 ```
 
 Canonical explicit invocation:
@@ -71,15 +73,18 @@ Canonical explicit invocation:
 Upgrade:
 ```bash
 codex plugin marketplace upgrade llm-wiki
+codex plugin add wiki@llm-wiki
 ```
 
 Remove:
 ```bash
+codex plugin remove wiki@llm-wiki
 codex plugin marketplace remove llm-wiki
 ```
 
 Troubleshooting:
-- After installing the marketplace, open `/plugins` in Codex and enable "LLM Wiki" — first install requires the interactive enable step.
+- `codex plugin marketplace add` registers the catalog; `codex plugin add wiki@llm-wiki` installs and enables the cached plugin non-interactively.
+- Open `/hooks` to review and trust the bundled hooks if you want automated session capture. The `@wiki` skill works without hook trust.
 - `@wiki` is the canonical explicit entry point in Codex. Natural-language wiki requests can still auto-activate the skill.
 - Restart Codex after changing config if an existing session does not pick up the new plugin state.
 - If you run Codex under a sandbox wrapper like `nono`, see [Nono Sandbox Permissions](#nono-sandbox-permissions) — Codex needs r+w to `$HOME/.codex` for plugin install.
@@ -290,6 +295,7 @@ cp -R "$REPO/.claude-plugin" "$REPO/commands" "$REPO/skills" "$DEST/$VERSION/"
 **Codex** — upgrade from the marketplace:
 ```bash
 codex plugin marketplace upgrade llm-wiki
+codex plugin add wiki@llm-wiki
 ```
 
 **OpenCode** — if using the GitHub URL in `instructions`, updates are automatic (fetched every session). If using a local copy:
@@ -304,8 +310,7 @@ curl -sL https://raw.githubusercontent.com/nvk/llm-wiki/master/AGENTS.md > ~/you
 
 Check your installed version:
 - Claude Code: look for the version in `/wiki` status output or check `~/.claude/plugins/installed_plugins.json`
-- Codex: run `./scripts/verify-codex-plugin.sh --scope project` (or `--scope user`) and confirm the resolved skill path points at this repo
-- If the verify script reports `PENDING`, finish the first-time enable in `/plugins` and rerun it
+- Codex: run `./scripts/verify-codex-plugin.sh --scope user` and confirm the installed cache path and marketplace source match this repo
 
 > **New to a topic? One command, from anywhere:**
 > ```
