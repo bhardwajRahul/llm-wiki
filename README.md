@@ -19,6 +19,8 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, co
 
 ## Changelog
 
+**v0.16.0** — **Query Lite and token benchmarks.** Adds a compact read-only query protocol across Claude Code, Codex, Pi, DS4, OpenCode, and portable agents; reduces Claude `/wiki:query` instructions by 72.54%; adds explicit `$wiki-query`, read-only Pi launchers, static context budgets, corpus-identity gates, and reproducible Codex/Claude/DS4 benchmark lanes. OpenCode live-model behavior remains best effort.
+
 **v0.15.0** — **Topic guides.** Reframes `schema.md` as a human-owned topic guide, adds the friendlier `llm-wiki schema adopt` helper, keeps `schema migrate --apply` as a compatibility alias, and updates librarian docs to talk about conventions proposals instead of database-style schema migrations.
 
 **v0.14.0** — **Default topic guides.** Adds advisory `schema.md` by default, safe adoption helpers for older wikis, proposal-only librarian convention updates, deterministic docs/lint checks, and clarifies the optional index/server layer as a rebuildable non-authoritative cache.
@@ -28,8 +30,6 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, co
 **v0.11.1** — **Session helper compatibility.** Small hotfix so automated session capture works on Python 3.9/macOS system Python as well as newer Python runtimes.
 
 **v0.11.0** — **Automated session capture.** Default-on redacted checkpoints under `HUB/.sessions/`, opt-out via `session disable`, compact context rehydration, explicit digest promotion, and a tested Codex hook bundle.
-
-**v0.10.2** — **Collector production hardening.** Collection-family topic slugs now prefer kind-first names such as `memes-bitcoin`, the scale boundary treats 500 rows as large and 501+ as huge, and media downloads call out timeouts, file-size caps, content-type checks, and IPv4 retry.
 
 ## Install
 
