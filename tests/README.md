@@ -10,6 +10,7 @@ reference growth before model calls are needed.
 
 ```bash
 ./tests/test-token-benchmarks.sh
+./tests/test-query-lite-sync.sh
 ./scripts/benchmark-token-efficiency static --check
 ```
 
@@ -52,7 +53,12 @@ No LLM calls. Validates wiki file structure, default `schema.md`, frontmatter sc
   reference-file allowlists stay synchronized
 - Token budgets: checked-in context surfaces stay below explicit ceilings
 - Codex/Claude accounting: tokens, cache creation/reads, cost, latency, fixture
-  reads, quality, and write detection are parsed and gated deterministically
+  reads, quality, write detection, and case/fixture corpus hashes are parsed and
+  gated deterministically
+- Query presets: Claude command, explicit Codex skill, portable profile, and
+  Pi/DS4 launcher remain read-only and synchronized from one canonical protocol
+- OpenCode: full and query packages remain generated and within static budgets;
+  live provider/model behavior is best effort
 
 ### Defect fixtures
 
@@ -90,8 +96,9 @@ promptfoo eval -c tests/promptfooconfig.yaml --repeat 3
 
 Copy `tests/ci/plugin-tests.yml` to `.github/workflows/` to enable:
 
-- Structural tests run on every push to `claude-plugin/**` or `tests/**`
+- Structural tests run when plugin, profile, benchmark, script, or docs inputs change
 - Static token budgets and benchmark protocol tests run on every push
+- Codex/OpenCode mirrors and the portable query profile are regenerated and checked
 - Behavioral evals run on PRs only (requires `ANTHROPIC_API_KEY` secret)
 
 ## Fixtures

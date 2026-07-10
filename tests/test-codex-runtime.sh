@@ -60,4 +60,4 @@ if [[ "$PROJECT_SCOPE_STATUS" -eq 0 ]] || [[ "$PROJECT_SCOPE_OUTPUT" != *"not su
   exit 1
 fi
 
-echo "OK: Codex clean-home user install resolves @wiki without interactive materialization."
+echo "OK: Codex clean-home user install resolves @wiki and installs explicit-only \$wiki-query."

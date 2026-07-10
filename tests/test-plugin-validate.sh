@@ -9,7 +9,7 @@ PLUGIN_JSON="$PLUGIN_DIR/.claude-plugin/plugin.json"
 PASS=0
 FAIL=0
 TOTAL=0
-REFERENCE_NAMES="archive audit command-prelude compilation datasets feedback hub-resolution indexing ingestion inventory librarian linting projects research-infrastructure sessions wiki-structure"
+REFERENCE_NAMES="archive audit command-prelude compilation datasets feedback hub-resolution indexing ingestion inventory librarian linting projects query-lite research-infrastructure sessions wiki-structure"
 
 log_pass() { PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[32mPASS\033[0m: %s\n" "$1"; }
 log_fail() { FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[31mFAIL\033[0m: %s — %s\n" "$1" "$2"; }
@@ -95,6 +95,7 @@ echo ""
 echo "=== Codex Mirror Validation ==="
 CODEX_PLUGIN="$PROJECT_ROOT/plugins/llm-wiki"
 CODEX_SKILL="$CODEX_PLUGIN/skills/wiki"
+CODEX_QUERY_SKILL="$CODEX_PLUGIN/skills/wiki-query"
 
 # Codex copies references into the generated tree because the marketplace cache
 # needs real files, not a symlink back into the repo checkout.
@@ -197,6 +198,30 @@ else
   log_fail "agents/openai.yaml not found" "missing file"
 fi
 
+# The explicit query preset is deliberately separate from the full implicit
+# skill so users can opt into a much smaller, read-only context surface.
+if [ -f "$CODEX_QUERY_SKILL/SKILL.md" ]; then
+  log_pass "Codex wiki-query/SKILL.md exists"
+  if head -1 "$CODEX_QUERY_SKILL/SKILL.md" | grep -q "^---$" \
+    && grep -q "^name: wiki-query$" "$CODEX_QUERY_SKILL/SKILL.md"; then
+    log_pass "Codex wiki-query/SKILL.md has valid frontmatter"
+  else
+    log_fail "Codex wiki-query/SKILL.md frontmatter invalid" "expected name: wiki-query"
+  fi
+else
+  log_fail "Codex wiki-query/SKILL.md not found" "missing query preset"
+fi
+
+CODEX_QUERY_YAML="$CODEX_QUERY_SKILL/agents/openai.yaml"
+if [ -f "$CODEX_QUERY_YAML" ] \
+  && grep -q "^interface:" "$CODEX_QUERY_YAML" \
+  && grep -q "^policy:" "$CODEX_QUERY_YAML" \
+  && grep -q "allow_implicit_invocation: false" "$CODEX_QUERY_YAML"; then
+  log_pass "Codex wiki-query metadata is explicit-only"
+else
+  log_fail "Codex wiki-query metadata invalid" "expected interface and explicit-only policy"
+fi
+
 # OpenCode mirror validation — the artifacts that OpenCode loads via the
 # "instructions" key in opencode.json. Drift between Claude source and this
 # mirror is covered by test-opencode-sync.sh; what's checked here is whether
@@ -205,6 +230,7 @@ echo ""
 echo "=== OpenCode Mirror Validation ==="
 OPENCODE_PLUGIN="$PROJECT_ROOT/plugins/llm-wiki-opencode"
 OPENCODE_SKILL="$OPENCODE_PLUGIN/skills/wiki-manager"
+OPENCODE_QUERY_SKILL="$OPENCODE_PLUGIN/skills/wiki-query"
 
 # References symlink
 echo ""
@@ -246,6 +272,18 @@ if [ -f "$OPENCODE_SKILL/SKILL.md" ]; then
   fi
 else
   log_fail "OpenCode SKILL.md not found" "missing file"
+fi
+
+if [ -f "$OPENCODE_QUERY_SKILL/SKILL.md" ]; then
+  log_pass "OpenCode wiki-query/SKILL.md exists"
+  if head -1 "$OPENCODE_QUERY_SKILL/SKILL.md" | grep -q "^---$" \
+    && grep -q "^name: wiki-query$" "$OPENCODE_QUERY_SKILL/SKILL.md"; then
+    log_pass "OpenCode wiki-query/SKILL.md has valid frontmatter"
+  else
+    log_fail "OpenCode wiki-query/SKILL.md frontmatter invalid" "expected name: wiki-query"
+  fi
+else
+  log_fail "OpenCode wiki-query/SKILL.md not found" "missing best-effort query preset"
 fi
 
 # OpenCode README

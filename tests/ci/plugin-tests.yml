@@ -7,13 +7,20 @@ on:
       - 'scripts/**'
       - 'tests/**'
       - 'benchmarks/**'
+      - 'profiles/**'
+      - 'plugins/**'
       - 'AGENTS.md'
+      - 'README.md'
   pull_request:
     paths:
       - 'claude-plugin/**'
       - 'scripts/**'
       - 'tests/**'
       - 'benchmarks/**'
+      - 'profiles/**'
+      - 'plugins/**'
+      - 'AGENTS.md'
+      - 'README.md'
 
 jobs:
   structural:
@@ -24,6 +31,9 @@ jobs:
 
       - name: Validate plugin manifest
         run: chmod +x tests/test-plugin-validate.sh && ./tests/test-plugin-validate.sh
+
+      - name: Validate docs and version consistency
+        run: chmod +x tests/test-docs-consistency.sh && ./tests/test-docs-consistency.sh
 
       - name: Generate defect fixtures
         run: chmod +x tests/generate-defect-fixtures.sh && ./tests/generate-defect-fixtures.sh
@@ -37,8 +47,14 @@ jobs:
       - name: Run token budget and benchmark protocol tests
         run: chmod +x scripts/benchmark-token-efficiency tests/test-token-benchmarks.sh tests/fixtures/fake-codex-app-server.py tests/fixtures/fake-claude-cli.py && ./tests/test-token-benchmarks.sh
 
+      - name: Verify query-lite profile and DS4 launcher
+        run: chmod +x scripts/sync-query-lite-profile.sh scripts/pi-wiki-query scripts/pi-ds4-wiki-query tests/test-query-lite-sync.sh && ./tests/test-query-lite-sync.sh
+
       - name: Verify Codex plugin sync
         run: chmod +x tests/test-codex-sync.sh && ./tests/test-codex-sync.sh
+
+      - name: Verify OpenCode plugin sync
+        run: chmod +x tests/test-opencode-sync.sh && ./tests/test-opencode-sync.sh
 
       - name: Run session capture tests
         run: chmod +x tests/test-session-capture.sh && ./tests/test-session-capture.sh

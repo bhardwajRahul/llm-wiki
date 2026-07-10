@@ -3,12 +3,19 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SOURCE_SKILL="$ROOT/claude-plugin/skills/wiki-manager"
+QUERY_SOURCE="$SOURCE_SKILL/references/query-lite.md"
 TARGET_PLUGIN="$ROOT/plugins/llm-wiki-opencode"
 TARGET_SKILL="$TARGET_PLUGIN/skills/wiki-manager"
+TARGET_QUERY="$TARGET_PLUGIN/skills/wiki-query"
 CLAUDE_MANIFEST="$ROOT/claude-plugin/.claude-plugin/plugin.json"
 
 if [ ! -d "$SOURCE_SKILL" ]; then
   echo "Missing source skill: $SOURCE_SKILL" >&2
+  exit 1
+fi
+
+if [ ! -f "$QUERY_SOURCE" ]; then
+  echo "Missing query-lite source: $QUERY_SOURCE" >&2
   exit 1
 fi
 
@@ -28,6 +35,22 @@ rsync -a --delete \
 # Recreate the references symlink (idempotent — works on fresh checkout too).
 rm -rf "$TARGET_SKILL/references"
 ln -s "../../../../claude-plugin/skills/wiki-manager/references" "$TARGET_SKILL/references"
+
+# Best-effort OpenCode query preset. It is instruction-only and shares the
+# runtime-neutral query contract, but no provider-specific live model gate is
+# claimed because OpenCode does not select a model on behalf of the user.
+rm -rf "$TARGET_QUERY"
+mkdir -p "$TARGET_QUERY"
+cat > "$TARGET_QUERY/SKILL.md" <<'EOF'
+---
+name: wiki-query
+description: >
+  Fast, read-only, index-first llm-wiki queries for OpenCode and compatible
+  instruction-file harnesses.
+---
+
+EOF
+cat "$QUERY_SOURCE" >> "$TARGET_QUERY/SKILL.md"
 
 python3 - "$TARGET_SKILL" <<'PY'
 import sys
@@ -116,3 +139,4 @@ PY
 echo "Synced OpenCode plugin skill from Claude source."
 echo "Source: $SOURCE_SKILL"
 echo "Target: $TARGET_SKILL"
+echo "Best-effort query preset: $TARGET_QUERY"

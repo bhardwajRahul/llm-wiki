@@ -22,12 +22,12 @@
       "max": 650
     },
     "claude_lazy_commands_bytes": {
-      "baseline": 252701,
-      "max": 260000
+      "baseline": 243672,
+      "max": 251000
     },
     "claude_query_command_bytes": {
-      "baseline": 12447,
-      "max": 13000
+      "baseline": 3418,
+      "max": 4500
     },
     "codex_skill_bytes": {
       "baseline": 11692,
@@ -42,20 +42,52 @@
       "max": 500
     },
     "codex_lazy_references_bytes": {
-      "baseline": 203348,
-      "max": 210000
+      "baseline": 205978,
+      "max": 213000
     },
-    "ds4_query_skill_bytes": {
-      "baseline": 2332,
+    "query_lite_reference_bytes": {
+      "baseline": 2630,
       "max": 3000
     },
-    "ds4_query_skill_description_chars": {
-      "baseline": 142,
+    "query_lite_profile_bytes": {
+      "baseline": 2797,
+      "max": 3200
+    },
+    "query_lite_profile_description_chars": {
+      "baseline": 121,
       "max": 200
+    },
+    "codex_query_skill_bytes": {
+      "baseline": 2820,
+      "max": 3300
+    },
+    "codex_query_agents_metadata_bytes": {
+      "baseline": 303,
+      "max": 400
+    },
+    "opencode_skill_bytes": {
+      "baseline": 25218,
+      "max": 26000
+    },
+    "opencode_skill_description_chars": {
+      "baseline": 955,
+      "max": 1050
+    },
+    "opencode_query_skill_bytes": {
+      "baseline": 2777,
+      "max": 3300
     },
     "ds4_query_extension_bytes": {
       "baseline": 1550,
       "max": 2000
+    },
+    "pi_query_launcher_bytes": {
+      "baseline": 1027,
+      "max": 1400
+    },
+    "ds4_query_launcher_bytes": {
+      "baseline": 2964,
+      "max": 3500
     }
   }
 }

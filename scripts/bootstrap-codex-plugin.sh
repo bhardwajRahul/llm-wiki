@@ -14,8 +14,9 @@ usage() {
   cat <<'EOF'
 Usage: ./scripts/bootstrap-codex-plugin.sh [options]
 
-Register this repo as a local Codex marketplace source, install @wiki into the
-Codex plugin cache, and enable it in the user config.
+Register this repo as a local Codex marketplace source, install @wiki and the
+bundled $wiki-query preset into the Codex plugin cache, and enable the plugin
+in the user config.
 
 Options:
   --scope user           Plugin enablement scope (default: user). Codex 0.144

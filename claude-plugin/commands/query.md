@@ -1,239 +1,76 @@
 ---
-description: "Ask questions against the compiled wiki. Supports quick/standard/deep depth levels, --list for browsing, --include-archived for explicit archived reads, and --resume to reload context after a session break. Answers from wiki content only, with citations."
-argument-hint: "<question> [--quick] [--deep] [--raw] [--list] [--include-archived] [--resume] [--tag <tag>] [--category concepts|topics|references] [--with <wiki>...] [--wiki <name>] [--local]"
-allowed-tools: Read, Glob, Grep, Bash(ls:*), Edit
+description: "Ask read-only questions against the wiki. Supports quick, standard, deep, list, archived, supplementary-wiki, and resume modes with exact file citations."
+argument-hint: "<question> [--quick|--deep] [--raw] [--list] [--include-archived] [--resume] [--tag <tag>] [--category concepts|topics|references] [--with <wiki>...] [--wiki <name>] [--local]"
+allowed-tools: Read, Glob, Grep
 ---
 
-## Your task
+# Read-Only Wiki Query
 
-**Resolve the wiki.** Do NOT search the filesystem or read reference files — follow these steps:
-1. Read `$HOME/.config/llm-wiki/config.json`. If it has `hub_path`, expand leading `~` only (not tildes in `com~apple~CloudDocs`) and prefer that path; use `resolved_path` only as a fallback cache when the expanded `hub_path` is unavailable and `resolved_path` is initialized. If config has only `resolved_path`, use it. If the configured path can be statted but reading `wikis.json` or listing `topics/` fails with `Operation not permitted`, stop and ask the user to grant Full Disk Access/iCloud Drive access to the launcher; do not fall back to `~/wiki` or `resolved_path`. Do not write machine-specific `resolved_path` into shared configs.
-2. If no config → read `$HOME/wiki/_index.md`. If it exists → HUB = `$HOME/wiki`. If nothing found, ask the user where to create the wiki.
-3. **Wiki location** (first match): `--local` → `.wiki/` in CWD; `--wiki <name>` → `HUB/wikis.json` lookup with portable path resolution (`<HUB>`, `~`, absolute, or HUB-relative); if the registry path is stale, fall back to `HUB/topics/<name>`; CWD has `.wiki/` → use it; else → HUB.
-4. Read `<wiki>/_index.md` to verify. If missing → stop with "No wiki found (or no articles compiled). Run `/wiki init` and `/wiki:compile` first."
+Read `skills/wiki-manager/references/query-lite.md`, then answer `$ARGUMENTS`
+from the selected wiki. This command is always read-only: do not update indexes
+or append to `log.md`.
 
-Answer the question in $ARGUMENTS using ONLY the knowledge in the wiki. Follow the Q&A protocol below.
+## Parse
 
-Inventory awareness: for factual questions, inventory is not evidence. Cite
-compiled wiki articles and raw sources, not operational inventory records. For
-meta-questions about candidates, backlogs, next actions, what to track, or
-"what should become inventory", read inventory indexes and answer as an
-inventory/listing task. Keep the output compact and say when an item is too
-small for inventory, too large and should become a dataset/collection, or out
-of scope.
+- Everything that is not a flag is the question.
+- `--quick`: use index summaries only.
+- No depth flag: standard index-first query.
+- `--deep`: inspect all relevant compiled articles, links, and raw evidence.
+- `--raw`: allow targeted raw-source reads; implied by `--deep`.
+- `--list`: return ranked matching files instead of a synthesized answer.
+- `--include-archived`: explicitly permit archived reads and label them.
+- `--resume`: give a compact activity briefing before answering any question.
+- `--tag` and `--category`: constrain candidate selection.
+- `--with <wiki>`: use an active supplementary wiki as secondary context.
+- `--wiki <name>` and `--local`: select the primary wiki.
 
-### Parse $ARGUMENTS
+## Depth
 
-- **question**: Everything that is not a flag
-- **--quick**: Fast answer from indexes only (no full article reads)
-- **--deep**: Thorough answer — read all related articles, follow all links, search raw, peek sibling wikis
-- **--raw**: Also search raw sources (implied by --deep)
-- **--list**: Return a ranked list of matching articles instead of a synthesized answer. Useful for browsing what the wiki has on a topic before diving in.
-- **--include-archived**: Explicitly allow archived topic wikis or archived
-  supplementary wikis to be read. Label archived citations clearly.
-- **--resume**: Load recent activity context and show a "where you left off" briefing. If a question is also provided, answer it after the briefing using standard depth.
-- **--tag <tag>**: Filter to articles with this tag in frontmatter
-- **--category <cat>**: Search only in concepts, topics, or references
-- **--with <wiki>**: Load a supplementary wiki as additional context when answering. The primary wiki provides the subject; `--with` wikis provide craft/skill knowledge. Multiple `--with` flags allowed.
-- No depth flag = **standard** (default)
+### Quick
 
-### Archive Visibility
+Read the primary `_index.md` and only the relevant branch indexes. Answer from
+their summaries and tags. If they are insufficient, say so and recommend the
+standard mode. Cite the index paths used.
 
-Archived topic wikis are preserved under `HUB/topics/.archive/<slug>/` and are
-quiet by default:
+### Standard
 
-- Quick, standard, and list queries exclude archived wikis unless
-  `--include-archived` is present.
-- If the primary `--wiki <name>` target is archived, stop and ask the user to
-  restore it or rerun with `--include-archived`.
-- If a `--with <wiki>` supplementary wiki is archived, reject it unless
-  `--include-archived` is present.
-- Deep queries read archived sibling `_index.md` files only and show an
-  `Archived Matches` section when relevant. Do not read archived articles or
-  cite archived material as evidence unless `--include-archived` is present.
-- When archived content is included, label every archived source/citation with
-  `archived`.
+Use the query-lite protocol: master index, relevant branch index, then the
+minimum exact articles. Use one bounded Grep only when indexes miss a likely
+match. Follow directly relevant See Also links. Cite exact files and surface
+confidence or evidence gaps that affect the answer.
 
-### Index Freshness Check
+### Deep
 
-Before using any `_index.md`, verify it's current: count `.md` files in the directory (excluding `_index.md`) and compare against rows in the index table. If counts differ, rebuild the index inline from file frontmatter before proceeding. See `references/indexing.md` Derived Index Protocol.
+Read all relevant branch indexes and articles, follow relevant cross-links,
+search `wiki/` and `raw/` with bounded patterns, and inspect active sibling
+indexes for overlap. Archived sibling indexes may be reported separately, but
+archived article bodies require `--include-archived`.
 
-### Query Depth Levels
+## List Mode
 
-#### Quick (`--quick`)
+Return a compact ranked list. Rank title matches above summary matches, summary
+above body matches, and multiple-term matches above single-term matches. Show
+title, exact path, summary, and tags. Include raw matches only with `--raw`.
+Keep archived results separate and only include them when explicitly allowed.
 
-Fastest. For simple factual lookups.
+## Resume Mode
 
-1. Read master `_index.md` and relevant category `_index.md` files
-2. Answer using ONLY the summaries and tags in the index tables
-3. Cite which index entries were used
-4. If the indexes don't contain enough to answer, say so and suggest re-running without `--quick`
+Start with `<wiki-name> booted from <wiki-root-path>`. Read only the active
+session/checkpoint files, the recent tail of `log.md`, the master index stats,
+and the three most recently updated index entries. Report interrupted work,
+recent activity, stats, recent articles, and concrete next steps. If a question
+is present, answer it afterward using standard depth.
 
-#### Standard (default)
+## Supplementary and Archived Wikis
 
-Balanced. For most questions.
+The primary wiki provides the subject. `--with` wikis provide secondary craft
+or domain context and must remain clearly attributed. Reject archived primary
+or supplementary targets unless `--include-archived` is present. Label every
+archived citation.
 
-1. **Navigate via indexes** (3-hop strategy):
-   - Read master `_index.md` → identify which categories are relevant
-   - Read those category `_index.md` files → match summaries and tags to the question
-   - Identify 3-8 most relevant articles
+## Output
 
-2. **Read relevant articles**: Read the identified articles in full. Follow "See Also" links if they appear directly relevant.
-
-3. **Full-text search**: Use Grep to search `wiki/` for key terms from the question that the index might not have surfaced.
-
-4. **Synthesize answer**:
-   - Directly answer the question
-   - Cite specific wiki articles with dual-links
-   - Note connections between concepts from different articles
-   - Note confidence levels of cited articles
-   - Identify gaps
-
-#### Deep (`--deep`)
-
-Most thorough. For complex questions requiring cross-referencing.
-
-1. **Full index scan**: Read ALL `_index.md` files across all categories
-
-2. **Read all relevant articles**: Read every article that could be relevant (err on the side of reading more). Follow ALL "See Also" links, even tangentially related ones.
-
-3. **Full-text search**: Grep `wiki/` AND `raw/` for key terms, synonyms, and related concepts
-
-4. **Read raw sources**: Read any raw sources that seem relevant but may not be fully compiled into articles yet
-
-5. **Sibling wiki peek**:
-   - Read `HUB/wikis.json`
-   - For each active sibling wiki, read its `_index.md`
-   - For archived sibling wikis, read only the master `_index.md` and only in
-     deep mode. If overlap is found, report it separately as Archived Matches.
-     Do not read archived article bodies unless `--include-archived`.
-   - If overlap found, note it with specific article references
-
-6. **Synthesize comprehensive answer**:
-   - Thorough answer with full citations
-   - Cross-reference information from multiple articles
-   - Note confidence levels and any disagreements between sources
-   - Note where raw sources contain detail not yet in compiled articles
-   - Identify all gaps and suggest specific sources to ingest
-
-### List Mode (`--list`)
-
-When `--list` is set, return a ranked list of matching articles instead of a synthesized answer. This replaces the old `/wiki:search` command.
-
-1. **Index scan**: Read relevant `_index.md` files. Check summaries and tags for matches.
-   - If `--category` specified, only read that category's index
-   - Otherwise read all category indexes under `wiki/`
-
-2. **Full-text search**: Use Grep to search `wiki/` for the query terms.
-   - If `--raw`, also search `raw/`
-
-3. **Tag filter**: If `--tag` specified, use Grep to find files with matching tags in YAML frontmatter: `tags:.*<tag>`.
-
-Archived material stays out of `--list` results unless `--include-archived` is
-present. If included, render archived matches in their own subsection.
-
-4. **Rank results**: Present ordered by relevance:
-   - Title match > summary match > body match
-   - Multiple term matches > single term match
-   - More recent > older
-
-**Output format for --list:**
-
-```
-## Search Results for "<query>"
-
-Found N results:
-
-### Wiki Articles
-1. **[Title](path)** — summary — tags: tag1, tag2
-2. **[Title](path)** — summary — tags: tag1
-
-### Raw Sources (if --raw)
-1. **[Title](path)** — summary — type: articles
-```
-
-If no results found, suggest alternative search terms or `/wiki:ingest` to add sources.
-
-Skip the synthesized answer, sources used, and knowledge gaps sections. Just return the list.
-
-### Resume Mode (`--resume`)
-
-Context reload for new sessions. Reads persistent state and outputs a briefing so you can pick up where you left off.
-
-1. **Identify the active wiki**: Determine a display name and root path before any status text.
-   - Prefer `title` from `config.md` frontmatter.
-   - If this is a local `.wiki/`, fall back to the parent directory basename (for example `bitcoin-wiki` for `.../claude-sandbox/bitcoin-wiki/.wiki`).
-   - If this is `HUB/topics/<slug>/`, fall back to `<slug>`.
-   - Include the resolved wiki root path in the first two lines of the briefing. This must happen even when there is nothing in flight.
-
-2. **Check for interrupted sessions**: Try to read `.research-session.json` and `.thesis-session.json` in the wiki root. If either exists with `status: "in_progress"`, report: topic/thesis, current round, sources so far, last round's gaps or verdict direction.
-3. **Durable provenance fallback**: If no active session file exists, read `.session-checkpoint.json` and the recent tail of `.session-events.jsonl`. Use them to summarize the most recent completed research/audit/output work instead of reporting "nothing active."
-
-4. **Recent activity**: Read `log.md`. Extract the last 10 entries (grep for `^## \[`). Present them as a compact timeline.
-
-5. **Wiki stats**: Read `_index.md` — pull total source count, article count, and output count from the stats section.
-
-6. **Most recent work**: Read the master `_index.md` table. Identify the 3 most recently updated articles by their `Updated` column. Show their titles, paths, and summaries from the index (do NOT read full articles — keep it fast).
-
-7. **Suggested next steps**: Based on what you found:
-   - If interrupted session exists → suggest resuming it (e.g., "Run `/wiki:research --min-time ...` to continue")
-   - If durable provenance shows a recent completed audit → suggest reviewing `.audit/REPORT.md` or acting on its next steps
-   - If recent research logged gaps → suggest addressing them
-   - If recent ingests have no corresponding compile → suggest `/wiki:compile`
-   - If nothing recent → suggest `/wiki:research` or `/wiki:ingest` to add material
-
-**Output format:**
-
-```
-## Resume: <wiki-name>
-
-`<wiki-name>` booted from `<wiki-root-path>`.
-
-**Interrupted session?** Yes — research on "<topic>", round N, M sources so far. Last gaps: ...
-(or: No interrupted sessions.)
-
-**Recent activity** (last 10 ops):
-- YYYY-MM-DD: operation | description
-- ...
-
-**Wiki stats**: N sources, M articles, K outputs
-
-**Last updated articles**:
-- [Article](path) — summary
-- [Article](path) — summary
-- [Article](path) — summary
-
-**Suggested next steps**:
-- ...
-```
-
-**If a question is also provided**: After the briefing, answer the question using standard depth. Include the usual Sources used / Knowledge gaps sections for the answer portion only.
-
-**If no question**: Skip the Sources used / Knowledge gaps sections entirely — just the briefing.
-
-**Log**: Append `## [YYYY-MM-DD] query | --resume briefing`
-
-### Output Format (all depths, not --list)
-
-[Answer in clear prose with markdown formatting]
-
----
-**Sources used:**
-- [Article 1](path) (confidence: high) — what was drawn from it
-- [Article 2](path) (confidence: medium) — what was drawn from it
-
-**Related in other wikis:** (if any, or if --deep)
-- [wiki-name]: [Article Title] — appears relevant
-
-**Archived matches:** (deep mode only, or if `--include-archived`)
-- [archived-wiki]: [Article Title] — preserved context, not active evidence
-
-**Knowledge gaps:** (if any)
-- What the wiki doesn't cover that would help answer this better
-- Suggested sources to ingest
-
-### Log
-
-Append to `log.md`: `## [YYYY-MM-DD] query | "question" → answered from N articles (depth)`
-
-IMPORTANT: Do NOT use information from your training data. Answer ONLY from wiki content. If the wiki doesn't have the answer, say so honestly.
+Answer directly with exact file citations. For standard or deep answers, add
+short `Sources used` and `Knowledge gaps` sections only when useful. For list
+or resume-only output, omit those sections. Never use training data to fill a
+wiki gap and never mutate the wiki while answering.

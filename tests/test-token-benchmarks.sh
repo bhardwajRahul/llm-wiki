@@ -50,12 +50,30 @@ assert report["summary"]["passed"] is True
 assert report["summary"]["turns"] == 6
 assert report["summary"]["quality_passes"] == 6
 assert report["summary"]["fixture_changed"] is False
+assert len(report["cases_sha256"]) == 64
+assert len(report["fixture_sha256"]) == 64
 assert report["summary"]["cached_input_tokens"] > 0
 assert report["summary"]["fixture_reads"] == 6
 assert all(row["token_usage"]["input_tokens"] > 0 for row in report["runs"])
 assert all(row["ttft_ms"] is not None for row in report["runs"])
 assert all(row["quality"]["fixture_reads"] == 1 for row in report["runs"])
 print("  PASS: app-server event and quality accounting")
+PY
+
+"$BENCH" live \
+  --root "$ROOT" \
+  --server-command "python3 '$FAKE_SERVER'" \
+  --profile query \
+  --case reliability-metrics \
+  --output "$TMP_ROOT/codex-query.json" >/dev/null
+python3 - "$TMP_ROOT/codex-query.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+assert report["summary"]["passed"] is True
+assert report["profile"] == "query"
+assert report["skill"] == "plugins/llm-wiki/skills/wiki-query/SKILL.md"
+assert report["runs"][0]["quality"]["fixture_reads"] == 1
+print("  PASS: Codex explicit read-only query preset")
 PY
 
 cp "$TMP_ROOT/live.json" "$TMP_ROOT/candidate.json"
@@ -67,6 +85,8 @@ report = json.load(open(sys.argv[1]))
 assert report["kind"] == "benchmark_comparison"
 assert report["passed"] is True
 assert report["metrics"]["uncached_input_tokens"]["delta_pct"] == 0.0
+assert report["gates"]["same_case_corpus"] is True
+assert report["gates"]["same_fixture_corpus"] is True
 print("  PASS: paired report comparison and regression gates")
 PY
 
@@ -83,6 +103,42 @@ if "$BENCH" compare "$TMP_ROOT/live.json" "$TMP_ROOT/candidate-regression.json" 
   exit 1
 fi
 echo "  PASS: comparison rejects quality regression"
+
+python3 - "$TMP_ROOT/live.json" "$TMP_ROOT/candidate-wrong-profile.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+report["profile"] = "query"
+json.dump(report, open(sys.argv[2], "w"))
+PY
+if "$BENCH" compare "$TMP_ROOT/live.json" "$TMP_ROOT/candidate-wrong-profile.json" \
+  --check --output "$TMP_ROOT/comparison-profile-failure.json" >/dev/null 2>&1; then
+  echo "FAIL: comparison should reject different harness profiles" >&2
+  exit 1
+fi
+python3 - "$TMP_ROOT/comparison-profile-failure.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+assert report["gates"]["same_harness_mode"] is False
+print("  PASS: comparison rejects mismatched harness profiles")
+PY
+
+python3 - "$TMP_ROOT/live.json" "$TMP_ROOT/candidate-wrong-corpus.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+report["cases_sha256"] = "0" * 64
+json.dump(report, open(sys.argv[2], "w"))
+PY
+if "$BENCH" compare "$TMP_ROOT/live.json" "$TMP_ROOT/candidate-wrong-corpus.json" \
+  --check --output "$TMP_ROOT/comparison-corpus-failure.json" >/dev/null 2>&1; then
+  echo "FAIL: comparison should reject different case corpora" >&2
+  exit 1
+fi
+python3 - "$TMP_ROOT/comparison-corpus-failure.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+assert report["gates"]["same_case_corpus"] is False
+print("  PASS: comparison rejects mismatched case corpora")
+PY
 
 "$BENCH" pair \
   --baseline-root "$ROOT" \
@@ -116,6 +172,23 @@ assert summary["cache_read_input_tokens"] == 4800
 assert summary["total_cost_usd"] == 0.3
 assert all(row["permission_denials"] == [] for row in report["runs"])
 print("  PASS: Claude stream, cache, cost, tool-evidence, and quality accounting")
+PY
+
+"$BENCH" claude-live \
+  --root "$ROOT" \
+  --claude-command "python3 '$FAKE_CLAUDE'" \
+  --route command \
+  --output "$TMP_ROOT/claude-command.json" >/dev/null
+python3 - "$TMP_ROOT/claude-command.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+summary = report["summary"]
+assert report["route"] == "command"
+assert summary["passed"] is True
+assert summary["turns"] == 3
+assert all(row["tools_observed"] == ["Glob", "Grep", "Read"] for row in report["runs"])
+assert all(row["quality"]["route"] == "command" for row in report["runs"])
+print("  PASS: Claude real /wiki:query command route and read-only tools")
 PY
 
 "$BENCH" compare "$TMP_ROOT/claude-live.json" "$TMP_ROOT/claude-live.json" \
@@ -152,7 +225,7 @@ import json, sys
 report = json.load(open(sys.argv[1]))
 summary = report["summary"]
 assert report["kind"] == "pi_ds4"
-assert report["instruction"] == "profiles/ds4/wiki-query/SKILL.md"
+assert report["instruction"] == "profiles/query-lite/SKILL.md"
 assert report["tool_surface"] == ["read", "grep", "find", "ls"]
 assert summary["passed"] is True
 assert summary["turns"] == 8

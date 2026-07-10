@@ -21,6 +21,7 @@ def emit(payload: dict) -> None:
 
 prompt = argument("-p")
 model = argument("--model", "fake-claude-model")
+tools = [item for item in argument("--tools", "Read,Skill").split(",") if item]
 cwd = Path.cwd()
 if "reliability" in prompt:
     target = "wiki/concepts/sample-concept.md"
@@ -38,7 +39,7 @@ emit(
         "subtype": "init",
         "cwd": str(cwd),
         "session_id": "fake-session",
-        "tools": ["Read", "Skill"],
+        "tools": tools,
         "model": model,
         "permissionMode": "dontAsk",
         "mcp_servers": [],

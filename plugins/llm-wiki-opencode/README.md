@@ -18,6 +18,19 @@ Or copy to your global config:
 cp plugins/llm-wiki-opencode/skills/wiki-manager/SKILL.md ~/.config/opencode/AGENTS.md
 ```
 
+For read-only lookups, use the smaller query preset:
+
+```json
+{
+  "instructions": ["path/to/llm-wiki/plugins/llm-wiki-opencode/skills/wiki-query/SKILL.md"]
+}
+```
+
+It routes through indexes, reads only the minimum evidence, cites exact wiki
+paths, and forbids writes. The generated OpenCode preset is covered by static
+budgets and sync tests. Because OpenCode does not select a model for the user,
+live model quality remains best effort rather than a release gate.
+
 ## Permissions
 
 OpenCode sandboxes file access to the project directory by default. The wiki hub lives at `~/wiki/` (or a custom path), which is outside any project. Add this to your `opencode.json`:
@@ -77,4 +90,7 @@ The [opencode-agent-skills](https://github.com/joshuadavidthomas/opencode-agent-
 
 ## This directory is generated
 
-Do not edit files here by hand. Run `scripts/sync-opencode-plugin.sh` to regenerate from the Claude source. The `references/` directory is a symlink into `claude-plugin/skills/wiki-manager/references/`.
+Do not edit generated skill files here by hand. Run
+`scripts/sync-opencode-plugin.sh` to regenerate them from the Claude source.
+The `references/` directory is a symlink into
+`claude-plugin/skills/wiki-manager/references/`.

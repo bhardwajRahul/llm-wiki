@@ -12,7 +12,8 @@ usage() {
   cat <<'EOF'
 Usage: ./scripts/verify-codex-plugin.sh [options]
 
-Verify that Codex resolves @wiki to this repo's generated Codex wiki skill.
+Verify that Codex resolves the @wiki plugin and installs the explicit-only
+$wiki-query skill from this repo.
 
 Options:
   --scope user           Verify the supported user install (default: user)
@@ -68,6 +69,7 @@ PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)"
 USER_HOME="$(cd "$USER_HOME" && pwd)"
 SOURCE_PLUGIN_ROOT="$ROOT/plugins/llm-wiki"
 SOURCE_SKILL_PATH="$SOURCE_PLUGIN_ROOT/skills/wiki/SKILL.md"
+SOURCE_QUERY_SKILL_PATH="$SOURCE_PLUGIN_ROOT/skills/wiki-query/SKILL.md"
 EXPECTED_VERSION="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["version"])' "$SOURCE_PLUGIN_ROOT/.codex-plugin/plugin.json")"
 TMP_OUTPUT="$(mktemp)"
 TMP_LIST="$(mktemp)"
@@ -140,9 +142,15 @@ PY
 )"
 
 EXPECTED_CACHE_SKILL="$USER_HOME/.codex/plugins/cache/$MARKETPLACE_NAME/wiki/$INSTALLED_VERSION/skills/wiki/SKILL.md"
+EXPECTED_CACHE_QUERY_SKILL="$USER_HOME/.codex/plugins/cache/$MARKETPLACE_NAME/wiki/$INSTALLED_VERSION/skills/wiki-query/SKILL.md"
 if [[ ! -f "$EXPECTED_CACHE_SKILL" ]]; then
   echo "FAIL: installed Codex cache is missing the wiki skill:" >&2
   echo "  $EXPECTED_CACHE_SKILL" >&2
+  exit 1
+fi
+if [[ ! -f "$EXPECTED_CACHE_QUERY_SKILL" ]]; then
+  echo "FAIL: installed Codex cache is missing the wiki-query skill:" >&2
+  echo "  $EXPECTED_CACHE_QUERY_SKILL" >&2
   exit 1
 fi
 
@@ -199,6 +207,25 @@ then
   exit 1
 fi
 
-echo "OK: Codex resolves @wiki from installed $PLUGIN_KEY version $INSTALLED_VERSION."
-echo "Skill path:"
+if ! python3 - "$EXPECTED_CACHE_QUERY_SKILL" "$SOURCE_QUERY_SKILL_PATH" <<'PY'
+import sys
+from pathlib import Path
+
+cached, source = (Path(path).read_text(encoding="utf-8") for path in sys.argv[1:])
+raise SystemExit(0 if cached == source else 1)
+PY
+then
+  echo "FAIL: cached wiki-query skill differs from the generated source:" >&2
+  echo "  $EXPECTED_CACHE_QUERY_SKILL" >&2
+  exit 1
+fi
+
+if grep -Fq '/skills/wiki-query/SKILL.md' "$TMP_OUTPUT"; then
+  echo "FAIL: explicit-only wiki-query leaked into the implicit skill list." >&2
+  exit 1
+fi
+
+echo "OK: Codex resolves @wiki and installs explicit-only \$wiki-query from $PLUGIN_KEY version $INSTALLED_VERSION."
+echo "Skill paths:"
 echo "  $ACTUAL_SKILL_PATH"
+echo "  $EXPECTED_CACHE_QUERY_SKILL"

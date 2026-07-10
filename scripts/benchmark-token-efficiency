@@ -113,8 +113,19 @@ def collect_static_metrics(root: Path) -> dict[str, int]:
     codex_skill = root / "plugins/llm-wiki/skills/wiki/SKILL.md"
     agents_metadata = root / "plugins/llm-wiki/skills/wiki/agents/openai.yaml"
     references = root / "plugins/llm-wiki/skills/wiki/references"
-    ds4_query_skill = root / "profiles/ds4/wiki-query/SKILL.md"
+    query_lite_reference = (
+        root / "claude-plugin/skills/wiki-manager/references/query-lite.md"
+    )
+    query_lite_profile = root / "profiles/query-lite/SKILL.md"
+    codex_query_skill = root / "plugins/llm-wiki/skills/wiki-query/SKILL.md"
+    codex_query_metadata = (
+        root / "plugins/llm-wiki/skills/wiki-query/agents/openai.yaml"
+    )
+    opencode_skill = root / "plugins/llm-wiki-opencode/skills/wiki-manager/SKILL.md"
+    opencode_query_skill = root / "plugins/llm-wiki-opencode/skills/wiki-query/SKILL.md"
     ds4_query_extension = root / "profiles/ds4/pi-query-tools.ts"
+    pi_query_launcher = root / "scripts/pi-wiki-query"
+    ds4_query_launcher = root / "scripts/pi-ds4-wiki-query"
     description = folded_frontmatter_value(codex_skill, "description")
     return {
         "portable_protocol_bytes": file_bytes(root / "AGENTS.md"),
@@ -134,11 +145,21 @@ def collect_static_metrics(root: Path) -> dict[str, int]:
         "codex_lazy_references_bytes": sum(
             file_bytes(path) for path in sorted(references.glob("*.md"))
         ),
-        "ds4_query_skill_bytes": file_bytes(ds4_query_skill),
-        "ds4_query_skill_description_chars": len(
-            folded_frontmatter_value(ds4_query_skill, "description")
+        "query_lite_reference_bytes": file_bytes(query_lite_reference),
+        "query_lite_profile_bytes": file_bytes(query_lite_profile),
+        "query_lite_profile_description_chars": len(
+            folded_frontmatter_value(query_lite_profile, "description")
         ),
+        "codex_query_skill_bytes": file_bytes(codex_query_skill),
+        "codex_query_agents_metadata_bytes": file_bytes(codex_query_metadata),
+        "opencode_skill_bytes": file_bytes(opencode_skill),
+        "opencode_skill_description_chars": len(
+            folded_frontmatter_value(opencode_skill, "description")
+        ),
+        "opencode_query_skill_bytes": file_bytes(opencode_query_skill),
         "ds4_query_extension_bytes": file_bytes(ds4_query_extension),
+        "pi_query_launcher_bytes": file_bytes(pi_query_launcher),
+        "ds4_query_launcher_bytes": file_bytes(ds4_query_launcher),
     }
 
 
@@ -216,6 +237,10 @@ def tree_digest(root: Path) -> str:
         digest.update(path.read_bytes())
         digest.update(b"\0")
     return digest.hexdigest()
+
+
+def file_digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 class AppServerError(RuntimeError):
@@ -455,6 +480,7 @@ def handle_fixture_tool(
 def run_turn(
     server: AppServer,
     thread_id: str,
+    skill_name: str,
     skill_path: Path,
     fixture_root: Path,
     case: dict[str, Any],
@@ -467,7 +493,7 @@ def run_turn(
         {
             "threadId": thread_id,
             "input": [
-                {"type": "skill", "name": "wiki", "path": str(skill_path)},
+                {"type": "skill", "name": skill_name, "path": str(skill_path)},
                 {"type": "text", "text": case["prompt"]},
             ],
         },
@@ -668,10 +694,16 @@ def run_live_benchmark(
     repeats: int,
     server_command: str,
     timeout: float,
+    profile: str,
 ) -> dict[str, Any]:
     cases = load_cases(cases_path, selected)
     fixture_source = root / "tests/fixtures/golden-wiki"
-    skill_path = root / "plugins/llm-wiki/skills/wiki/SKILL.md"
+    skill_name = "wiki-query" if profile == "query" else "wiki"
+    skill_path = (
+        root / "plugins/llm-wiki/skills/wiki-query/SKILL.md"
+        if profile == "query"
+        else root / "plugins/llm-wiki/skills/wiki/SKILL.md"
+    )
     if not fixture_source.is_dir() or not skill_path.is_file():
         raise ValueError("benchmark fixture or Codex skill is missing")
     original_codex_home = os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
@@ -720,6 +752,7 @@ def run_live_benchmark(
                         run_turn(
                             server,
                             thread_id,
+                            skill_name,
                             skill_path,
                             project / ".wiki",
                             case,
@@ -749,11 +782,15 @@ def run_live_benchmark(
         "git_commit": git_commit(root),
         "codex_version": codex_version(server_command),
         "server_command": server_command,
+        "profile": profile,
+        "skill": display_path(skill_path, root),
         "model_requested": model,
         "models_observed": sorted(actual_models),
         "model_providers": sorted(providers),
         "cases": display_path(cases_path, root),
+        "cases_sha256": file_digest(cases_path),
         "fixture": "tests/fixtures/golden-wiki",
+        "fixture_sha256": before,
         "isolated_codex_home": True,
         "repeats_per_case": repeats,
         "runs": runs,
@@ -790,6 +827,8 @@ def parse_claude_stream(
     case: dict[str, Any],
     repeat: int,
     fixture_root: Path,
+    expected_tools: set[str],
+    route: str,
 ) -> tuple[dict[str, Any], set[str]]:
     events: list[dict[str, Any]] = []
     for number, line in enumerate(stdout.splitlines(), 1):
@@ -855,8 +894,9 @@ def parse_claude_stream(
     grade["fixture_reads"] = len(fixture_reads)
     grade["fixture_read_required"] = True
     grade["passed"] = grade["passed"] and bool(fixture_reads)
-    grade["tool_surface_valid"] = tools_observed == {"Read", "Skill"}
+    grade["tool_surface_valid"] = tools_observed == expected_tools
     grade["wiki_plugin_loaded"] = wiki_plugin_loaded
+    grade["route"] = route
     grade["passed"] = (
         grade["passed"] and grade["tool_surface_valid"] and wiki_plugin_loaded
     )
@@ -915,6 +955,7 @@ def run_claude_benchmark(
     claude_command: str,
     timeout: float,
     max_budget_usd: float,
+    route: str,
 ) -> dict[str, Any]:
     cases = load_cases(cases_path, selected)
     fixture_source = root / "tests/fixtures/golden-wiki"
@@ -932,12 +973,25 @@ def run_claude_benchmark(
         before = tree_digest(project / ".wiki")
         runs: list[dict[str, Any]] = []
         actual_models: set[str] = set()
+        expected_tools = (
+            {"Read", "Glob", "Grep"} if route == "command" else {"Read", "Skill"}
+        )
+        tool_csv = ",".join(sorted(expected_tools))
         for case in cases:
             for repeat in range(1, repeats + 1):
+                prompt = (
+                    case.get("claude_command_prompt")
+                    if route == "command"
+                    else case["prompt"]
+                )
+                if not isinstance(prompt, str) or not prompt:
+                    raise ValueError(
+                        f"case {case['id']} has no Claude command-route prompt"
+                    )
                 command = [
                     *shlex.split(claude_command),
                     "-p",
-                    case["prompt"],
+                    prompt,
                     "--plugin-dir",
                     str(plugin_dir),
                     "--model",
@@ -946,9 +1000,9 @@ def run_claude_benchmark(
                     "stream-json",
                     "--verbose",
                     "--tools",
-                    "Read,Skill",
+                    tool_csv,
                     "--allowedTools",
-                    "Read,Skill",
+                    tool_csv,
                     "--permission-mode",
                     "dontAsk",
                     "--setting-sources",
@@ -983,6 +1037,8 @@ def run_claude_benchmark(
                     case,
                     repeat,
                     project / ".wiki",
+                    expected_tools,
+                    route,
                 )
                 runs.append(row)
                 actual_models.update(observed)
@@ -1006,11 +1062,14 @@ def run_claude_benchmark(
         "git_commit": git_commit(root),
         "claude_version": claude_version(claude_command),
         "claude_command": claude_command,
+        "route": route,
         "model_requested": model,
         "models_observed": sorted(actual_models),
         "model_providers": ["anthropic"],
         "cases": display_path(cases_path, root),
+        "cases_sha256": file_digest(cases_path),
         "fixture": "tests/fixtures/golden-wiki",
+        "fixture_sha256": before,
         "max_budget_usd_per_turn": max_budget_usd,
         "repeats_per_case": repeats,
         "runs": runs,
@@ -1511,7 +1570,9 @@ def run_ds4_benchmark(
         "extra_extensions": [display_path(path, root) for path in extension_paths],
         "tool_surface": ["read", "grep", "find", "ls"],
         "cases": display_path(cases_path, root),
+        "cases_sha256": file_digest(cases_path),
         "fixture": "tests/fixtures/golden-wiki",
+        "fixture_sha256": before,
         "isolated_pi_agent_dir": True,
         "repeats_per_case": repeats,
         "runs": runs,
@@ -1578,6 +1639,21 @@ def compare_reports(
     )
     quality_preserved = cand.get("quality_passes", 0) >= base.get("quality_passes", 0)
     is_ds4 = baseline.get("kind") == candidate.get("kind") == "pi_ds4"
+    harness_mode_key = {
+        "codex_app_server": "profile",
+        "claude_code": "route",
+    }.get(baseline.get("kind"))
+    same_harness_mode = (
+        baseline.get(harness_mode_key) == candidate.get(harness_mode_key)
+        if harness_mode_key
+        else True
+    )
+    same_case_corpus = bool(baseline.get("cases_sha256")) and baseline.get(
+        "cases_sha256"
+    ) == candidate.get("cases_sha256")
+    same_fixture_corpus = bool(baseline.get("fixture_sha256")) and baseline.get(
+        "fixture_sha256"
+    ) == candidate.get("fixture_sha256")
     context_metric = "provider_payload_bytes" if is_ds4 else "uncached_input_tokens"
     context_delta = metrics[context_metric]["delta_pct"]
     input_gate = context_delta is not None and context_delta <= max_input_regression_pct
@@ -1585,6 +1661,9 @@ def compare_reports(
         "baseline_valid": bool(base.get("passed")),
         "candidate_valid": bool(cand.get("passed")),
         "same_backend": baseline.get("kind") == candidate.get("kind"),
+        "same_harness_mode": same_harness_mode,
+        "same_case_corpus": same_case_corpus,
+        "same_fixture_corpus": same_fixture_corpus,
         "same_model": same_model,
         "same_turn_count": same_turns,
         "same_case_matrix": base_cases == candidate_cases,
@@ -1644,6 +1723,12 @@ def parse_common_live(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--cases", help="JSONL benchmark cases")
     parser.add_argument("--case", action="append", dest="selected_cases")
     parser.add_argument("--model", help="explicit Codex model; default uses Codex config")
+    parser.add_argument(
+        "--profile",
+        choices=("full", "query"),
+        default="full",
+        help="full write-capable wiki skill or explicit read-only query preset",
+    )
     parser.add_argument("--repeats", type=int, default=1, help="turns per case in one thread")
     parser.add_argument(
         "--server-command",
@@ -1657,6 +1742,12 @@ def parse_common_claude(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--cases", help="JSONL benchmark cases")
     parser.add_argument("--case", action="append", dest="selected_cases")
     parser.add_argument("--model", default="claude-sonnet-4-6")
+    parser.add_argument(
+        "--route",
+        choices=("skill", "command"),
+        default="skill",
+        help="benchmark natural skill activation or the real /wiki:query command",
+    )
     parser.add_argument("--repeats", type=int, default=1, help="fresh Claude runs per case")
     parser.add_argument(
         "--claude-command",
@@ -1730,7 +1821,7 @@ def build_parser() -> argparse.ArgumentParser:
     parse_common_ds4(ds4_live)
     ds4_live.add_argument(
         "--instruction",
-        default="profiles/ds4/wiki-query/SKILL.md",
+        default="profiles/query-lite/SKILL.md",
         help="system-prompt file, absolute or relative to --root",
     )
     ds4_live.add_argument("--output", default="-")
@@ -1776,7 +1867,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ds4_pair.add_argument(
         "--candidate-instruction",
-        default="profiles/ds4/wiki-query/SKILL.md",
+        default="profiles/query-lite/SKILL.md",
     )
     ds4_pair.add_argument("--max-input-regression-pct", type=float, default=2.0)
     ds4_pair.add_argument("--max-cost-regression-pct", type=float, default=5.0)
@@ -1825,6 +1916,7 @@ def main() -> int:
             args.repeats,
             args.server_command,
             args.timeout,
+            args.profile,
         )
         write_json(report, args.output)
         return 0 if report["summary"]["passed"] else 1
@@ -1842,6 +1934,7 @@ def main() -> int:
             args.claude_command,
             args.timeout,
             args.max_budget_usd,
+            args.route,
         )
         write_json(report, args.output)
         return 0 if report["summary"]["passed"] else 1
@@ -1887,6 +1980,7 @@ def main() -> int:
         output_dir = Path(args.output_dir).expanduser().resolve()
         output_dir.mkdir(parents=True, exist_ok=True)
         selected = set(args.selected_cases or []) or None
+        cases_path = resolve_cases(candidate_root, args.cases)
         sequence = [
             ("baseline", base_root),
             ("candidate", candidate_root),
@@ -1897,12 +1991,13 @@ def main() -> int:
         for index, (variant, root) in enumerate(sequence, 1):
             report = run_live_benchmark(
                 root,
-                resolve_cases(root, args.cases),
+                cases_path,
                 selected,
                 args.model,
                 args.repeats,
                 args.server_command,
                 args.timeout,
+                args.profile,
             )
             by_variant[variant].append(report)
             write_json(report, str(output_dir / f"{index:02d}-{variant}.json"))
@@ -1927,6 +2022,7 @@ def main() -> int:
         output_dir = Path(args.output_dir).expanduser().resolve()
         output_dir.mkdir(parents=True, exist_ok=True)
         selected = set(args.selected_cases or []) or None
+        cases_path = resolve_cases(candidate_root, args.cases)
         sequence = [
             ("baseline", base_root),
             ("candidate", candidate_root),
@@ -1940,13 +2036,14 @@ def main() -> int:
         for index, (variant, root) in enumerate(sequence, 1):
             report = run_claude_benchmark(
                 root,
-                resolve_cases(root, args.cases),
+                cases_path,
                 selected,
                 args.model,
                 args.repeats,
                 args.claude_command,
                 args.timeout,
                 args.max_budget_usd,
+                args.route,
             )
             by_variant[variant].append(report)
             write_json(report, str(output_dir / f"{index:02d}-{variant}.json"))

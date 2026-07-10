@@ -44,7 +44,7 @@ Install from GitHub:
 ```bash
 codex plugin marketplace add nvk/llm-wiki
 codex plugin add wiki@llm-wiki
-# Start a new Codex thread, then use @wiki
+# Start a new Codex thread, then use @wiki or type $ to select wiki-query
 ```
 
 Install from a local checkout with the managed bootstrap helper:
@@ -60,6 +60,7 @@ codex plugin add wiki@llm-wiki
 
 Canonical explicit invocation:
 ```text
+$wiki-query "What does the wiki say about hardware wallet threat models?"
 @wiki research "hardware wallet threat models"
 @wiki collect "bitcoin memes" --wiki memes-bitcoin
 @wiki ingest https://example.com/article
@@ -85,7 +86,8 @@ codex plugin marketplace remove llm-wiki
 Troubleshooting:
 - `codex plugin marketplace add` registers the catalog; `codex plugin add wiki@llm-wiki` installs and enables the cached plugin non-interactively.
 - Open `/hooks` to review and trust the bundled hooks if you want automated session capture. The `@wiki` skill works without hook trust.
-- `@wiki` is the canonical explicit entry point in Codex. Natural-language wiki requests can still auto-activate the skill.
+- `$wiki-query` is the small, explicit, read-only skill for lookups. In Codex CLI/IDE, type `$` or open `/skills` and select it. It never activates implicitly or changes wiki files.
+- `@wiki` is the full research and maintenance entry point. Natural-language wiki requests can still auto-activate it.
 - Restart Codex after changing config if an existing session does not pick up the new plugin state.
 - If you run Codex under a sandbox wrapper like `nono`, see [Nono Sandbox Permissions](#nono-sandbox-permissions) — Codex needs r+w to `$HOME/.codex` for plugin install.
 
@@ -109,6 +111,19 @@ OpenCode fetches the URL fresh on every session start — no manual updates need
 curl -sL https://raw.githubusercontent.com/nvk/llm-wiki/master/plugins/llm-wiki-opencode/skills/wiki-manager/SKILL.md > ~/.config/opencode/AGENTS.md
 ```
 
+For a smaller read-only setup, use the best-effort query preset instead:
+
+```json
+{
+  "instructions": ["https://raw.githubusercontent.com/nvk/llm-wiki/master/plugins/llm-wiki-opencode/skills/wiki-query/SKILL.md"]
+}
+```
+
+The OpenCode profile is sync- and budget-tested, but not tied to one model, so
+it does not have a provider-specific live quality gate. Treat it as a portable
+best-effort preset and keep OpenCode's write and shell permissions disabled for
+query-only sessions.
+
 The `external_directory` permission is required because the wiki hub lives outside the project directory. Set the paths to match your hub location. Alternatively, use `--local` mode (`.wiki/` in the project) to skip permissions entirely.
 
 Web search requires `export OPENCODE_ENABLE_EXA=1`.
@@ -125,15 +140,30 @@ pi --skill path/to/llm-wiki/plugins/llm-wiki-opencode/skills/wiki-manager/SKILL.
 Invoke it as `/skill:wiki-manager`, or let Pi load it when the request clearly
 matches its description.
 
-For fast read-only queries on DS4-class local models, use the compact stable
-prompt and a read-only tool surface instead of loading every research workflow:
+For fast read-only queries with Pi's currently configured provider, use the
+generic launcher. It disables discovery and write tools and loads the compact
+shared query protocol:
 
 ```bash
-OPENAI_BASE_URL=http://127.0.0.1:8080/v1 OPENAI_API_KEY=local \
-  pi \
-    --extension path/to/llm-wiki/profiles/ds4/pi-query-tools.ts \
-    --append-system-prompt path/to/llm-wiki/profiles/ds4/wiki-query/SKILL.md \
-    --tools read,grep,find,ls
+./scripts/pi-wiki-query
+```
+
+For DS4, the provider-specific launcher additionally creates an isolated Pi
+state directory and pins the local model settings:
+
+```bash
+./scripts/pi-ds4-wiki-query
+```
+
+Set `PI_CLI`, `DS4_BASE_URL`, or `LLM_WIKI_PI_DS4_STATE_DIR` only when your
+local setup differs from the defaults. Both launchers accept `--dry-run` to
+show the exact command. The equivalent generic Pi settings are:
+
+```bash
+pi \
+  --append-system-prompt path/to/llm-wiki/profiles/query-lite/SKILL.md \
+  --tools read,grep,find,ls \
+  --no-extensions --no-skills --no-prompt-templates --no-themes
 ```
 
 The DS4 query profile is intentionally unable to write. Switch to the full
@@ -141,13 +171,18 @@ skill for ingest, research, compile, lint, or other mutating workflows. See
 [`profiles/ds4/README.md`](profiles/ds4/README.md) and the reproducible
 [`benchmarks/README.md`](benchmarks/README.md) DS4 lane.
 
-**Any LLM Agent** (idea file):
+**Any LLM Agent** (portable instruction file):
 ```bash
-# Copy AGENTS.md into your agent's context or project root
+# Read-only queries: small default
+cp profiles/query-lite/SKILL.md ~/your-project/AGENTS.md
+
+# Research and maintenance: complete protocol
 cp AGENTS.md ~/your-project/AGENTS.md
 ```
 
-The `AGENTS.md` file contains the complete wiki protocol as a single portable document — works with any LLM agent that can read/write files and search the web.
+The query-lite profile works with agents that can read and search files. The
+root `AGENTS.md` contains the complete write-capable protocol for agents that
+can also edit files and search the web.
 
 ## Claude-First, Multi-Runtime
 
@@ -156,31 +191,39 @@ Claude Code is the principal user. Keep one shared behavior layer and thin packa
 - `claude-plugin/` is the primary distribution target and UX surface.
 - `claude-plugin/skills/wiki-manager/` is the behavioral source of truth.
 - `plugins/llm-wiki/skills/wiki/` is the generated Codex packaging target behind `@wiki`.
+- `claude-plugin/skills/wiki-manager/references/query-lite.md` is the canonical read-only query protocol.
+- `profiles/query-lite/SKILL.md` and generated `wiki-query` skills expose that protocol without the full research context.
 - `plugins/llm-wiki-opencode/` is the OpenCode and Pi packaging target.
 - `.agents/plugins/marketplace.json` makes the Codex plugin installable from this repo.
 - `AGENTS.md` is the portable single-file protocol for any other LLM agent.
 
-**Supported clients:**
+**Query and research presets:**
 
-| Client | Install method | System prompt size | Best for |
-|--------|---------------|-------------------|----------|
-| Claude Code | `claude plugin install wiki@llm-wiki` | ~22K tokens | Full agentic research, 200K context |
-| Codex | `codex plugin marketplace add nvk/llm-wiki` | ~3K tokens | OpenAI ecosystem |
-| OpenCode | `opencode.json` instructions | ~3K tokens | Multi-provider, Go binary |
-| Pi | `--instructions SKILL.md` | ~1K tokens | Local models, minimal overhead |
-| Any agent | Copy `AGENTS.md` to project | Varies | Universal fallback |
+| Client | Read-only query path | Full research path | Validation |
+|--------|----------------------|--------------------|------------|
+| Claude Code | `/wiki:query` command plus shared query protocol | Native plugin skill and commands | Deterministic fixtures plus live Sonnet/Opus runs |
+| Codex | Explicit-only `$wiki-query` (~2.8 KB) | `@wiki` (~11.7 KB before lazy references) | Deterministic fixtures plus app-server live runs |
+| Pi / DS4 | `scripts/pi-wiki-query`, or the isolated DS4 launcher, with read-only tools (~2.8 KB profile) | `pi --skill .../wiki-manager/SKILL.md` | Deterministic fixtures plus exact DS4 provider-payload measurement |
+| OpenCode | `wiki-query/SKILL.md` (~2.8 KB) | `wiki-manager/SKILL.md` (~25.2 KB) | Static budgets and generated-package sync; live model is best effort |
+| Any agent | Copy `profiles/query-lite/SKILL.md` (~2.8 KB) | Copy root `AGENTS.md` (~51.2 KB) | Static budgets |
+
+Sizes are checked-in UTF-8 bytes, not provider token estimates. Use query mode
+for lookups, evidence checks, lists, and inventory status. Use the full profile
+for research, ingestion, compilation, lint fixes, or any workflow that writes.
 
 Both runtime mirrors are generated, not hand-maintained. Rebuild from the Claude source of truth:
 
 ```bash
 ./scripts/sync-codex-plugin.sh      # regenerates plugins/llm-wiki/
 ./scripts/sync-opencode-plugin.sh   # regenerates plugins/llm-wiki-opencode/
+./scripts/sync-query-lite-profile.sh # regenerates profiles/query-lite/
 ```
 
 Each sync script:
 
 - copies `claude-plugin/skills/wiki-manager/SKILL.md` into the target tree and reapplies a small list of runtime-specific wording patches
 - copies `references/` from the Claude source — references are runtime-neutral and shared verbatim (previously a symlink, now a real copy so Codex marketplace caching works)
+- generates compact `wiki-query` packages from the canonical query-lite reference
 - (Codex only) recreates `agents/openai.yaml` for Codex UI metadata and syncs the plugin version
 
 Drift is caught by `./tests/test-codex-sync.sh` and `./tests/test-opencode-sync.sh`, which run the sync scripts and fail (with self-healing fix instructions) if the generated directories differ from `HEAD`.

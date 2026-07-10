@@ -3,14 +3,21 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SOURCE_SKILL="$ROOT/claude-plugin/skills/wiki-manager"
+QUERY_SOURCE="$SOURCE_SKILL/references/query-lite.md"
 TARGET_PLUGIN="$ROOT/plugins/llm-wiki"
 TARGET_SKILL="$TARGET_PLUGIN/skills/wiki"
+TARGET_QUERY="$TARGET_PLUGIN/skills/wiki-query"
 CLAUDE_MANIFEST="$ROOT/claude-plugin/.claude-plugin/plugin.json"
 CODEX_MANIFEST="$TARGET_PLUGIN/.codex-plugin/plugin.json"
 SESSION_HELPER="$ROOT/scripts/llm-wiki-session"
 
 if [ ! -d "$SOURCE_SKILL" ]; then
   echo "Missing source skill: $SOURCE_SKILL" >&2
+  exit 1
+fi
+
+if [ ! -f "$QUERY_SOURCE" ]; then
+  echo "Missing query-lite source: $QUERY_SOURCE" >&2
   exit 1
 fi
 
@@ -34,6 +41,7 @@ mkdir -p "$TARGET_PLUGIN/skills"
 # copied into the generated tree rather than left as a symlink. agents/ is
 # Codex-only metadata and is recreated below.
 rm -rf "$TARGET_PLUGIN/skills/wiki-manager"
+rm -rf "$TARGET_QUERY"
 rsync -a --delete \
   --exclude='agents/' \
   --exclude='agents' \
@@ -135,6 +143,29 @@ interface:
 
 policy:
   allow_implicit_invocation: true
+EOF
+
+mkdir -p "$TARGET_QUERY/agents"
+cat > "$TARGET_QUERY/SKILL.md" <<'EOF'
+---
+name: wiki-query
+description: >
+  Fast, explicit, read-only llm-wiki queries for Codex. Use for factual
+  lookups, evidence checks, lists, and inventory status without wiki writes.
+---
+
+EOF
+cat "$QUERY_SOURCE" >> "$TARGET_QUERY/SKILL.md"
+
+cat > "$TARGET_QUERY/agents/openai.yaml" <<'EOF'
+interface:
+  display_name: "Wiki Query"
+  short_description: "Read-only, index-first answers from an llm-wiki with exact file citations."
+  brand_color: "#2F855A"
+  default_prompt: "Answer this question from the selected llm-wiki without changing any files."
+
+policy:
+  allow_implicit_invocation: false
 EOF
 
 python3 - "$TARGET_SKILL" "$CLAUDE_MANIFEST" "$CODEX_MANIFEST" <<'PY'
@@ -324,3 +355,4 @@ PY
 echo "Synced Codex plugin skill from Claude source."
 echo "Source: $SOURCE_SKILL"
 echo "Target: $TARGET_SKILL"
+echo "Query preset: $TARGET_QUERY"

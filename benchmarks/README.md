@@ -8,6 +8,19 @@ model measurements. It is designed to answer two different questions:
    provider payload sent to local DS4, without reducing answer quality or
    changing the fixture?
 
+## Recommended harness matrix
+
+| Harness | Query preset | Full preset | Quality/accounting gate |
+|---------|--------------|-------------|-------------------------|
+| Claude Code | `--route command` exercises the real read-only `/wiki:query` command | `--route skill` exercises plugin activation | Reads, citations, no writes, tokens, cache, cost, TTFT |
+| Codex | `--profile query` explicitly loads `$wiki-query` | `--profile full` loads `@wiki` | Dynamic fixture reads, citations, no writes, app-server tokens and cache reads |
+| Pi / DS4 | `scripts/pi-wiki-query`, or isolated `pi-ds4-wiki-query`, plus `read,grep,find,ls` | generated OpenCode `wiki-manager/SKILL.md` for comparison only | Exact serialized DS4 provider bytes, reads, citations, abstention, no writes |
+| OpenCode | generated `wiki-query/SKILL.md` | generated `wiki-manager/SKILL.md` | Static size and sync validation only; live model behavior is best effort |
+| Portable agents | `profiles/query-lite/SKILL.md` | root `AGENTS.md` | Static size budgets |
+
+Use query presets for retrieval. Use full presets only when the task needs
+research, ingestion, compilation, lint repairs, or another write workflow.
+
 ## Layer 1: deterministic budgets
 
 Run on every commit and in CI:
@@ -16,10 +29,10 @@ Run on every commit and in CI:
 ./scripts/benchmark-token-efficiency static --check
 ```
 
-The command measures bytes or characters for the portable protocol, Claude and
-Codex skills and activation descriptions, Claude plugin manifest and commands,
-Codex agent metadata, the lazy reference library, and the compact DS4 query
-skill and adapter. Baselines and hard ceilings live in
+The command measures bytes or characters for the portable protocol, Claude,
+Codex, OpenCode, and query-lite skills and activation descriptions, Claude
+plugin manifest and commands, Codex agent metadata, lazy references, and the
+Pi launchers plus DS4 adapter. Baselines and hard ceilings live in
 `tests/budgets/token-budgets.json`.
 
 These are context-size proxies, not tokenizer estimates. Provider-specific
@@ -33,6 +46,7 @@ This command makes real model calls and consumes account quota:
 mkdir -p benchmarks/results
 ./scripts/benchmark-token-efficiency live \
   --model gpt-5.6-sol \
+  --profile query \
   --repeats 2 \
   --output benchmarks/results/current.json
 ```
@@ -42,7 +56,7 @@ The runner:
 - starts Codex app-server over JSON-RPC;
 - uses an isolated temporary `HOME` and `CODEX_HOME`, copying only `auth.json`
   when file-based auth is available;
-- explicitly loads the Codex wiki skill from the checkout under test;
+- explicitly loads the selected Codex skill from the checkout under test;
 - copies the synthetic golden wiki into an ephemeral project;
 - disables Codex code mode and injects one deterministic, read-only
   `wiki_fixture_read` dynamic tool;
@@ -61,6 +75,10 @@ variables in a wiki-quality benchmark.
 cold quality/context measurement. The second turn measures warm-thread and
 provider-cache behavior; it may reuse evidence already present in the thread.
 
+Use `--profile query` for the production `$wiki-query` path and
+`--profile full` for `@wiki`. Do not compare reports from different profiles as
+if they were code-only changes; record the profile as part of the experiment.
+
 ## Layer 3: Claude Code
 
 Claude Code exposes cache creation, cache reads, cost, TTFT, API duration, and
@@ -69,13 +87,16 @@ tool-use events in its stream-json result:
 ```bash
 ./scripts/benchmark-token-efficiency claude-live \
   --model claude-sonnet-4-6 \
+  --route command \
   --repeats 2 \
   --output benchmarks/results/claude-current.json
 ```
 
-The Claude runner loads the checkout with `--plugin-dir`, allows only `Read`
-and `Skill`, disables user settings and MCP servers, and requires successful
-reads from the synthetic `.wiki`. Each repeat is a fresh Claude Code process so
+The Claude runner loads the checkout with `--plugin-dir`, disables user
+settings and MCP servers, and requires successful reads from the synthetic
+`.wiki`. `--route command` invokes the actual `/wiki:query` command and permits
+only `Read`, `Glob`, and `Grep`. `--route skill` tests natural plugin activation
+with only `Read` and `Skill`. Each repeat is a fresh Claude Code process so
 cache behavior reflects reusable prompt prefixes rather than conversation
 history. Claude input accounting is:
 
@@ -87,6 +108,12 @@ uncached input = input_tokens + cache_creation_input_tokens
 The report also records `total_cost_usd`. Local subscription runs are useful
 for token and behavior comparisons; CI should use a dedicated
 `ANTHROPIC_API_KEY` when billed cost must be reproducible.
+
+For model calibration, run the same cases and route in reverse AB/BA order.
+`claude-sonnet-4-6` is the default efficiency gate. Compare it against the
+current Opus alias or an explicit resolved ID, for example `claude-opus-4-8`,
+without changing the fixture, route, budget, or test window. Model comparisons
+are observational and should not replace the fixed-model code-regression gate.
 
 ## Layer 4: local DS4 through Pi
 
@@ -107,7 +134,7 @@ The runner:
 
 - gives Pi a temporary `HOME` and `PI_CODING_AGENT_DIR` with only the DS4
   provider definition;
-- eagerly appends the compact `profiles/ds4/wiki-query/SKILL.md` to the stable
+- eagerly appends the compact `profiles/query-lite/SKILL.md` to the stable
   system-prompt prefix;
 - exposes only `read`, `grep`, `find`, and `ls`;
 - disables discovered extensions, skills, prompts, themes, and session writes;
@@ -135,6 +162,19 @@ This sequence is full, lite, lite, full. The comparison gate uses measured
 provider payload bytes and also requires every quality, citation, abstention,
 read-evidence, and no-mutation check to pass.
 
+For normal interactive Pi use, prefer the generic repo-owned launcher. Use the
+DS4 launcher when connecting to the local DS4 endpoint:
+
+```bash
+./scripts/pi-wiki-query
+./scripts/pi-ds4-wiki-query
+```
+
+Both disable extension/skill/prompt/theme discovery, select only read-only
+tools, and load the same query profile used by the benchmark. The DS4 variant
+also isolates Pi state, creates the provider entry when missing, and loads the
+DS4 adapter. Use `--dry-run` to inspect either command without starting Pi.
+
 ## Codex paired AB/BA comparison
 
 Use two clean worktrees and the same model, machine, account, and test window:
@@ -144,6 +184,7 @@ Use two clean worktrees and the same model, machine, account, and test window:
   --baseline-root /path/to/llm-wiki-baseline \
   --candidate-root /path/to/llm-wiki-candidate \
   --model gpt-5.6-sol \
+  --profile query \
   --repeats 2 \
   --output-dir benchmarks/results/paired
 ```
@@ -153,6 +194,8 @@ ordering bias from transient latency and cache conditions. The aggregate
 comparison fails unless:
 
 - both reports are independently valid;
+- the backend and selected query/full profile match;
+- the case-file and fixture-tree SHA-256 identities match;
 - the observed model and turn count match;
 - the candidate completes every turn;
 - deterministic answer quality is preserved;
@@ -172,11 +215,13 @@ Change the final gate only when the experiment has a documented reason:
   --baseline-root /path/to/llm-wiki-baseline \
   --candidate-root /path/to/llm-wiki-candidate \
   --model claude-sonnet-4-6 \
+  --route command \
   --output-dir benchmarks/results/claude-paired
 ```
 
 Claude comparisons add a 5% cost-regression ceiling by default. Override it
-only for a documented experiment:
+only for a documented experiment. The comparison also rejects reports produced
+with different `--route` values:
 
 ```bash
 --max-cost-regression-pct 10
@@ -196,6 +241,11 @@ To compare existing reports without rerunning models:
 - Static budgets: `tests/budgets/token-budgets.json`
 - Deterministic protocol test: `tests/test-token-benchmarks.sh`
 - Local result directory: `benchmarks/results/` (gitignored)
+
+OpenCode intentionally has no model-specific live command in this suite. Its
+generated profiles are covered by sync tests and static budgets, while users
+may attach any provider/model combination. Add a live lane only after pinning a
+specific OpenCode model and endpoint so results are reproducible.
 
 Cases use exact required and forbidden strings rather than another LLM grader.
 Add cases when a routing or workflow optimization could change behavior.

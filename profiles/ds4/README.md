@@ -1,8 +1,19 @@
 # DS4 Query Profile
 
-`wiki-query/SKILL.md` is a compact, read-only profile for local DS4 models.
-It covers the common query and inventory-lookup paths without loading the full
-research, ingestion, compilation, and maintenance instructions.
+`../query-lite/SKILL.md` is the shared compact, read-only profile used by DS4,
+Codex, Claude, Pi, and portable agents. It covers common query and
+inventory-lookup paths without loading research, ingestion, compilation, and
+maintenance instructions.
+
+The simplest DS4 launch is:
+
+```bash
+./scripts/pi-ds4-wiki-query
+```
+
+The launcher uses isolated Pi state, writes a DS4 provider config only when one
+does not exist, disables discovery, exposes only read tools, and supports
+`--dry-run` for inspection.
 
 With Pi, load the profile and its small query adapter, then expose only
 read-only tools:
@@ -10,7 +21,7 @@ read-only tools:
 ```bash
 pi \
   --extension profiles/ds4/pi-query-tools.ts \
-  --append-system-prompt profiles/ds4/wiki-query/SKILL.md \
+  --append-system-prompt profiles/query-lite/SKILL.md \
   --tools read,grep,find,ls
 ```
 
