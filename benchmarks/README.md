@@ -4,8 +4,9 @@ This suite separates cheap, deterministic context budgets from cost-bearing
 model measurements. It is designed to answer two different questions:
 
 1. Did checked-in prompt or skill material get larger?
-2. Did a candidate change reduce real Codex or Claude tokens without reducing answer
-   quality or changing the fixture?
+2. Did a candidate change reduce real Codex or Claude tokens, or the exact Pi
+   provider payload sent to local DS4, without reducing answer quality or
+   changing the fixture?
 
 ## Layer 1: deterministic budgets
 
@@ -17,11 +18,12 @@ Run on every commit and in CI:
 
 The command measures bytes or characters for the portable protocol, Claude and
 Codex skills and activation descriptions, Claude plugin manifest and commands,
-Codex agent metadata, and the lazy reference library. Baselines and hard ceilings live in
+Codex agent metadata, the lazy reference library, and the compact DS4 query
+skill and adapter. Baselines and hard ceilings live in
 `tests/budgets/token-budgets.json`.
 
-These are context-size proxies, not tokenizer estimates. Real model token
-counts come from Layer 2.
+These are context-size proxies, not tokenizer estimates. Provider-specific
+measurements come from the live layers below.
 
 ## Layer 2: Codex app-server
 
@@ -86,6 +88,53 @@ The report also records `total_cost_usd`. Local subscription runs are useful
 for token and behavior comparisons; CI should use a dedicated
 `ANTHROPIC_API_KEY` when billed cost must be reproducible.
 
+## Layer 4: local DS4 through Pi
+
+The DS4 lane runs Pi in JSON mode against an isolated custom provider config:
+
+```bash
+PI_CLI="$(npm root -g)/@mariozechner/pi-coding-agent/dist/cli.js"
+
+./scripts/benchmark-token-efficiency ds4-live \
+  --pi-command "node $PI_CLI" \
+  --repeats 2 \
+  --output benchmarks/results/ds4-lite.json
+```
+
+Start the DS4 server first. The default endpoint is
+`http://127.0.0.1:8000/v1`; override it with `--base-url` or `DS4_BASE_URL`.
+The runner:
+
+- gives Pi a temporary `HOME` and `PI_CODING_AGENT_DIR` with only the DS4
+  provider definition;
+- eagerly appends the compact `profiles/ds4/wiki-query/SKILL.md` to the stable
+  system-prompt prefix;
+- exposes only `read`, `grep`, `find`, and `ls`;
+- disables discovered extensions, skills, prompts, themes, and session writes;
+- loads the read-only DS4 query adapter and then a passive payload meter;
+- records exact serialized provider-request bytes, a clearly labeled
+  character-based token estimate, model-reported usage when available, TTFT,
+  latency, tool reads, answer quality, and fixture immutability; and
+- uses DS4-specific cases for exact path citations and honest abstention.
+
+The DS4 server currently does not return usage in Pi's streaming mode, so
+`provider_payload_bytes` is the primary comparable context metric. It is exact
+for the serialized requests Pi sends. `provider_payload_estimated_tokens` is a
+heuristic (`characters / 3`), not a tokenizer result.
+
+Compare the full wiki-manager instructions against the compact query profile
+in AB/BA order:
+
+```bash
+./scripts/benchmark-token-efficiency ds4-pair \
+  --pi-command "node $PI_CLI" \
+  --output-dir benchmarks/results/ds4-paired
+```
+
+This sequence is full, lite, lite, full. The comparison gate uses measured
+provider payload bytes and also requires every quality, citation, abstention,
+read-evidence, and no-mutation check to pass.
+
 ## Codex paired AB/BA comparison
 
 Use two clean worktrees and the same model, machine, account, and test window:
@@ -143,6 +192,7 @@ To compare existing reports without rerunning models:
 ## Cases and results
 
 - Cases: `benchmarks/cases/wiki-query.jsonl`
+- DS4 cases: `benchmarks/cases/ds4-wiki-query.jsonl`
 - Static budgets: `tests/budgets/token-budgets.json`
 - Deterministic protocol test: `tests/test-token-benchmarks.sh`
 - Local result directory: `benchmarks/results/` (gitignored)
@@ -156,4 +206,6 @@ For Codex, `cached_input_tokens` is the cache-read count surfaced by app-server;
 the protocol does not expose cache writes or billing. For Claude, cache creation
 and cache reads are separate and the CLI reports estimated USD cost. Do not
 compare latency, cost, or cache ratios across different models, machines,
-accounts, or substantially different test windows.
+accounts, or substantially different test windows. For DS4, compare exact
+provider payload bytes and quality within the same Pi, adapter, server, model,
+and endpoint configuration.

@@ -6,6 +6,7 @@ ROOT="$(dirname "$SCRIPT_DIR")"
 BENCH="$ROOT/scripts/benchmark-token-efficiency"
 FAKE_SERVER="$ROOT/tests/fixtures/fake-codex-app-server.py"
 FAKE_CLAUDE="$ROOT/tests/fixtures/fake-claude-cli.py"
+FAKE_PI="$ROOT/tests/fixtures/fake-pi-cli.py"
 
 mkdir -p "$ROOT/.tmp"
 TMP_ROOT="$(mktemp -d "$ROOT/.tmp/token-benchmark.XXXXXX")"
@@ -139,6 +140,63 @@ import json, sys
 report = json.load(open(sys.argv[1]))
 assert report["passed"] is True
 print("  PASS: Claude AB/BA pair orchestration")
+PY
+
+"$BENCH" ds4-live \
+  --root "$ROOT" \
+  --pi-command "python3 '$FAKE_PI'" \
+  --repeats 2 \
+  --output "$TMP_ROOT/ds4-live.json" >/dev/null
+python3 - "$TMP_ROOT/ds4-live.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+summary = report["summary"]
+assert report["kind"] == "pi_ds4"
+assert report["instruction"] == "profiles/ds4/wiki-query/SKILL.md"
+assert report["tool_surface"] == ["read", "grep", "find", "ls"]
+assert summary["passed"] is True
+assert summary["turns"] == 8
+assert summary["quality_passes"] == 8
+assert summary["fixture_reads"] == 16
+assert summary["provider_requests"] == 16
+assert summary["provider_payload_bytes"] > 0
+assert all(row["ttft_ms"] is not None for row in report["runs"])
+assert all(row["quality"]["read_only_tool_surface"] for row in report["runs"])
+assert next(row for row in report["runs"] if row["case_id"] == "honest-gap")["quality"]["passed"]
+print("  PASS: Pi/DS4 JSON, payload, tool-evidence, and quality accounting")
+PY
+
+if "$BENCH" ds4-live \
+  --root "$ROOT" \
+  --pi-command "env FAKE_PI_WRITE=1 python3 '$FAKE_PI'" \
+  --case reliability-metrics \
+  --output "$TMP_ROOT/ds4-write-failure.json" >/dev/null 2>&1; then
+  echo "FAIL: DS4 benchmark should reject unexpected write-tool use" >&2
+  exit 1
+fi
+python3 - "$TMP_ROOT/ds4-write-failure.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+run = report["runs"][0]
+assert report["summary"]["passed"] is False
+assert run["quality"]["read_only_tool_surface"] is False
+assert run["quality"]["unexpected_tools_used"] == ["write"]
+print("  PASS: DS4 benchmark rejects unexpected write-tool use")
+PY
+
+"$BENCH" ds4-pair \
+  --root "$ROOT" \
+  --output-dir "$TMP_ROOT/ds4-pair" \
+  --pi-command "python3 '$FAKE_PI'" \
+  --case reliability-metrics >/dev/null
+python3 - "$TMP_ROOT/ds4-pair/comparison.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+assert report["passed"] is True
+assert report["context_regression_metric"] == "provider_payload_bytes"
+assert report["metrics"]["provider_payload_bytes"]["delta_pct"] < 0
+assert report["gates"]["provider_payload_regression_within_pct"] is True
+print("  PASS: DS4 full/lite AB/BA comparison uses measured provider payload")
 PY
 
 echo "OK: token benchmark suite passed."

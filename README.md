@@ -113,21 +113,33 @@ The `external_directory` permission is required because the wiki hub lives outsi
 
 Web search requires `export OPENCODE_ENABLE_EXA=1`.
 
-**Pi** (instruction file — best for local models):
+**Pi** (skill file, best for local models):
 
-Pi's minimal system prompt (~1K tokens) leaves room for the full wiki skill on 32K context local models.
+Pi's minimal system prompt leaves room for on-demand wiki workflows on local
+models. Load the full skill for research and write-capable maintenance:
 
 ```bash
-pi --instructions path/to/llm-wiki/plugins/llm-wiki-opencode/skills/wiki-manager/SKILL.md
+pi --skill path/to/llm-wiki/plugins/llm-wiki-opencode/skills/wiki-manager/SKILL.md
 ```
 
-With a local llama-server backend (no cloud API needed):
+Invoke it as `/skill:wiki-manager`, or let Pi load it when the request clearly
+matches its description.
+
+For fast read-only queries on DS4-class local models, use the compact stable
+prompt and a read-only tool surface instead of loading every research workflow:
+
 ```bash
 OPENAI_BASE_URL=http://127.0.0.1:8080/v1 OPENAI_API_KEY=local \
-  pi --instructions path/to/llm-wiki/plugins/llm-wiki-opencode/skills/wiki-manager/SKILL.md
+  pi \
+    --extension path/to/llm-wiki/profiles/ds4/pi-query-tools.ts \
+    --append-system-prompt path/to/llm-wiki/profiles/ds4/wiki-query/SKILL.md \
+    --tools read,grep,find,ls
 ```
 
-Pi uses the same OpenCode skill file — no separate packaging needed.
+The DS4 query profile is intentionally unable to write. Switch to the full
+skill for ingest, research, compile, lint, or other mutating workflows. See
+[`profiles/ds4/README.md`](profiles/ds4/README.md) and the reproducible
+[`benchmarks/README.md`](benchmarks/README.md) DS4 lane.
 
 **Any LLM Agent** (idea file):
 ```bash

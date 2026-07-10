@@ -44,6 +44,18 @@
     "codex_lazy_references_bytes": {
       "baseline": 203348,
       "max": 210000
+    },
+    "ds4_query_skill_bytes": {
+      "baseline": 2332,
+      "max": 3000
+    },
+    "ds4_query_skill_description_chars": {
+      "baseline": 142,
+      "max": 200
+    },
+    "ds4_query_extension_bytes": {
+      "baseline": 1550,
+      "max": 2000
     }
   }
 }
