@@ -35,7 +35,7 @@ jobs:
         run: chmod +x tests/test-local-cli-lint.sh && ./tests/test-local-cli-lint.sh
 
       - name: Run token budget and benchmark protocol tests
-        run: chmod +x scripts/benchmark-token-efficiency tests/test-token-benchmarks.sh tests/fixtures/fake-codex-app-server.py && ./tests/test-token-benchmarks.sh
+        run: chmod +x scripts/benchmark-token-efficiency tests/test-token-benchmarks.sh tests/fixtures/fake-codex-app-server.py tests/fixtures/fake-claude-cli.py && ./tests/test-token-benchmarks.sh
 
       - name: Verify Codex plugin sync
         run: chmod +x tests/test-codex-sync.sh && ./tests/test-codex-sync.sh

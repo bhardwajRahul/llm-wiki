@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(dirname "$SCRIPT_DIR")"
 BENCH="$ROOT/scripts/benchmark-token-efficiency"
 FAKE_SERVER="$ROOT/tests/fixtures/fake-codex-app-server.py"
+FAKE_CLAUDE="$ROOT/tests/fixtures/fake-claude-cli.py"
 
 mkdir -p "$ROOT/.tmp"
 TMP_ROOT="$(mktemp -d "$ROOT/.tmp/token-benchmark.XXXXXX")"
@@ -93,6 +94,51 @@ import json, sys
 report = json.load(open(sys.argv[1]))
 assert report["passed"] is True
 print("  PASS: AB/BA pair orchestration")
+PY
+
+"$BENCH" claude-live \
+  --root "$ROOT" \
+  --claude-command "python3 '$FAKE_CLAUDE'" \
+  --repeats 2 \
+  --output "$TMP_ROOT/claude-live.json" >/dev/null
+python3 - "$TMP_ROOT/claude-live.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+summary = report["summary"]
+assert report["kind"] == "claude_code"
+assert summary["passed"] is True
+assert summary["turns"] == 6
+assert summary["quality_passes"] == 6
+assert summary["fixture_reads"] == 12
+assert summary["cache_creation_input_tokens"] == 1200
+assert summary["cache_read_input_tokens"] == 4800
+assert summary["total_cost_usd"] == 0.3
+assert all(row["permission_denials"] == [] for row in report["runs"])
+print("  PASS: Claude stream, cache, cost, tool-evidence, and quality accounting")
+PY
+
+"$BENCH" compare "$TMP_ROOT/claude-live.json" "$TMP_ROOT/claude-live.json" \
+  --check --output "$TMP_ROOT/claude-comparison.json" >/dev/null
+python3 - "$TMP_ROOT/claude-comparison.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+assert report["passed"] is True
+assert report["metrics"]["total_cost_usd"]["delta_pct"] == 0.0
+assert report["gates"]["cost_regression_within_pct"] is True
+print("  PASS: Claude token and cost comparison gates")
+PY
+
+"$BENCH" claude-pair \
+  --baseline-root "$ROOT" \
+  --candidate-root "$ROOT" \
+  --output-dir "$TMP_ROOT/claude-pair" \
+  --claude-command "python3 '$FAKE_CLAUDE'" \
+  --case reliability-metrics >/dev/null
+python3 - "$TMP_ROOT/claude-pair/comparison.json" <<'PY'
+import json, sys
+report = json.load(open(sys.argv[1]))
+assert report["passed"] is True
+print("  PASS: Claude AB/BA pair orchestration")
 PY
 
 echo "OK: token benchmark suite passed."

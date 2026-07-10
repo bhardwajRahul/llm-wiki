@@ -9,6 +9,26 @@
       "baseline": 24703,
       "max": 25000
     },
+    "claude_skill_description_chars": {
+      "baseline": 1392,
+      "max": 1450
+    },
+    "claude_plugin_manifest_bytes": {
+      "baseline": 1004,
+      "max": 1100
+    },
+    "claude_plugin_description_chars": {
+      "baseline": 553,
+      "max": 650
+    },
+    "claude_lazy_commands_bytes": {
+      "baseline": 252701,
+      "max": 260000
+    },
+    "claude_query_command_bytes": {
+      "baseline": 12447,
+      "max": 13000
+    },
     "codex_skill_bytes": {
       "baseline": 11692,
       "max": 12000

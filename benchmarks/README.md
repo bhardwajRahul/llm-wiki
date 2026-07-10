@@ -4,7 +4,7 @@ This suite separates cheap, deterministic context budgets from cost-bearing
 model measurements. It is designed to answer two different questions:
 
 1. Did checked-in prompt or skill material get larger?
-2. Did a candidate change reduce real Codex tokens without reducing answer
+2. Did a candidate change reduce real Codex or Claude tokens without reducing answer
    quality or changing the fixture?
 
 ## Layer 1: deterministic budgets
@@ -16,8 +16,8 @@ Run on every commit and in CI:
 ```
 
 The command measures bytes or characters for the portable protocol, Claude and
-Codex skills, Codex activation description, agent metadata, and lazy reference
-library. Baselines and hard ceilings live in
+Codex skills and activation descriptions, Claude plugin manifest and commands,
+Codex agent metadata, and the lazy reference library. Baselines and hard ceilings live in
 `tests/budgets/token-budgets.json`.
 
 These are context-size proxies, not tokenizer estimates. Real model token
@@ -59,7 +59,34 @@ variables in a wiki-quality benchmark.
 cold quality/context measurement. The second turn measures warm-thread and
 provider-cache behavior; it may reuse evidence already present in the thread.
 
-## Paired AB/BA comparison
+## Layer 3: Claude Code
+
+Claude Code exposes cache creation, cache reads, cost, TTFT, API duration, and
+tool-use events in its stream-json result:
+
+```bash
+./scripts/benchmark-token-efficiency claude-live \
+  --model claude-sonnet-4-6 \
+  --repeats 2 \
+  --output benchmarks/results/claude-current.json
+```
+
+The Claude runner loads the checkout with `--plugin-dir`, allows only `Read`
+and `Skill`, disables user settings and MCP servers, and requires successful
+reads from the synthetic `.wiki`. Each repeat is a fresh Claude Code process so
+cache behavior reflects reusable prompt prefixes rather than conversation
+history. Claude input accounting is:
+
+```text
+total input = input_tokens + cache_creation_input_tokens + cache_read_input_tokens
+uncached input = input_tokens + cache_creation_input_tokens
+```
+
+The report also records `total_cost_usd`. Local subscription runs are useful
+for token and behavior comparisons; CI should use a dedicated
+`ANTHROPIC_API_KEY` when billed cost must be reproducible.
+
+## Codex paired AB/BA comparison
 
 Use two clean worktrees and the same model, machine, account, and test window:
 
@@ -89,6 +116,23 @@ Change the final gate only when the experiment has a documented reason:
 --max-input-regression-pct 5
 ```
 
+## Claude paired AB/BA comparison
+
+```bash
+./scripts/benchmark-token-efficiency claude-pair \
+  --baseline-root /path/to/llm-wiki-baseline \
+  --candidate-root /path/to/llm-wiki-candidate \
+  --model claude-sonnet-4-6 \
+  --output-dir benchmarks/results/claude-paired
+```
+
+Claude comparisons add a 5% cost-regression ceiling by default. Override it
+only for a documented experiment:
+
+```bash
+--max-cost-regression-pct 10
+```
+
 To compare existing reports without rerunning models:
 
 ```bash
@@ -108,8 +152,8 @@ Add cases when a routing or workflow optimization could change behavior.
 
 ## Interpreting cache numbers
 
-`cached_input_tokens` is the cache-read count surfaced by Codex app-server.
-The protocol does not expose cache-write tokens or provider billing in this
-report. Use provider billing exports separately when dollar-cost attribution is
-required. Do not compare latency or cache ratios across different models,
-machines, accounts, or substantially different test windows.
+For Codex, `cached_input_tokens` is the cache-read count surfaced by app-server;
+the protocol does not expose cache writes or billing. For Claude, cache creation
+and cache reads are separate and the CLI reports estimated USD cost. Do not
+compare latency, cost, or cache ratios across different models, machines,
+accounts, or substantially different test windows.

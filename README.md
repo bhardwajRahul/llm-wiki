@@ -660,8 +660,8 @@ not cite archived material as active evidence without explicit inclusion.
 
 ## Development Benchmarks
 
-Token-efficiency changes are tested with deterministic context budgets and an
-optional real Codex app-server AB/BA harness. See
+Token-efficiency changes are tested with deterministic context budgets and
+optional real Codex and Claude Code AB/BA harnesses. See
 [`benchmarks/README.md`](benchmarks/README.md) for commands, quality gates, and
 cache-metric caveats.
 

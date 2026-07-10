@@ -13,9 +13,10 @@ reference growth before model calls are needed.
 ./scripts/benchmark-token-efficiency static --check
 ```
 
-The test also exercises the complete app-server JSON-RPC accounting path with a
-fake server. Real model runs and AB/BA comparisons are explicit and
-cost-bearing; see [`../benchmarks/README.md`](../benchmarks/README.md).
+The test also exercises complete Codex app-server and Claude stream-json
+accounting paths with fake providers. Real model runs and AB/BA comparisons are
+explicit and cost-bearing; see
+[`../benchmarks/README.md`](../benchmarks/README.md).
 
 ## Layer 1: Structural Validation ($0, every push)
 
@@ -50,8 +51,8 @@ No LLM calls. Validates wiki file structure, default `schema.md`, frontmatter sc
 - Docs consistency: README command table, plugin/marketplace versions, and
   reference-file allowlists stay synchronized
 - Token budgets: checked-in context surfaces stay below explicit ceilings
-- App-server accounting: tokens, cache reads, latency, fixture reads, quality,
-  and write detection are parsed and gated deterministically
+- Codex/Claude accounting: tokens, cache creation/reads, cost, latency, fixture
+  reads, quality, and write detection are parsed and gated deterministically
 
 ### Defect fixtures
 

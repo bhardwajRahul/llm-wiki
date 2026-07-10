@@ -42,7 +42,7 @@ git -C ~/.claude/plugins/marketplaces/llm-wiki remote set-url origin https://git
 ./tests/test-session-concurrency.sh # concurrent session-state regression
 ./tests/test-codex-sync.sh         # Codex plugin mirror matches Claude source
 ./tests/test-opencode-sync.sh     # OpenCode plugin mirror matches Claude source
-./tests/test-token-benchmarks.sh  # deterministic context budgets + app-server protocol fixture
+./tests/test-token-benchmarks.sh  # budgets + fake Codex/Claude protocol fixtures
 ```
 
 ### Codex runtime smoke test (run when touching Codex packaging/docs)
@@ -57,7 +57,7 @@ git -C ~/.claude/plugins/marketplaces/llm-wiki remote set-url origin https://git
 ./scripts/benchmark-token-efficiency static --check
 ```
 
-The static gate is free and deterministic. Real Codex app-server and AB/BA
+The static gate is free and deterministic. Real Codex, Claude, and AB/BA
 commands consume account quota; see `benchmarks/README.md` before running them.
 
 `test-codex-sync.sh` and `test-opencode-sync.sh` are self-healing: if they fail,
