@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "metrics": {
+    "portable_protocol_bytes": {
+      "baseline": 51174,
+      "max": 52000
+    },
+    "claude_skill_bytes": {
+      "baseline": 24703,
+      "max": 25000
+    },
+    "codex_skill_bytes": {
+      "baseline": 11692,
+      "max": 12000
+    },
+    "codex_skill_description_chars": {
+      "baseline": 934,
+      "max": 1000
+    },
+    "codex_agents_metadata_bytes": {
+      "baseline": 386,
+      "max": 500
+    },
+    "codex_lazy_references_bytes": {
+      "baseline": 203348,
+      "max": 210000
+    }
+  }
+}

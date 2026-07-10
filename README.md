@@ -658,6 +658,13 @@ Archived topics are excluded from quick, standard, and list results unless you
 pass `--include-archived`. Deep mode may show archived index hits, but it does
 not cite archived material as active evidence without explicit inclusion.
 
+## Development Benchmarks
+
+Token-efficiency changes are tested with deterministic context budgets and an
+optional real Codex app-server AB/BA harness. See
+[`benchmarks/README.md`](benchmarks/README.md) for commands, quality gates, and
+cache-metric caveats.
+
 ## Credits
 
 - [Andrej Karpathy](https://x.com/karpathy) — the [LLM wiki concept](https://x.com/karpathy/status/2039805659525644595) and [idea file](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)

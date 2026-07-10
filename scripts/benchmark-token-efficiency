@@ -1,0 +1,948 @@
+#!/usr/bin/env python3
+"""Deterministic and live token-efficiency benchmarks for llm-wiki.
+
+The static benchmark is safe for CI and never calls a model. The live and pair
+benchmarks use Codex app-server and may consume account quota.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import queue
+import shlex
+import shutil
+import statistics
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+from collections import Counter
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Iterable
+
+
+SCHEMA_VERSION = 1
+DEFAULT_SERVER_COMMAND = (
+    "codex app-server --stdio --disable code_mode_host --disable code_mode"
+)
+
+
+def repo_root(start: Path | None = None) -> Path:
+    current = (start or Path(__file__).resolve()).resolve()
+    if current.is_file():
+        current = current.parent
+    for candidate in (current, *current.parents):
+        if (candidate / "plugins/llm-wiki/skills/wiki/SKILL.md").is_file():
+            return candidate
+    raise SystemExit("could not locate llm-wiki repository root")
+
+
+def git_commit(root: Path) -> str:
+    proc = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "HEAD"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return proc.stdout.strip() if proc.returncode == 0 else "unknown"
+
+
+def display_path(path: Path, root: Path) -> str:
+    try:
+        return str(path.relative_to(root))
+    except ValueError:
+        return str(path)
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def write_json(data: dict[str, Any], output: str | None) -> None:
+    rendered = json.dumps(data, indent=2, sort_keys=True) + "\n"
+    if not output or output == "-":
+        sys.stdout.write(rendered)
+        return
+    target = Path(output).expanduser().resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(rendered, encoding="utf-8")
+    print(target)
+
+
+def folded_frontmatter_value(path: Path, key: str) -> str:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0].strip() != "---":
+        raise ValueError(f"missing frontmatter in {path}")
+    index = 1
+    while index < len(lines) and lines[index].strip() != "---":
+        line = lines[index]
+        if line.startswith(f"{key}:"):
+            value = line.split(":", 1)[1].strip()
+            if value in {">", "|", ">-", "|-"}:
+                parts: list[str] = []
+                index += 1
+                while index < len(lines):
+                    continuation = lines[index]
+                    if continuation and not continuation[0].isspace():
+                        break
+                    if continuation.strip():
+                        parts.append(continuation.strip())
+                    index += 1
+                return " ".join(parts)
+            return value.strip("\"'")
+        index += 1
+    raise ValueError(f"missing {key!r} in {path}")
+
+
+def file_bytes(path: Path) -> int:
+    return path.stat().st_size
+
+
+def collect_static_metrics(root: Path) -> dict[str, int]:
+    claude_skill = root / "claude-plugin/skills/wiki-manager/SKILL.md"
+    codex_skill = root / "plugins/llm-wiki/skills/wiki/SKILL.md"
+    agents_metadata = root / "plugins/llm-wiki/skills/wiki/agents/openai.yaml"
+    references = root / "plugins/llm-wiki/skills/wiki/references"
+    description = folded_frontmatter_value(codex_skill, "description")
+    return {
+        "portable_protocol_bytes": file_bytes(root / "AGENTS.md"),
+        "claude_skill_bytes": file_bytes(claude_skill),
+        "codex_skill_bytes": file_bytes(codex_skill),
+        "codex_skill_description_chars": len(description),
+        "codex_agents_metadata_bytes": file_bytes(agents_metadata),
+        "codex_lazy_references_bytes": sum(
+            file_bytes(path) for path in sorted(references.glob("*.md"))
+        ),
+    }
+
+
+def static_report(root: Path, budgets_path: Path) -> dict[str, Any]:
+    budgets = json.loads(budgets_path.read_text(encoding="utf-8"))
+    if budgets.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(f"unsupported budget schema in {budgets_path}")
+    measured = collect_static_metrics(root)
+    rows: dict[str, Any] = {}
+    passed = True
+    configured = budgets.get("metrics", {})
+    missing = sorted(set(configured) - set(measured))
+    unknown = sorted(set(measured) - set(configured))
+    if missing or unknown:
+        raise ValueError(
+            f"budget/measurement mismatch: missing={missing}, unbudgeted={unknown}"
+        )
+    for name, value in measured.items():
+        budget = configured[name]
+        baseline = int(budget["baseline"])
+        maximum = int(budget["max"])
+        metric_passed = value <= maximum
+        passed = passed and metric_passed
+        rows[name] = {
+            "value": value,
+            "baseline": baseline,
+            "delta_from_baseline": value - baseline,
+            "max": maximum,
+            "passed": metric_passed,
+        }
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "kind": "static_context_budget",
+        "git_commit": git_commit(root),
+        "budgets": display_path(budgets_path, root),
+        "metrics": rows,
+        "passed": passed,
+    }
+
+
+def load_cases(path: Path, selected: set[str] | None = None) -> list[dict[str, Any]]:
+    cases: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not raw.strip() or raw.lstrip().startswith("#"):
+            continue
+        case = json.loads(raw)
+        case_id = case.get("id")
+        if not isinstance(case_id, str) or not case_id:
+            raise ValueError(f"case on line {number} has no id")
+        if case_id in seen:
+            raise ValueError(f"duplicate case id: {case_id}")
+        seen.add(case_id)
+        if selected and case_id not in selected:
+            continue
+        if not isinstance(case.get("prompt"), str):
+            raise ValueError(f"case {case_id} has no prompt")
+        if not isinstance(case.get("required", []), list):
+            raise ValueError(f"case {case_id} required must be a list")
+        cases.append(case)
+    if selected:
+        missing = sorted(selected - {case["id"] for case in cases})
+        if missing:
+            raise ValueError(f"unknown case id(s): {', '.join(missing)}")
+    if not cases:
+        raise ValueError("no benchmark cases selected")
+    return cases
+
+
+def tree_digest(root: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        digest.update(str(path.relative_to(root)).encode())
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+class AppServerError(RuntimeError):
+    pass
+
+
+@dataclass
+class Event:
+    received_at: float
+    payload: dict[str, Any]
+
+
+class AppServer:
+    def __init__(self, command: str, env: dict[str, str], timeout: float):
+        self.command = command
+        self.timeout = timeout
+        self._next_id = 1
+        self._events: queue.Queue[Event | BaseException] = queue.Queue()
+        self._pending: list[Event] = []
+        self._stderr: list[str] = []
+        self.process = subprocess.Popen(
+            shlex.split(command),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            bufsize=1,
+            env=env,
+        )
+        assert self.process.stdout is not None
+        assert self.process.stderr is not None
+        threading.Thread(target=self._read_stdout, daemon=True).start()
+        threading.Thread(target=self._read_stderr, daemon=True).start()
+
+    def _read_stdout(self) -> None:
+        assert self.process.stdout is not None
+        try:
+            for line in self.process.stdout:
+                if not line.strip():
+                    continue
+                try:
+                    payload = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    raise AppServerError(f"non-JSON app-server output: {line.rstrip()}") from exc
+                self._events.put(Event(time.monotonic(), payload))
+            self._events.put(AppServerError("app-server stdout closed"))
+        except BaseException as exc:  # surfaced on the main thread
+            self._events.put(exc)
+
+    def _read_stderr(self) -> None:
+        assert self.process.stderr is not None
+        for line in self.process.stderr:
+            self._stderr.append(line.rstrip())
+            if len(self._stderr) > 100:
+                del self._stderr[:20]
+
+    def _send(self, payload: dict[str, Any]) -> None:
+        if self.process.poll() is not None:
+            raise AppServerError(self._failure("app-server exited before request"))
+        assert self.process.stdin is not None
+        self.process.stdin.write(json.dumps(payload, separators=(",", ":")) + "\n")
+        self.process.stdin.flush()
+
+    def notify(self, method: str, params: dict[str, Any] | None = None) -> None:
+        self._send({"jsonrpc": "2.0", "method": method, "params": params or {}})
+
+    def respond(self, request_id: Any, result: dict[str, Any]) -> None:
+        self._send({"jsonrpc": "2.0", "id": request_id, "result": result})
+
+    def request(self, method: str, params: dict[str, Any]) -> tuple[dict[str, Any], float]:
+        request_id = self._next_id
+        self._next_id += 1
+        self._send(
+            {"jsonrpc": "2.0", "id": request_id, "method": method, "params": params}
+        )
+        deadline = time.monotonic() + self.timeout
+        while True:
+            event = self._get(deadline)
+            payload = event.payload
+            if payload.get("id") == request_id:
+                if "error" in payload:
+                    raise AppServerError(f"{method} failed: {payload['error']}")
+                return payload.get("result", {}), event.received_at
+            if "id" in payload and "method" in payload:
+                raise AppServerError(
+                    f"unsupported app-server request while waiting for {method}: "
+                    f"{payload.get('method')}"
+                )
+            self._pending.append(event)
+
+    def next_event(self, deadline: float) -> Event:
+        if self._pending:
+            return self._pending.pop(0)
+        return self._get(deadline)
+
+    def _get(self, deadline: float) -> Event:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise AppServerError(self._failure("timed out waiting for app-server"))
+        try:
+            item = self._events.get(timeout=remaining)
+        except queue.Empty as exc:
+            raise AppServerError(self._failure("timed out waiting for app-server")) from exc
+        if isinstance(item, BaseException):
+            raise AppServerError(self._failure(str(item))) from item
+        return item
+
+    def _failure(self, message: str) -> str:
+        stderr = "\n".join(self._stderr[-20:])
+        return f"{message}\napp-server stderr:\n{stderr}" if stderr else message
+
+    def close(self) -> None:
+        if self.process.poll() is not None:
+            return
+        if self.process.stdin:
+            self.process.stdin.close()
+        try:
+            self.process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(timeout=2)
+
+
+def codex_version(command: str) -> str:
+    executable = shlex.split(command)[0] if command.strip() else ""
+    if Path(executable).name != "codex":
+        return "test-server"
+    proc = subprocess.run(
+        [executable, "--version"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return proc.stdout.strip() if proc.returncode == 0 else "unknown"
+
+
+def grade_output(case: dict[str, Any], output: str) -> dict[str, Any]:
+    folded = output.casefold()
+    missing = [term for term in case.get("required", []) if term.casefold() not in folded]
+    forbidden = [term for term in case.get("forbidden", []) if term.casefold() in folded]
+    maximum = int(case.get("max_output_chars", 4000))
+    return {
+        "passed": not missing and not forbidden and len(output) <= maximum,
+        "missing_required": missing,
+        "found_forbidden": forbidden,
+        "max_output_chars": maximum,
+    }
+
+
+def initialize(server: AppServer) -> None:
+    server.request(
+        "initialize",
+        {
+            "clientInfo": {
+                "name": "llm-wiki-token-benchmark",
+                "title": "llm-wiki token benchmark",
+                "version": "1.0.0",
+            },
+            "capabilities": {"experimentalApi": True},
+        },
+    )
+    server.notify("initialized")
+
+
+def fixture_tool_spec() -> dict[str, Any]:
+    return {
+        "type": "function",
+        "name": "wiki_fixture_read",
+        "description": (
+            "Read one UTF-8 file from the benchmark project's local .wiki. "
+            "Use relative paths such as _index.md or wiki/concepts/sample-concept.md."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "required": ["path"],
+            "properties": {"path": {"type": "string"}},
+            "additionalProperties": False,
+        },
+        "deferLoading": False,
+    }
+
+
+def handle_fixture_tool(
+    params: dict[str, Any], fixture_root: Path
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    tool = params.get("tool")
+    arguments = params.get("arguments", {})
+    if isinstance(arguments, str):
+        arguments = json.loads(arguments)
+    activity: dict[str, Any] = {"type": "dynamicToolCall", "tool": tool}
+    if tool != "wiki_fixture_read" or not isinstance(arguments, dict):
+        activity["success"] = False
+        return {
+            "success": False,
+            "contentItems": [{"type": "inputText", "text": "unsupported benchmark tool"}],
+        }, activity
+    relative = arguments.get("path")
+    activity["path"] = relative
+    if not isinstance(relative, str) or not relative or Path(relative).is_absolute():
+        activity["success"] = False
+        return {
+            "success": False,
+            "contentItems": [{"type": "inputText", "text": "path must be relative"}],
+        }, activity
+    candidate = (fixture_root / relative).resolve()
+    try:
+        candidate.relative_to(fixture_root.resolve())
+    except ValueError:
+        activity["success"] = False
+        return {
+            "success": False,
+            "contentItems": [{"type": "inputText", "text": "path escapes .wiki"}],
+        }, activity
+    if not candidate.is_file():
+        activity["success"] = False
+        return {
+            "success": False,
+            "contentItems": [{"type": "inputText", "text": f"not found: {relative}"}],
+        }, activity
+    content = candidate.read_text(encoding="utf-8")
+    if len(content) > 100_000:
+        content = content[:100_000] + "\n[truncated by benchmark harness]"
+    activity["success"] = True
+    activity["bytes"] = candidate.stat().st_size
+    return {
+        "success": True,
+        "contentItems": [{"type": "inputText", "text": content}],
+    }, activity
+
+
+def run_turn(
+    server: AppServer,
+    thread_id: str,
+    skill_path: Path,
+    fixture_root: Path,
+    case: dict[str, Any],
+    repeat: int,
+    require_fixture_read: bool,
+) -> dict[str, Any]:
+    started = time.monotonic()
+    result, response_at = server.request(
+        "turn/start",
+        {
+            "threadId": thread_id,
+            "input": [
+                {"type": "skill", "name": "wiki", "path": str(skill_path)},
+                {"type": "text", "text": case["prompt"]},
+            ],
+        },
+    )
+    turn_id = result.get("turn", {}).get("id")
+    if not turn_id:
+        raise AppServerError("turn/start response did not include a turn id")
+    output_parts: list[str] = []
+    completed_output: str | None = None
+    first_output_at: float | None = None
+    usage: dict[str, int] | None = None
+    compactions = 0
+    tool_activity: list[dict[str, Any]] = []
+    status = "unknown"
+    error: Any = None
+    completed_at = response_at
+    deadline = time.monotonic() + server.timeout
+    while True:
+        event = server.next_event(deadline)
+        payload = event.payload
+        method = payload.get("method")
+        params = payload.get("params", {})
+        if "id" in payload and method:
+            if method != "item/tool/call":
+                raise AppServerError(f"unsupported app-server request during turn: {method}")
+            tool_result, activity = handle_fixture_tool(params, fixture_root)
+            tool_activity.append(activity)
+            server.respond(payload["id"], tool_result)
+            continue
+        if params.get("turnId") not in {None, turn_id}:
+            continue
+        if method == "item/agentMessage/delta":
+            if first_output_at is None:
+                first_output_at = event.received_at
+            output_parts.append(params.get("delta", ""))
+        elif method == "item/completed":
+            item = params.get("item", {})
+            if item.get("type") == "agentMessage":
+                if first_output_at is None:
+                    first_output_at = event.received_at
+                completed_output = item.get("text", "")
+            elif item.get("type") == "commandExecution":
+                tool_activity.append(
+                    {
+                        "type": "commandExecution",
+                        "command": item.get("command"),
+                        "status": item.get("status"),
+                        "exit_code": item.get("exitCode"),
+                        "output_excerpt": (item.get("aggregatedOutput") or "")[:1000],
+                    }
+                )
+            elif item.get("type") == "fileChange":
+                tool_activity.append(
+                    {
+                        "type": "fileChange",
+                        "status": item.get("status"),
+                        "change_count": len(item.get("changes", [])),
+                    }
+                )
+            elif item.get("type") == "mcpToolCall":
+                tool_activity.append(
+                    {
+                        "type": item.get("type"),
+                        "tool": item.get("tool"),
+                        "status": item.get("status"),
+                    }
+                )
+        elif method == "thread/tokenUsage/updated" and params.get("turnId") == turn_id:
+            usage = params.get("tokenUsage", {}).get("last")
+        elif method in {"thread/compact/start", "thread/compacted"}:
+            compactions += 1
+        elif method == "error" and params.get("turnId") == turn_id:
+            error = params.get("error")
+        elif method == "turn/completed":
+            turn = params.get("turn", {})
+            if turn.get("id") != turn_id:
+                continue
+            status = turn.get("status", "unknown")
+            error = turn.get("error") or error
+            completed_at = event.received_at
+            break
+    output = completed_output if completed_output is not None else "".join(output_parts)
+    grade = grade_output(case, output)
+    fixture_reads = sum(
+        item.get("tool") == "wiki_fixture_read" and item.get("success") is True
+        for item in tool_activity
+    )
+    grade["fixture_reads"] = fixture_reads
+    grade["fixture_read_required"] = require_fixture_read
+    if require_fixture_read:
+        grade["passed"] = grade["passed"] and fixture_reads > 0
+    if usage is None:
+        usage = {
+            "totalTokens": 0,
+            "inputTokens": 0,
+            "cachedInputTokens": 0,
+            "outputTokens": 0,
+            "reasoningOutputTokens": 0,
+        }
+    normalized_usage = {
+        "total_tokens": int(usage.get("totalTokens", 0)),
+        "input_tokens": int(usage.get("inputTokens", 0)),
+        "cached_input_tokens": int(usage.get("cachedInputTokens", 0)),
+        "uncached_input_tokens": max(
+            0,
+            int(usage.get("inputTokens", 0)) - int(usage.get("cachedInputTokens", 0)),
+        ),
+        "output_tokens": int(usage.get("outputTokens", 0)),
+        "reasoning_output_tokens": int(usage.get("reasoningOutputTokens", 0)),
+    }
+    return {
+        "case_id": case["id"],
+        "repeat": repeat,
+        "warm": repeat > 1,
+        "turn_status": status,
+        "error": error,
+        "token_usage": normalized_usage,
+        "latency_ms": round((completed_at - started) * 1000, 1),
+        "ttft_ms": (
+            round((first_output_at - started) * 1000, 1)
+            if first_output_at is not None
+            else None
+        ),
+        "compactions": compactions,
+        "tool_calls": len(tool_activity),
+        "tool_activity": tool_activity,
+        "output_chars": len(output),
+        "output_excerpt": output[:500],
+        "quality": grade,
+    }
+
+
+def summarize_runs(runs: Iterable[dict[str, Any]]) -> dict[str, Any]:
+    rows = list(runs)
+
+    def total(key: str) -> int:
+        return sum(int(row["token_usage"][key]) for row in rows)
+
+    latencies = [float(row["latency_ms"]) for row in rows]
+    ttfts = [float(row["ttft_ms"]) for row in rows if row["ttft_ms"] is not None]
+    input_tokens = total("input_tokens")
+    cached = total("cached_input_tokens")
+    return {
+        "turns": len(rows),
+        "quality_passes": sum(bool(row["quality"]["passed"]) for row in rows),
+        "completed_turns": sum(row["turn_status"] == "completed" for row in rows),
+        "total_tokens": total("total_tokens"),
+        "input_tokens": input_tokens,
+        "cached_input_tokens": cached,
+        "uncached_input_tokens": total("uncached_input_tokens"),
+        "output_tokens": total("output_tokens"),
+        "reasoning_output_tokens": total("reasoning_output_tokens"),
+        "cache_read_ratio": round(cached / input_tokens, 4) if input_tokens else 0.0,
+        "median_latency_ms": round(statistics.median(latencies), 1) if latencies else None,
+        "median_ttft_ms": round(statistics.median(ttfts), 1) if ttfts else None,
+        "compactions": sum(int(row["compactions"]) for row in rows),
+        "tool_calls": sum(int(row["tool_calls"]) for row in rows),
+        "fixture_reads": sum(int(row["quality"].get("fixture_reads", 0)) for row in rows),
+    }
+
+
+def run_live_benchmark(
+    root: Path,
+    cases_path: Path,
+    selected: set[str] | None,
+    model: str | None,
+    repeats: int,
+    server_command: str,
+    timeout: float,
+) -> dict[str, Any]:
+    cases = load_cases(cases_path, selected)
+    fixture_source = root / "tests/fixtures/golden-wiki"
+    skill_path = root / "plugins/llm-wiki/skills/wiki/SKILL.md"
+    if not fixture_source.is_dir() or not skill_path.is_file():
+        raise ValueError("benchmark fixture or Codex skill is missing")
+    original_codex_home = os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
+    with tempfile.TemporaryDirectory(prefix="llm-wiki-token-bench-") as temp:
+        temp_root = Path(temp)
+        project = temp_root / "project"
+        home = temp_root / "home"
+        isolated_codex_home = temp_root / "codex-home"
+        project.mkdir()
+        home.mkdir()
+        isolated_codex_home.mkdir()
+        shutil.copytree(fixture_source, project / ".wiki")
+        before = tree_digest(project / ".wiki")
+        env = os.environ.copy()
+        env["HOME"] = str(home)
+        source_auth = Path(original_codex_home) / "auth.json"
+        if source_auth.is_file():
+            shutil.copy2(source_auth, isolated_codex_home / "auth.json")
+        env["CODEX_HOME"] = str(isolated_codex_home)
+        server = AppServer(server_command, env, timeout)
+        runs: list[dict[str, Any]] = []
+        actual_models: set[str] = set()
+        providers: set[str] = set()
+        try:
+            initialize(server)
+            for case in cases:
+                params: dict[str, Any] = {
+                    "cwd": str(project),
+                    "approvalPolicy": "never",
+                    "sandbox": "read-only",
+                    "ephemeral": True,
+                    "dynamicTools": [fixture_tool_spec()],
+                }
+                if model:
+                    params["model"] = model
+                thread, _ = server.request("thread/start", params)
+                thread_id = thread.get("thread", {}).get("id")
+                if not thread_id:
+                    raise AppServerError("thread/start response did not include a thread id")
+                if thread.get("model"):
+                    actual_models.add(thread["model"])
+                if thread.get("modelProvider"):
+                    providers.add(thread["modelProvider"])
+                for repeat in range(1, repeats + 1):
+                    runs.append(
+                        run_turn(
+                            server,
+                            thread_id,
+                            skill_path,
+                            project / ".wiki",
+                            case,
+                            repeat,
+                            repeat == 1,
+                        )
+                    )
+        finally:
+            server.close()
+        after = tree_digest(project / ".wiki")
+    fixture_changed = before != after
+    for row in runs:
+        row["fixture_changed"] = fixture_changed
+        if fixture_changed:
+            row["quality"]["passed"] = False
+    summary = summarize_runs(runs)
+    summary["fixture_changed"] = fixture_changed
+    summary["passed"] = (
+        not fixture_changed
+        and summary["turns"] == summary["quality_passes"]
+        and summary["turns"] == summary["completed_turns"]
+    )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "kind": "codex_app_server",
+        "generated_at": utc_now(),
+        "git_commit": git_commit(root),
+        "codex_version": codex_version(server_command),
+        "server_command": server_command,
+        "model_requested": model,
+        "models_observed": sorted(actual_models),
+        "model_providers": sorted(providers),
+        "cases": display_path(cases_path, root),
+        "fixture": "tests/fixtures/golden-wiki",
+        "isolated_codex_home": True,
+        "repeats_per_case": repeats,
+        "runs": runs,
+        "summary": summary,
+    }
+
+
+def percentage_delta(baseline: float, candidate: float) -> float | None:
+    if baseline == 0:
+        return None if candidate else 0.0
+    return round((candidate - baseline) * 100 / baseline, 2)
+
+
+def compare_reports(
+    baseline: dict[str, Any],
+    candidate: dict[str, Any],
+    max_input_regression_pct: float,
+) -> dict[str, Any]:
+    base = baseline["summary"]
+    cand = candidate["summary"]
+    metric_names = [
+        "total_tokens",
+        "input_tokens",
+        "cached_input_tokens",
+        "uncached_input_tokens",
+        "output_tokens",
+        "reasoning_output_tokens",
+        "median_latency_ms",
+        "median_ttft_ms",
+    ]
+    metrics: dict[str, Any] = {}
+    for name in metric_names:
+        before = base.get(name)
+        after = cand.get(name)
+        metrics[name] = {
+            "baseline": before,
+            "candidate": after,
+            "delta": (after - before) if before is not None and after is not None else None,
+            "delta_pct": (
+                percentage_delta(float(before), float(after))
+                if before is not None and after is not None
+                else None
+            ),
+        }
+    base_models = baseline.get("models_observed", [])
+    candidate_models = candidate.get("models_observed", [])
+    same_model = base_models == candidate_models
+    same_turns = base.get("turns") == cand.get("turns")
+    base_cases = Counter(
+        (row.get("case_id"), row.get("repeat")) for row in baseline.get("runs", [])
+    )
+    candidate_cases = Counter(
+        (row.get("case_id"), row.get("repeat")) for row in candidate.get("runs", [])
+    )
+    quality_preserved = cand.get("quality_passes", 0) >= base.get("quality_passes", 0)
+    uncached_delta = metrics["uncached_input_tokens"]["delta_pct"]
+    input_gate = uncached_delta is not None and uncached_delta <= max_input_regression_pct
+    gates = {
+        "baseline_valid": bool(base.get("passed")),
+        "candidate_valid": bool(cand.get("passed")),
+        "same_model": same_model,
+        "same_turn_count": same_turns,
+        "same_case_matrix": base_cases == candidate_cases,
+        "candidate_completed": cand.get("completed_turns") == cand.get("turns"),
+        "quality_preserved": quality_preserved,
+        "fixture_unchanged": not cand.get("fixture_changed", False),
+        "uncached_input_regression_within_pct": input_gate,
+    }
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "kind": "benchmark_comparison",
+        "generated_at": utc_now(),
+        "baseline_commit": baseline.get("git_commit"),
+        "candidate_commit": candidate.get("git_commit"),
+        "max_uncached_input_regression_pct": max_input_regression_pct,
+        "metrics": metrics,
+        "gates": gates,
+        "passed": all(gates.values()),
+    }
+
+
+def merge_live_reports(reports: list[dict[str, Any]], variant: str) -> dict[str, Any]:
+    first = reports[0]
+    runs: list[dict[str, Any]] = []
+    for index, report in enumerate(reports, 1):
+        for row in report["runs"]:
+            copied = dict(row)
+            copied["sequence_run"] = index
+            runs.append(copied)
+    summary = summarize_runs(runs)
+    summary["fixture_changed"] = any(
+        report["summary"].get("fixture_changed", False) for report in reports
+    )
+    summary["passed"] = (
+        not summary["fixture_changed"]
+        and summary["turns"] == summary["quality_passes"]
+        and summary["turns"] == summary["completed_turns"]
+    )
+    return {
+        **{key: value for key, value in first.items() if key not in {"runs", "summary"}},
+        "variant": variant,
+        "runs": runs,
+        "summary": summary,
+    }
+
+
+def parse_common_live(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--cases", help="JSONL benchmark cases")
+    parser.add_argument("--case", action="append", dest="selected_cases")
+    parser.add_argument("--model", help="explicit Codex model; default uses Codex config")
+    parser.add_argument("--repeats", type=int, default=1, help="turns per case in one thread")
+    parser.add_argument(
+        "--server-command",
+        default=DEFAULT_SERVER_COMMAND,
+        help="app-server command (used by deterministic fake-server tests too)",
+    )
+    parser.add_argument("--timeout", type=float, default=300.0, help="seconds per response/turn")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    static = sub.add_parser("static", help="measure deterministic checked-in context budgets")
+    static.add_argument("--root", help="llm-wiki checkout (default: auto-detect)")
+    static.add_argument("--budgets", help="budget JSON (default: tests/budgets/token-budgets.json)")
+    static.add_argument("--output", default="-")
+    static.add_argument("--check", action="store_true", help="exit non-zero on budget failure")
+
+    live = sub.add_parser("live", help="run the cost-bearing Codex app-server benchmark")
+    live.add_argument("--root", help="llm-wiki checkout (default: auto-detect)")
+    parse_common_live(live)
+    live.add_argument("--output", default="-")
+
+    compare = sub.add_parser("compare", help="compare two live benchmark JSON reports")
+    compare.add_argument("baseline")
+    compare.add_argument("candidate")
+    compare.add_argument("--max-input-regression-pct", type=float, default=2.0)
+    compare.add_argument("--output", default="-")
+    compare.add_argument("--check", action="store_true")
+
+    pair = sub.add_parser(
+        "pair", help="run baseline/candidate in AB/BA order and compare aggregate reports"
+    )
+    pair.add_argument("--baseline-root", required=True)
+    pair.add_argument("--candidate-root", required=True)
+    pair.add_argument("--output-dir", required=True)
+    pair.add_argument("--max-input-regression-pct", type=float, default=2.0)
+    parse_common_live(pair)
+    return parser
+
+
+def resolve_cases(root: Path, value: str | None) -> Path:
+    return (
+        Path(value).expanduser().resolve()
+        if value
+        else root / "benchmarks/cases/wiki-query.jsonl"
+    )
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+    if args.command == "static":
+        root = Path(args.root).expanduser().resolve() if args.root else repo_root()
+        budgets = (
+            Path(args.budgets).expanduser().resolve()
+            if args.budgets
+            else root / "tests/budgets/token-budgets.json"
+        )
+        report = static_report(root, budgets)
+        write_json(report, args.output)
+        return 1 if args.check and not report["passed"] else 0
+
+    if args.command == "live":
+        if args.repeats < 1:
+            raise SystemExit("--repeats must be at least 1")
+        root = Path(args.root).expanduser().resolve() if args.root else repo_root()
+        report = run_live_benchmark(
+            root,
+            resolve_cases(root, args.cases),
+            set(args.selected_cases or []) or None,
+            args.model,
+            args.repeats,
+            args.server_command,
+            args.timeout,
+        )
+        write_json(report, args.output)
+        return 0 if report["summary"]["passed"] else 1
+
+    if args.command == "compare":
+        baseline = json.loads(Path(args.baseline).read_text(encoding="utf-8"))
+        candidate = json.loads(Path(args.candidate).read_text(encoding="utf-8"))
+        report = compare_reports(baseline, candidate, args.max_input_regression_pct)
+        write_json(report, args.output)
+        return 1 if args.check and not report["passed"] else 0
+
+    if args.command == "pair":
+        if args.repeats < 1:
+            raise SystemExit("--repeats must be at least 1")
+        base_root = Path(args.baseline_root).expanduser().resolve()
+        candidate_root = Path(args.candidate_root).expanduser().resolve()
+        output_dir = Path(args.output_dir).expanduser().resolve()
+        output_dir.mkdir(parents=True, exist_ok=True)
+        selected = set(args.selected_cases or []) or None
+        sequence = [
+            ("baseline", base_root),
+            ("candidate", candidate_root),
+            ("candidate", candidate_root),
+            ("baseline", base_root),
+        ]
+        by_variant: dict[str, list[dict[str, Any]]] = {"baseline": [], "candidate": []}
+        for index, (variant, root) in enumerate(sequence, 1):
+            report = run_live_benchmark(
+                root,
+                resolve_cases(root, args.cases),
+                selected,
+                args.model,
+                args.repeats,
+                args.server_command,
+                args.timeout,
+            )
+            by_variant[variant].append(report)
+            write_json(report, str(output_dir / f"{index:02d}-{variant}.json"))
+        baseline = merge_live_reports(by_variant["baseline"], "baseline")
+        candidate = merge_live_reports(by_variant["candidate"], "candidate")
+        write_json(baseline, str(output_dir / "baseline-aggregate.json"))
+        write_json(candidate, str(output_dir / "candidate-aggregate.json"))
+        comparison = compare_reports(
+            baseline, candidate, args.max_input_regression_pct
+        )
+        write_json(comparison, str(output_dir / "comparison.json"))
+        return 0 if comparison["passed"] else 1
+
+    raise AssertionError(args.command)
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (AppServerError, ValueError, OSError, json.JSONDecodeError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        raise SystemExit(2)

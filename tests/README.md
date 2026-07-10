@@ -1,6 +1,21 @@
 # llm-wiki Tests
 
-Three-layer test suite for the llm-wiki Claude Code plugin.
+Three-layer test suite plus token-efficiency regression benchmarks for the
+llm-wiki plugin.
+
+## Layer 0: Context Budgets ($0, every push)
+
+Deterministic byte/character ceilings catch prompt, skill, metadata, and lazy
+reference growth before model calls are needed.
+
+```bash
+./tests/test-token-benchmarks.sh
+./scripts/benchmark-token-efficiency static --check
+```
+
+The test also exercises the complete app-server JSON-RPC accounting path with a
+fake server. Real model runs and AB/BA comparisons are explicit and
+cost-bearing; see [`../benchmarks/README.md`](../benchmarks/README.md).
 
 ## Layer 1: Structural Validation ($0, every push)
 
@@ -34,6 +49,9 @@ No LLM calls. Validates wiki file structure, default `schema.md`, frontmatter sc
 - C12: No unknown file types in raw/wiki directories
 - Docs consistency: README command table, plugin/marketplace versions, and
   reference-file allowlists stay synchronized
+- Token budgets: checked-in context surfaces stay below explicit ceilings
+- App-server accounting: tokens, cache reads, latency, fixture reads, quality,
+  and write detection are parsed and gated deterministically
 
 ### Defect fixtures
 
@@ -72,6 +90,7 @@ promptfoo eval -c tests/promptfooconfig.yaml --repeat 3
 Copy `tests/ci/plugin-tests.yml` to `.github/workflows/` to enable:
 
 - Structural tests run on every push to `claude-plugin/**` or `tests/**`
+- Static token budgets and benchmark protocol tests run on every push
 - Behavioral evals run on PRs only (requires `ANTHROPIC_API_KEY` secret)
 
 ## Fixtures

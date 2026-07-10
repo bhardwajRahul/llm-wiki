@@ -6,6 +6,7 @@
 .codex/
 .tmp/
 __pycache__/
+benchmarks/results/
 
 # macOS
 .DS_Store
