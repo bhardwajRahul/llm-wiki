@@ -13,7 +13,7 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, co
 
 ---
 
-[Install](#install) · [Quick Start](#quick-start) · [Commands](#commands) · [How It Works](#how-it-works) · [Research Modes](#research-modes) · [Thesis Research](#thesis-driven-research) · [Query Depths](#query-depths) · [Linking](#linking-works-everywhere) · [Obsidian](#obsidian-integration) · [Architecture](#claude-first-multi-runtime) · [Nono Sandbox](#nono-sandbox-permissions) · [Upgrade](#upgrade) · [Changelog](#changelog) · [Credits](#credits)
+[Install](#install) · [Quick Start](#quick-start) · [Sessions](#session-memory) · [Commands](#commands) · [How It Works](#how-it-works) · [Research Modes](#research-modes) · [Thesis Research](#thesis-driven-research) · [Query Depths](#query-depths) · [Linking](#linking-works-everywhere) · [Obsidian](#obsidian-integration) · [Architecture](#claude-first-multi-runtime) · [Nono Sandbox](#nono-sandbox-permissions) · [Upgrade](#upgrade) · [Changelog](#changelog) · [Credits](#credits)
 
 ---
 
@@ -440,6 +440,39 @@ starter advisory topic guide (`schema.md`); run librarian conventions advice
 for established wikis before adopting topic-specific vocabulary. The local archive helper
 performs the deterministic folder move plus `wikis.json`, hub index, and log
 updates.
+
+## Session Memory
+
+Long agent runs can lose useful context when a chat compacts, a terminal closes,
+or work moves between runtimes. LLM Wiki keeps a separate operational-memory
+layer under `HUB/.sessions/` (or `.wiki/.sessions/` for a local wiki) so a later
+turn can recover the thread without copying full transcripts into the knowledge
+base.
+
+| Feature | How it works |
+|---------|--------------|
+| **Capture** | Trusted hooks use balanced mode by default. They record harness metadata, current directory and Git context, small redacted events, per-session state, and Markdown digests. Full transcript bodies are not stored by default. |
+| **Session ID** | An ID such as `codex:abc123` combines the harness name with that runtime's native session ID. It is a local lookup key—not a secret, transcript, wiki, or topic ID. |
+| **Rehydrate** | `/wiki:session rehydrate` returns a compact context block and pointers to matching digests instead of bulk-pasting chat history. |
+| **Feedback** | High-signal corrections, preferences, approvals, and plan acceptance become reviewable candidates under `.sessions/feedback/`; generic acknowledgements are ignored. |
+| **Promote** | Digests and feedback remain operational memory until an explicit `promote` writes a distilled note to a topic's `raw/notes/`. Only then can normal compilation turn it into topic knowledge. |
+| **Opt out** | `/wiki:session disable` makes trusted capture hooks no-ops; `/wiki:session enable` turns capture back on. |
+
+```text
+/wiki:session status
+/wiki:session list --limit 10
+/wiki:session show codex:abc123
+/wiki:session rehydrate --cwd "$PWD"
+/wiki:session promote codex:abc123 --topic meta-llm-wiki
+/wiki:feedback list --unpromoted
+/wiki:feedback promote fb-abc123 --topic meta-llm-wiki
+```
+
+This harness-session layer is distinct from `.research-session.json` and
+`.thesis-session.json` crash recovery, and from `.session-events.jsonl` and
+`.session-checkpoint.json` workflow provenance. See the
+[session reference](claude-plugin/skills/wiki-manager/references/sessions.md)
+for the storage layout, privacy defaults, capture modes, and adapter contract.
 
 ## Commands
 
