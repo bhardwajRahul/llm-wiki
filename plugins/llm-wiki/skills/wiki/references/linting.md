@@ -69,7 +69,10 @@ There is no `/wiki:migrate` command and there should never be one. Lint rules **
 - [ ] Every raw source has: title, source, type, ingested, tags, summary
 - [ ] Every wiki article has: title, category, created, updated, tags, summary, plus either `sources` or `compiled-from: conversation`
 - [ ] No empty title or summary fields
-- [ ] `category` is one of: concept, topic, reference
+- [ ] `category` is one of: concept, topic, reference — OR, if this topic wiki
+  has a `schema.md` declaring additional Entity Types, one of those values
+  too. Read `schema.md`'s Entity Types table (if present) before flagging an
+  unrecognized `category` value as invalid.
 - [ ] `type` is one of: articles, papers, repos, notes, data
 - [ ] `tags` is a list, not empty
 - [ ] `compiled-from`, when present, is one of: sources, conversation, mixed
@@ -200,7 +203,7 @@ A `raw/` or `wiki/` file's correct path is a pure function of its frontmatter. M
 |-------|-----------|----------------|-------------------|
 | 1 | Thesis file (wiki-side) | `type: thesis` | `wiki/theses/` |
 | 2 | Raw source | `type` | `articles` → `raw/articles/`, `papers` → `raw/papers/`, `repos` → `raw/repos/`, `notes` → `raw/notes/`, `data` → `raw/data/` |
-| 3 | Wiki article | `category` | `concept` → `wiki/concepts/`, `topic` → `wiki/topics/`, `reference` → `wiki/references/` |
+| 3 | Wiki article | `category` | `concept` → `wiki/concepts/`, `topic` or `overview` → `wiki/topics/`, `reference` → `wiki/references/`, any other value declared in this topic's `schema.md` Entity Types → `wiki/concepts/` unless that entry's own description identifies it as a topic-hub role (in which case → `wiki/topics/`, same as `topic`/`overview`) |
 
 **Disambiguating raw `type: articles/papers/...` from wiki thesis `type: thesis`**: Rule 1 matches only when the value is literally `thesis`. Raw sources never use `thesis` as a type. A file whose frontmatter has both `category` and `type` is a wiki article — use `category` (rule 3). A file with only `type: thesis` is a thesis file (rule 1). A file with only `type` in {articles, papers, repos, notes, data} is a raw source (rule 2).
 

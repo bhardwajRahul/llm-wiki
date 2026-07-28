@@ -275,8 +275,22 @@ freshness_threshold: 70
 guide, not a database schema: it captures the local vocabulary that helps
 agents avoid taxonomy drift, including entity types, relationship verbs, article
 subtypes, source conventions, inventory/dataset boundaries, and adoption notes.
-It must not redefine global llm-wiki primitives such as raw source folders,
-article categories, inventory kinds, or required frontmatter.
+
+`/wiki:compile` and `/wiki:lint` read a topic's `schema.md` Entity Types table
+when present (`commands/compile.md` step 0.5, `references/linting.md` C2/C11)
+and treat its declared values as additional valid `category` values for that
+topic, on top of the plugin's base `concept`/`topic`/`reference` — this is
+the one place a topic guide has real, mechanical effect rather than being
+purely advisory prose. It still must not redefine deeper global primitives:
+the physical directory layout stays `raw/` → `wiki/concepts|topics|references/`
+(an Entity Type maps into one of those three the same way `concept`/`topic`/
+`reference` always have; it does not introduce a new top-level directory), and
+the required-frontmatter *set* (title/category/created/updated/tags/summary/
+sources-or-compiled-from) stays fixed — a topic guide can document additional
+optional fields a topic wants its articles to carry (e.g. a `parent` topic
+slug, or a reader-`audience` tag), but can't remove a globally-required field,
+and those additional fields stay optional/advisory unless the topic guide's
+own text makes them load-bearing for that topic.
 
 ```markdown
 ---

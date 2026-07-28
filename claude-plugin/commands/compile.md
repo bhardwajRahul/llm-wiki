@@ -40,6 +40,8 @@ raw sources to update active articles.
 
 0. **Placement pre-check** (C13 + C11 from `references/linting.md`): Before surveying, walk `raw/` and for each `.md` file read its frontmatter. Rewrite any legacy keys/values using the C13 alias table. Then compare the file's `type` field to its actual directory — if it's misplaced (e.g., `type: papers` but sitting in `raw/notes/`, or loose at the wiki root), `mv` it to the canonical path, creating the destination directory if needed. This is the same rule lint uses, run inline because you're already reading every frontmatter. It heals both user miscategorization and stale layouts from older wiki versions — there is no separate migration pass. On slug collisions at the destination, skip and warn. Do this before step 1 so the survey sees canonical state. Does not touch `output/projects/` — that's compile step 7's territory.
 
+0.5. **Topic schema check**: If `<wiki-root>/schema.md` exists, read it in full before proceeding. Its Entity Types table (or equivalently-named ontology section) is this topic's authoritative category vocabulary — use it in step 4 below instead of the bare `concept`/`topic`/`reference` default. If it declares an Include/Exclude Guidelines section (or similarly named scoping rules), apply those when deciding in steps 3-4 whether a raw source is worth compiling into an article at all, and whether a new concept warrants its own article vs. folding into an existing one. If `schema_state: strict`, treat any article that would deviate from the declared vocabulary as a stop-and-ask, not a judgment call. If no `schema.md` exists, this step is a no-op — proceed with the plugin's default vocabulary.
+
 1. **Survey**: Read `raw/_index.md` to see all sources. Read `wiki/_index.md` to see existing articles. For incremental mode, identify sources ingested after the "Last compiled" date in master `_index.md`.
 
 2. If no uncompiled sources found (incremental mode), report: "All sources are already compiled. Use `--full` to recompile everything."
@@ -49,7 +51,7 @@ raw sources to update active articles.
 4. **Plan**: For each concept found:
    - Check existing wiki articles (via `wiki/_index.md` summaries and tags)
    - Decide: create new article, update existing, or mention within another article
-   - Classify new articles as concept, topic, or reference
+   - Classify new articles per this topic's `schema.md` Entity Types if step 0.5 found one (falling back to plugin default vocabulary for any article the topic guide doesn't cover); otherwise classify as concept, topic, or reference
 
 5. **Write/Update articles**: Follow the protocol in `references/compilation.md` and core principle #9 (chunked writes):
    - New articles: Write frontmatter + abstract first, then Edit to append body, See Also, Sources

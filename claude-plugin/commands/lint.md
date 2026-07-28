@@ -44,7 +44,7 @@ For every `.md` file's frontmatter, rewrite legacy keys and enum values to canon
 Read each `.md` file's frontmatter. Check required fields exist and have valid values.
 
 #### 4. C11: Canonical Placement (Critical)
-For every `.md` file under `raw/` and `wiki/`, derive the expected directory from its frontmatter using the placement map in `references/linting.md` (raw `type` → `raw/<type>/`; wiki `category` → `wiki/concepts|topics|references/`; `type: thesis` → `wiki/theses/`). Flag files whose actual path doesn't match; auto-fix by `mv`. Flag content directories at the hub level. This heals both user mistakes and stale layouts from older wiki versions with the same code path. Does not touch `output/projects/` — that's C8's territory.
+For every `.md` file under `raw/` and `wiki/`, derive the expected directory from its frontmatter using the placement map in `references/linting.md` (raw `type` → `raw/<type>/`; wiki `category` → `wiki/concepts|topics|references/`, with `overview` and any topic-`schema.md`-declared values resolved per that same map; `type: thesis` → `wiki/theses/`). Flag files whose actual path doesn't match; auto-fix by `mv`. Flag content directories at the hub level. This heals both user mistakes and stale layouts from older wiki versions with the same code path. Does not touch `output/projects/` — that's C8's territory.
 
 #### 5. C12: Unknown File Quarantine (Warning)
 Walk `raw/`, `wiki/`, `inventory/`, `datasets/`, and the wiki root. Flag files and directories that are not in the allowlist for their location (per `references/linting.md` C12 table). Skip `output/` — C8 and C9 own that subtree.
