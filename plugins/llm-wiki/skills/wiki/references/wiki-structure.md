@@ -276,14 +276,14 @@ guide, not a database schema: it captures the local vocabulary that helps
 agents avoid taxonomy drift, including entity types, relationship verbs, article
 subtypes, source conventions, inventory/dataset boundaries, and adoption notes.
 
-`/wiki:compile` reads a topic's `schema.md` in full before classifying and
-placing new articles (`commands/compile.md` step 0.5) and applies any
-structural guidance it declares — cardinality rules (when several raw sources
-describing the same mechanism should consolidate into one article instead of
-one-per-file), include/exclude scoping, and specific near-duplicate pairs the
-topic guide says to keep separate rather than merge. This is the one place a
-topic guide has real, mechanical effect rather than being purely advisory
-prose. It still must not redefine deeper global primitives: the `category`
+`/wiki:compile` reads a topic's `schema.md` in full before planning new
+articles (`commands/compile.md` step 0.5) and applies any structural guidance
+it declares — cardinality rules (when several raw sources describing the same
+mechanism should consolidate into one article instead of one-per-file),
+include/exclude scoping, and specific concept pairs the topic guide says to
+keep as separate articles rather than folding one into the other. This is the
+one place a topic guide has real, mechanical effect rather than being purely
+advisory prose. It still must not redefine deeper global primitives: the `category`
 vocabulary stays `concept`/`topic`/`reference`, the physical directory layout
 stays `raw/` → `wiki/concepts|topics|references/`, and the required-frontmatter
 *set* (title/category/created/updated/tags/summary/sources-or-compiled-from)
@@ -328,6 +328,13 @@ summary: "Human-owned topic guide for local vocabulary and conventions."
 ## Source Conventions
 
 [Topic-specific evidence and boundary rules]
+
+## Compile Guidance (optional)
+
+[Cardinality rules — e.g. "one article per mechanism, not per raw file";
+include/exclude scoping — e.g. sources to skip entirely; specific concept
+pairs to keep as separate articles rather than folding one into the other.
+`/wiki:compile` step 0.5 reads this section when present.]
 ```
 
 Adoption states:
