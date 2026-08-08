@@ -107,6 +107,42 @@ tests:
       - type: cost
         threshold: 0.50
 
+  - description: "Router: fuzzy Idea capture creates an Idea, not a Project"
+    vars:
+      prompt: "I have an idea for a private local podcast search tool. Save it, but don't build it yet."
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent recognized a durable Idea-capture request, routed to the Idea workflow, and did not create or imply a committed Project."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  - description: "Router: Idea research develops the record"
+    vars:
+      prompt: "Research whether the podcast-search idea holds water and identify its weakest assumptions."
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent treated this as development of an existing Idea through the research pipeline, not as unrelated generic research and not as Project creation."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  - description: "Router: approved Idea promotes to Project"
+    vars:
+      prompt: "Use the narrow version of the podcast-search idea and turn it into a project."
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent recognized explicit choice and delivery commitment, routed to Idea promotion, and preserved an approved brief instead of using direct project creation without Idea lineage."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
   - description: "Router: dataset intent routes to dataset"
     vars:
       prompt: "Index this large Bitcointalk dataset so the wiki can query it without copying the data"

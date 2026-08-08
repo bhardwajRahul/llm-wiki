@@ -132,7 +132,7 @@ while IFS= read -r -d '' file; do
   bn=$(basename "$file")
   kind_val=$(grep "^kind:" "$file" | head -1 | sed 's/kind: *//')
   case "$kind_val" in
-    item|ingest-candidate|entity|corpus|question|task|artifact|watch) log_pass "valid kind '$kind_val' in $bn" ;;
+    item|idea|ingest-candidate|entity|corpus|question|task|artifact|watch) log_pass "valid kind '$kind_val' in $bn" ;;
     *) log_fail "invalid kind '$kind_val' in $bn" "C16 violation" ;;
   esac
 
@@ -368,6 +368,7 @@ while IFS= read -r -d '' file; do
   kind_val=$(grep "^kind:" "$file" | head -1 | sed 's/kind: *//')
   case "$kind_val" in
     item) expected="items" ;;
+    idea) expected="ideas" ;;
     entity) expected="entities" ;;
     corpus) expected="corpora" ;;
     ingest-candidate|question|task|artifact|watch) expected="candidates" ;;

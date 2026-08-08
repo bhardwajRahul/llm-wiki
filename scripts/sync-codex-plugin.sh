@@ -137,9 +137,9 @@ EOF
 cat > "$TARGET_SKILL/agents/openai.yaml" <<'EOF'
 interface:
   display_name: "Wiki Manager"
-  short_description: "Initialize, ingest collections, capture sessions, track inventory, index datasets, compile, audit, query, research, and lint llm-wiki knowledge bases."
+  short_description: "Research, capture and shape Ideas, promote Projects, track inventory, compile, audit, and query llm-wiki knowledge bases."
   brand_color: "#2F855A"
-  default_prompt: "Research a topic, capture a session, or compile knowledge into a structured wiki."
+  default_prompt: "Capture and shape an Idea, research a topic, or compile knowledge into a structured wiki."
 
 policy:
   allow_implicit_invocation: true
@@ -185,10 +185,10 @@ frontmatter = """---
 name: wiki
 description: >
   LLM-compiled knowledge base manager for Codex. Use it to initialize, ingest,
-  import source collections, collect catalogs, track inventory, index datasets, archive old topics, compile, query, lint, audit, research, plan, capture or rehydrate agent session context, and generate outputs from topic-scoped wikis.
+  import collections, shape and promote Ideas, track inventory/datasets, archive topics, compile, query, lint, audit, research, plan, capture or rehydrate sessions, and generate outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
-  find all, inventory, source queue,
+  find all, idea, turn idea into project, inventory, source queue,
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
@@ -269,6 +269,7 @@ reference material you need for that workflow:
 - `ingest` and `ingest-collection` → `references/ingestion.md`
 - `collect` → `references/inventory.md` and `references/research-infrastructure.md`
 - `inventory` → `references/inventory.md`
+- `idea` → `references/ideas.md`
 - `dataset` → `references/datasets.md`
 - `archive` → `references/archive.md`
 - `compile` → `references/compilation.md` and `references/indexing.md`
@@ -307,6 +308,10 @@ acceptance state matter. Compile and query may surface inventory gaps, but
 factual claims still need raw/wiki sources. Collect, research, audit,
 librarian, refresh, plan, output, and assess may propose durable follow-ups as
 inventory records, but larger pivots should start with a small sample preview.
+
+Ideas live under `inventory/ideas/`. Route fuzzy capture, research, shaping,
+and promotion through `references/ideas.md`; require approval, preserve lineage,
+and keep delivery truth in the Project.
 
 Keep the first response short and action-oriented. Read deeper references only
 after the user intent is clear or a write action is needed.
@@ -349,6 +354,31 @@ codex["author"] = {
     "name": author.get("name", "nvk"),
     "url": "https://github.com/nvk",
 }
+codex["description"] = (
+    "LLM-compiled knowledge bases for Codex with fuzzy Idea capture, research, "
+    "shaping, and explicit Project promotion, plus inventory, datasets, source "
+    "ingestion, compilation, audits, sessions, and artifact generation."
+)
+keywords = list(codex.get("keywords", []))
+for keyword in ["ideas", "projects"]:
+    if keyword not in keywords:
+        keywords.append(keyword)
+codex["keywords"] = keywords
+interface = codex.setdefault("interface", {})
+interface["shortDescription"] = (
+    "Capture and shape Ideas, promote Projects, and maintain research wikis"
+)
+interface["longDescription"] = (
+    "Bundle the llm-wiki workflow for Codex: capture rough Ideas, research and "
+    "shape them, explicitly promote approved briefs into Projects, and maintain "
+    "topic-scoped sources, compiled knowledge, inventory, datasets, sessions, "
+    "audits, plans, and generated artifacts."
+)
+prompts = list(interface.get("defaultPrompt", []))
+idea_prompt = "Capture this rough Idea, research it, shape alternatives, and wait for approval before creating a Project."
+if idea_prompt not in prompts:
+    prompts.insert(0, idea_prompt)
+interface["defaultPrompt"] = prompts
 codex_manifest.write_text(json.dumps(codex, indent=2) + "\n")
 PY
 

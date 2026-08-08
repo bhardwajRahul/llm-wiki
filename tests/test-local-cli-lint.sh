@@ -64,6 +64,68 @@ expect_failure_contains \
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
+ideas_wiki="$tmpdir/ideas-wiki"
+mkdir "$ideas_wiki"
+cp -R "$GOLDEN/." "$ideas_wiki/"
+mkdir -p "$ideas_wiki/inventory/ideas"
+cat > "$ideas_wiki/inventory/ideas/_index.md" <<'EOF'
+# Ideas Index
+
+> Cataloged proposals being researched and shaped before project commitment.
+
+Last updated: 2026-01-03
+
+## Contents
+
+| File | Summary | Tags | Updated |
+|------|---------|------|---------|
+| [local-search.md](local-search.md) | Test the smallest useful local search product. | idea, local-first | 2026-01-03 |
+EOF
+cat > "$ideas_wiki/inventory/ideas/local-search.md" <<'EOF'
+---
+title: "Local Search"
+kind: idea
+status: active
+priority: p1
+created: 2026-01-03
+updated: 2026-01-03
+tags: [idea, local-first]
+summary: "Test the smallest useful local search product."
+next_action: "Approve or reject the shaped brief."
+sources:
+  - wiki/concepts/sample-concept.md
+---
+
+# Local Search
+
+## Original Seed
+
+Build a private local search tool.
+EOF
+
+expect_success \
+  "idea records are valid in inventory/ideas" \
+  "$CLI" lint "$ideas_wiki"
+
+mv "$ideas_wiki/inventory/ideas/local-search.md" \
+  "$ideas_wiki/inventory/candidates/local-search.md"
+expect_failure_contains \
+  "misplaced idea record is reported" \
+  "File is in the wrong directory" \
+  "$CLI" lint "$ideas_wiki"
+
+set +e
+idea_fix_output="$("$CLI" lint --fix "$ideas_wiki" 2>&1)"
+idea_fix_rc=$?
+set -e
+if [ "$idea_fix_rc" -eq 0 ] \
+  && grep -q "Moved inventory/candidates/local-search.md to inventory/ideas/local-search.md" <<<"$idea_fix_output" \
+  && [ -f "$ideas_wiki/inventory/ideas/local-search.md" ]; then
+  log_pass "--fix restores idea records to inventory/ideas"
+else
+  log_fail "--fix restores idea records to inventory/ideas" "$idea_fix_output"
+fi
+
 schema_migrate="$tmpdir/schema-migrate"
 mkdir "$schema_migrate"
 cp -R "$GOLDEN/." "$schema_migrate/"

@@ -2,14 +2,14 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "llm-wiki",
   "version": "0.16.0",
-  "description": "LLM-compiled knowledge base plugin with token-efficient read-only queries, natural-language routing, collector catalogs, topic archives, inventory, datasets, source ingestion, audits, human-owned topic guides, session memory, feedback curation, parallel research, and artifact generation.",
+  "description": "LLM-compiled knowledge base plugin with a fuzzy Concept-to-Idea-to-Project workflow, token-efficient queries, collector catalogs, inventory, datasets, audits, session memory, parallel research, and artifact generation.",
   "owner": {
     "name": "nvk"
   },
   "plugins": [
     {
       "name": "wiki",
-      "description": "LLM-compiled knowledge base with a compact read-only /wiki:query path plus full research, ingest, collect, inventory, dataset, archive, compile, audit, librarian, plan, lint, output, session, feedback, and project workflows.",
+      "description": "LLM-compiled knowledge base with fuzzy Idea capture, research, shaping, and Project promotion plus compact queries, ingest, collect, inventory, datasets, archives, audits, sessions, and outputs.",
       "version": "0.16.0",
       "author": {
         "name": "nvk"

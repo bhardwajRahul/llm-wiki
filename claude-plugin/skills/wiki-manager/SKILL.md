@@ -4,13 +4,14 @@ description: >
   LLM-compiled knowledge base manager. Activates when user works with wiki
   directories, mentions knowledge base management, asks knowledge questions
   in a project with a wiki, wants to ingest/import/compile/query/lint/audit knowledge,
-  collect/catalog discoverable artifacts and examples, track inventory,
+  collect/catalog artifacts, track inventory and Ideas,
   manage source queues, candidates, corpora, entities, watch lists,
   dataset manifests, large datasets, or data that is too big for the wiki,
   archive old topic wikis, capture or rehydrate agent session context, curate user feedback, or uses /wiki commands. Also activates when user says "wiki", "knowledge base",
   "ingest", "import wiki", "ingest collection", "collect", "catalog",
   "curate", "find all", "compile wiki", "add to wiki", "search wiki", "audit", "librarian",
-  "scan quality", "article quality", "content review", "output drift", "inventory",
+  "scan quality", "article quality", "content review", "output drift", "idea",
+  "turn this into a project", "inventory",
   "ingest queue", "source queue", "candidate list", "watch list", "backlog",
   "dataset", "large data", "data registry", "dataset manifest",
   "archive wiki", "archive topic", "restore wiki", "session capture",
@@ -136,7 +137,12 @@ Flow: structured upstream collection (Git repo, BIP-style proposal set, MediaWik
 
 ### Inventory
 See [references/inventory.md](references/inventory.md).
-Flow: Run an inventory fit check → track durable wiki-adjacent things (items, ingest candidates, entities, corpora, questions, tasks, watch items) as markdown records under `inventory/` → answer list requests from indexes/frontmatter as compact chat tables or bullets → optionally save derived views under `inventory/views/` → optionally convert legacy queue-like outputs through explicit dry-run-first migration. Inventory migration is additive and human-gated. Be explicit when something is too small for inventory, too large and should be a dataset/collection, or outside wiki scope.
+Flow: Run an inventory fit check → track durable wiki-adjacent things (items, Ideas, ingest candidates, entities, corpora, questions, tasks, watch items) as markdown records under `inventory/` → answer list requests from indexes/frontmatter as compact chat tables or bullets → optionally save derived views under `inventory/views/` → optionally convert legacy queue-like outputs through explicit dry-run-first migration. Inventory migration is additive and human-gated. Be explicit when something is too small for inventory, too large and should be a dataset/collection, or outside wiki scope.
+
+### Ideas
+See [references/ideas.md](references/ideas.md).
+Flow: capture in `inventory/ideas/` → research/shape → require approval →
+freeze `BRIEF.md` and promote. The Idea keeps lineage; the Project owns delivery.
 
 ### Collect
 See [references/inventory.md](references/inventory.md) and

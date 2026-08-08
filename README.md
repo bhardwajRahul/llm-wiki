@@ -9,7 +9,7 @@
 
 [github.com/nvk/llm-wiki](https://github.com/nvk/llm-wiki)
 
-LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, collector catalogs, automated session capture, feedback curation, thesis-driven investigation, source ingestion, wiki compilation, truth-seeking audits, querying, and artifact generation. Ships as a Claude Code plugin, an OpenAI Codex plugin, an OpenCode instruction file, or a portable AGENTS.md for any other LLM agent. Obsidian-compatible.
+LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and shape them, then explicitly promote approved briefs into delivery Projects. Also includes parallel research, collector catalogs, session memory, source ingestion, compilation, audits, querying, and artifact generation. Ships for Claude Code, OpenAI Codex, OpenCode, and portable agents. Obsidian-compatible.
 
 ---
 
@@ -498,6 +498,11 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:inventory save-view "name"` | Save a derived reusable table/list under `inventory/views/` |
 | `/wiki:inventory scan-outputs --dry-run` | Find old queue/backlog outputs and preview sample records before migration |
 | `/wiki:inventory migrate-output <path> --apply` | Additively create inventory records from a legacy output; never moves or deletes the output |
+| `/wiki:idea new [<slug>] "<seed>"` | Capture a rough proposal under `inventory/ideas/` without creating a Project |
+| `/wiki:idea list\|show` | Browse the topic or hub-wide Idea catalog with derived maturity and next actions |
+| `/wiki:idea develop\|shape <slug>` | Research an Idea, challenge assumptions, and prepare minimal/ideal shapes for approval |
+| `/wiki:idea promote <slug>` | Explicitly promote an approved snapshot into a linked Project with `WHY.md` and frozen `BRIEF.md` |
+| `/wiki:idea archive <slug>` | Archive the Idea record without implicitly archiving its linked Project |
 | `/wiki:dataset list` | List dataset manifests as compact chat-friendly tables or bullets |
 | `/wiki:dataset list --view schema` | Show schema/readiness state without opening samples or data |
 | `/wiki:dataset add "title" --location <path-or-url>` | Add a dataset manifest without copying data into the wiki |
@@ -576,7 +581,7 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
     ├── nutrition/                      # Example topic wiki
     │   ├── .obsidian/                  # Optional Obsidian vault config
     │   ├── inbox/                      # Drop zone for this topic
-    │   ├── inventory/                  # Lazy: durable tracking records + derived views
+    │   ├── inventory/                  # Lazy: durable records, Ideas, and derived views
     │   ├── datasets/                   # Lazy: manifests for large/external data
     │   ├── raw/                        # Immutable sources
     │   ├── wiki/                       # Compiled articles
@@ -601,16 +606,17 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
 2. **Ingest** additional sources — URLs, files, text, tweets (via Grok MCP), or bulk via inbox
 3. **Collect** catalogs of discoverable things — examples, media, memes, tools, projects, entities, or source candidates — then optionally inventory them
 4. **Inventory** items, candidates, entities, corpora, watch lists, and next actions that should persist; the agent tells you when inventory is the wrong layer
-5. **Index datasets** that are too large for markdown — manifests, profiles, samples, and query recipes
-6. **Archive** whole topic wikis that should stay preserved but quiet
-7. **Compile** raw sources into synthesized wiki articles with cross-references and confidence scores
-8. **Query** the wiki — quick (indexes), standard (articles), or deep (everything active, archived indexes separated)
-9. **Session capture** — automatically preserve redacted Codex/Claude/OpenCode/Gemini checkpoints under `.sessions/` and rehydrate future turns
-10. **Feedback curator** — capture reviewable correction/preference/approval candidates under `.sessions/feedback/` and promote only what matters
-11. **Lessons learned** — extract knowledge from the current session (errors, fixes, gotchas) into the wiki
-12. **Assess** a repo against the wiki — gap analysis: what aligns, what's missing, what the market offers
-13. **Lint** for consistency — broken links, missing indexes, orphan articles, archive registry drift
-14. **Output** artifacts — summaries, reports, slides — filed back into the wiki
+5. **Develop Ideas** from rough seed to researched, challenged, approved shape, then explicitly promote them into delivery Projects
+6. **Index datasets** that are too large for markdown — manifests, profiles, samples, and query recipes
+7. **Archive** whole topic wikis that should stay preserved but quiet
+8. **Compile** raw sources into synthesized wiki articles with cross-references and confidence scores
+9. **Query** the wiki — quick (indexes), standard (articles), or deep (everything active, archived indexes separated)
+10. **Session capture** — automatically preserve redacted Codex/Claude/OpenCode/Gemini checkpoints under `.sessions/` and rehydrate future turns
+11. **Feedback curator** — capture reviewable correction/preference/approval candidates under `.sessions/feedback/` and promote only what matters
+12. **Lessons learned** — extract knowledge from the current session (errors, fixes, gotchas) into the wiki
+13. **Assess** a repo against the wiki — gap analysis: what aligns, what's missing, what the market offers
+14. **Lint** for consistency — broken links, missing indexes, orphan articles, archive registry drift
+15. **Output** artifacts — summaries, reports, slides — filed back into the wiki
 
 ### Key Design
 
@@ -622,6 +628,9 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
 - **Collector workflow** — search-driven catalogs for objects, media, and
   examples; saves a provenance map first, then inventories only the durable
   subset.
+- **Concept → Idea → Project** — compiled Concepts hold knowledge, cataloged
+  Ideas hold researched/shaped proposals, and Projects begin only after
+  explicit delivery commitment. Natural language routes the whole lifecycle.
 - **`_index.md` navigation** — every existing wiki-managed directory has an index. Claude reads indexes first, never scans blindly.
 - **Articles are synthesized**, not copied — they explain, contextualize, cross-reference.
 - **Raw is immutable** — once ingested, sources are never modified.

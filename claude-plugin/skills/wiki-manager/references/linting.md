@@ -228,11 +228,11 @@ Any file that is not in the canonical allowlist for its location is either a use
 | Topic wiki root | `_index.md`, `config.md`, `schema.md`, `log.md`, `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, `.obsidian/`, `.librarian/`, `.audit/`, `.research-session.json`, `.thesis-session.json`, `.session-events.jsonl`, `.session-checkpoint.json` |
 | `raw/` | `_index.md`, `articles/`, `papers/`, `repos/`, `notes/`, `data/` |
 | `wiki/` | `_index.md`, `concepts/`, `topics/`, `references/`, `theses/` |
-| `inventory/` | `_index.md`, `items/`, `candidates/`, `entities/`, `corpora/`, `views/` |
+| `inventory/` | `_index.md`, `items/`, `ideas/`, `candidates/`, `entities/`, `corpora/`, `views/` |
 | `datasets/` | `_index.md` + dataset slug directories |
 | `raw/<type>/` | `_index.md` + `*.md` files with valid frontmatter |
 | `wiki/<category>/` | `_index.md` + `*.md` files with valid frontmatter |
-| `inventory/{items,candidates,entities,corpora}/` | `_index.md` + `*.md` files with valid inventory record frontmatter |
+| `inventory/{items,ideas,candidates,entities,corpora}/` | `_index.md` + `*.md` files with valid inventory record frontmatter |
 | `inventory/views/` | `_index.md` + derived `*.md` view files with lightweight view frontmatter |
 | `datasets/<slug>/` | `_index.md`, `MANIFEST.md`, `samples/`, `profiles/`, `queries/` |
 | `datasets/<slug>/{samples,profiles,queries}/` | `_index.md` + `*.md` notes |
@@ -327,14 +327,17 @@ exists.
 - [ ] If `inventory/` is missing entirely, report "no inventory layer yet" as a suggestion.
 - [ ] If `inventory/` exists, it has `_index.md`.
 - [ ] If any inventory subdirectory exists, it has `_index.md`.
-- [ ] Inventory records under `inventory/items/`, `inventory/candidates/`,
-  `inventory/entities/`, and `inventory/corpora/` have valid frontmatter when present:
+- [ ] Inventory records under `inventory/items/`, `inventory/ideas/`,
+  `inventory/candidates/`, `inventory/entities/`, and `inventory/corpora/` have valid frontmatter when present:
   `title`, `kind`, `status`, `priority`, `created`, `updated`, `tags`,
   `summary`
 - [ ] Inventory view files under `inventory/views/` have lightweight view
   frontmatter when present: `title`, `view`, `updated`, `summary`
-- [ ] `kind` is one of: `item`, `ingest-candidate`, `entity`, `corpus`,
+- [ ] `kind` is one of: `item`, `idea`, `ingest-candidate`, `entity`, `corpus`,
   `question`, `task`, `artifact`, `watch`
+- [ ] `kind: idea` records live in `inventory/ideas/`. Their optional
+  `approved_at`, `promoted`, and `project` fields follow `ideas.md`; lint does
+  not infer approval, create a Project, or add a manual maturity stage.
 - [ ] `status` is one of: `proposed`, `active`, `blocked`, `ingested`,
   `superseded`, `archived`
 - [ ] `priority` is one of: `p0`, `p1`, `p2`, `p3`, `p4`

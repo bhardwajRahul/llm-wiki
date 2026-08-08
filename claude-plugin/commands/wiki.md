@@ -1,5 +1,5 @@
 ---
-description: "LLM wiki knowledge base — understands natural language. Say what you want (add a URL, import a collection, collect a catalog, track inventory, index a dataset, archive an old topic, ask a question, research a topic, audit an output, resume work, curate feedback) and it routes to the right subcommand. Also handles init, status, and config."
+description: "LLM wiki knowledge base — understands natural language. Say what you want (capture or shape an Idea, turn an approved Idea into a Project, add a URL, collect a catalog, track inventory, ask a question, research, audit, or resume work) and it routes to the right workflow. Also handles init, status, and config."
 argument-hint: "[<natural language request>] [init <topic-name> [--local]] [config hub-path [<path>]] [--wiki <name>]"
 allowed-tools: Read, Write, Edit, Glob, Bash(ls:*), Bash(wc:*), Bash(mkdir:*), Bash(date:*), Bash(mv:*)
 ---
@@ -107,6 +107,7 @@ Initialize a new wiki. Parse arguments:
    - `/wiki:ingest <url|file|text>` — add source material
    - `/wiki:ingest-collection <repo|wiki-dump>` — bulk import a bounded upstream collection
    - `/wiki:collect "<things>"` — find, dedupe, and catalog examples, artifacts, tools, memes, or source candidates
+   - `/wiki:idea new "<seed>"` — capture a proposal for research and shaping before Project commitment
    - `/wiki:inventory add ingest-candidate "title"` — track a candidate, corpus, entity, or next action
    - `/wiki:dataset add "title" --location <path-or-url>` — index a large/external dataset
    - `/wiki:compile` — compile sources into wiki articles
@@ -124,6 +125,11 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 |----------|--------|----------------|----------|
 | 0 | **Collection Ingest** | Words: "import wiki", "mirror wiki", "bulk ingest", "ingest collection", "import collection", "ingest repo", "import repo"; or a URL/path plus collection signals: `dump.xml`, `.xml.bz2`, `.xml.gz`, `api.php`, `MediaWiki`, `github.com/*/*` with "all", "repo", "docs", "BIPs", or "collection" | `Skill: wiki:ingest-collection` with the source and filters |
 | 0b | **Collect** | "collect", "collector", "catalog", "curate", "gather examples", "find all", "make a list of", "inventory all", "find and inventory", "collect and inventory"; especially with object words like "memes", "tools", "projects", "examples", "companies", "people", "quotes", "assets", "images", "videos", "screenshots" | `Skill: wiki:collect` |
+| 0c | **Idea (promote)** | "turn this idea into a project", "make this a project", "promote this idea", "approve the brief", "commit to this idea", "use the narrow/minimal/selected version" plus "project/build/ship" | `Skill: wiki:idea` with `promote` and the approved choice |
+| 0d | **Idea (shape)** | "shape this idea", "poke holes in this", "smallest useful version", "minimal and ideal versions", "make this approvable", "scope this idea", "what should we not build" | `Skill: wiki:idea` with `shape` |
+| 0e | **Idea (develop)** | "research this idea", "develop this idea", "does this idea hold water", "validate this idea", "find competitors" or "weakest assumptions" while referring to an Idea | `Skill: wiki:idea` with `develop` |
+| 0f | **Idea (catalog/show)** | "my ideas", "list ideas", "show ideas", "what ideas do I have", "which ideas", "show the <name> idea", "closest to becoming projects" | `Skill: wiki:idea` with `list` or `show` |
+| 0g | **Idea (capture)** | "I have an idea", "idea for", "save this idea", "save this thought", "park this thought", "could we build/create/publish/test" where the user wants durable proposal capture | `Skill: wiki:idea` with `new` |
 | 1 | **Inventory** | "inventory", "ingest queue", "source queue", "candidate list", "watch list", "backlog", "track this", "keep inventory", "what should become inventory", "migrate output to inventory" | `Skill: wiki:inventory` |
 | 2 | **Dataset** | "dataset", "large data", "too big for the wiki", "index this data", "data registry", "dataset manifest", "corpus manifest", "external data", "query this dataset", "profile dataset" | `Skill: wiki:dataset` |
 | 3 | **Ingest** | Contains a URL (`http://`, `https://`), a file path (`/`, `~/`), or words: "add", "save", "ingest", "read this", "grab this" | `Skill: wiki:ingest` with the URL/path/text |
@@ -177,6 +183,15 @@ The user typed something that isn't a known keyword. Detect their intent and rou
   discover many objects before tracking them. For example, "collect and
   inventory all bitcoin memes" routes to collect, which writes a bounded
   catalog and then creates inventory only when it is the right layer.
+- Explicit Idea signals outrank generic inventory, research, output, and
+  Project-new signals. "Research this Idea" develops its record through the
+  research pipeline; "turn this Idea into a Project" uses explicit promotion,
+  not `project new`. A plain research topic or direct maintenance Project still
+  uses the existing research or Project workflow.
+- Resolve fuzzy Idea references from the current conversation, titles, aliases,
+  and Idea indexes. Ask only when ambiguity changes durable state. "Make this
+  real" may mean shape, promote, or implement; "kill this" may refer to the
+  Idea, its linked Project, or both.
 - Project archive signals outrank topic archive when the word "project" is
   present. Dataset/source archive signals ("Wayback archive", "message
   archive", "dataset archive") route to ingest-collection, dataset, or
@@ -265,6 +280,9 @@ The user is new or hasn't initialized a wiki yet. Instead of dumping a command l
 >
 > 5. **Collect examples or artifacts** — find many things, dedupe them, and save a provenance-rich catalog
 >    → Just say: `/wiki:collect "<things to collect>"`
+>
+> 6. **Capture an Idea** — save a rough proposal, research it, and shape it before committing to a Project
+>    → Just say: `I have an idea for ...`
 
 Do NOT show the full command reference, config options, or advanced flags during onboarding. Keep it to these starter options. The user can discover the rest via `/wiki` (status view) once they have a wiki.
 

@@ -1,6 +1,6 @@
 {
   "name": "wiki",
-  "description": "LLM-compiled knowledge base with token-efficient read-only queries, natural-language routing, collector catalogs, topic archives, inventory, datasets, source ingestion, audits, human-owned topic guides, session memory, feedback curation, context rehydration, parallel research, thesis investigation, repo assessment, Obsidian dual-linking, and sustained research.",
+  "description": "LLM-compiled knowledge base with fuzzy Concept-to-Idea-to-Project workflows, token-efficient queries, collector catalogs, inventory, datasets, source ingestion, audits, topic guides, session memory, parallel research, and artifact generation.",
   "version": "0.16.0",
   "author": {
     "name": "nvk"
@@ -21,6 +21,8 @@
     "topic-guide",
     "collect",
     "inventory",
+    "ideas",
+    "projects",
     "datasets",
     "archive",
     "sessions",

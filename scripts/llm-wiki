@@ -28,6 +28,7 @@ ARTICLE_DIRS = {
 }
 INVENTORY_KINDS = {
     "item",
+    "idea",
     "ingest-candidate",
     "entity",
     "corpus",
@@ -78,6 +79,7 @@ WIKI_ALLOWED = {"_index.md", "concepts", "topics", "references", "theses"}
 INVENTORY_ALLOWED = {
     "_index.md",
     "items",
+    "ideas",
     "candidates",
     "entities",
     "corpora",
@@ -529,6 +531,7 @@ def check_structure(ctx: LintContext) -> None:
         ensure_dir_index(ctx, ctx.root / "inventory", "Inventory")
         for rel, title in [
             ("inventory/items", "Items"),
+            ("inventory/ideas", "Ideas"),
             ("inventory/candidates", "Candidates"),
             ("inventory/entities", "Entities"),
             ("inventory/corpora", "Corpora"),
@@ -800,6 +803,8 @@ def canonical_path_for(root: Path, doc: Document) -> Path | None:
         kind = fm.get("kind")
         if kind == "item":
             return root / "inventory" / "items" / doc.path.name
+        if kind == "idea":
+            return root / "inventory" / "ideas" / doc.path.name
         if kind == "entity":
             return root / "inventory" / "entities" / doc.path.name
         if kind == "corpus":
@@ -906,7 +911,10 @@ def check_unknown_files(ctx: LintContext) -> None:
     for base, allowed_dirs in [
         (ctx.root / "raw", {"articles", "papers", "repos", "notes", "data"}),
         (ctx.root / "wiki", {"concepts", "topics", "references", "theses"}),
-        (ctx.root / "inventory", {"items", "candidates", "entities", "corpora", "views"}),
+        (
+            ctx.root / "inventory",
+            {"items", "ideas", "candidates", "entities", "corpora", "views"},
+        ),
     ]:
         if not base.exists():
             continue

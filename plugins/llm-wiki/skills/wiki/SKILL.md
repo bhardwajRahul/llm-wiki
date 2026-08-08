@@ -2,10 +2,10 @@
 name: wiki
 description: >
   LLM-compiled knowledge base manager for Codex. Use it to initialize, ingest,
-  import source collections, collect catalogs, track inventory, index datasets, archive old topics, compile, query, lint, audit, research, plan, capture or rehydrate agent session context, and generate outputs from topic-scoped wikis.
+  import collections, shape and promote Ideas, track inventory/datasets, archive topics, compile, query, lint, audit, research, plan, capture or rehydrate sessions, and generate outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
-  find all, inventory, source queue,
+  find all, idea, turn idea into project, inventory, source queue,
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
@@ -119,6 +119,7 @@ reference material you need for that workflow:
 - `ingest` and `ingest-collection` → `references/ingestion.md`
 - `collect` → `references/inventory.md` and `references/research-infrastructure.md`
 - `inventory` → `references/inventory.md`
+- `idea` → `references/ideas.md`
 - `dataset` → `references/datasets.md`
 - `archive` → `references/archive.md`
 - `compile` → `references/compilation.md` and `references/indexing.md`
@@ -157,6 +158,10 @@ acceptance state matter. Compile and query may surface inventory gaps, but
 factual claims still need raw/wiki sources. Collect, research, audit,
 librarian, refresh, plan, output, and assess may propose durable follow-ups as
 inventory records, but larger pivots should start with a small sample preview.
+
+Ideas live under `inventory/ideas/`. Route fuzzy capture, research, shaping,
+and promotion through `references/ideas.md`; require approval, preserve lineage,
+and keep delivery truth in the Project.
 
 Keep the first response short and action-oriented. Read deeper references only
 after the user intent is clear or a write action is needed.

@@ -47,6 +47,9 @@ HUB/topics/<name>/
 │   ├── items/                     # Physical/digital items, parts, tools, assets
 │   │   ├── _index.md
 │   │   └── *.md
+│   ├── ideas/                     # Proposals shaped before Project commitment
+│   │   ├── _index.md
+│   │   └── *.md                   # kind: idea
 │   ├── candidates/                # Ingest candidates, tasks, questions, watch items
 │   │   ├── _index.md
 │   │   └── *.md
@@ -113,9 +116,9 @@ HUB/topics/<name>/
     └── *.md                       # Loose outputs (backward compatible)
 ```
 
-See [inventory.md](inventory.md) for inventory records, [datasets.md](datasets.md)
-for dataset manifests, and [projects.md](projects.md) for the full projects
-architecture (lifecycle, multi-membership, explicit `--project <slug>` scoping).
+See [inventory.md](inventory.md) for inventory records, [ideas.md](ideas.md) for
+the Concept → Idea → Project workflow, [datasets.md](datasets.md) for dataset
+manifests, and [projects.md](projects.md) for the full projects architecture.
 Files under `inventory/views/` are derived list/table views. They are not
 inventory records and should not be treated as authoritative tracking state.
 Missing optional roots (`inventory/`, `datasets/`, `.obsidian/`, `.librarian/`,
@@ -244,7 +247,7 @@ Append-only chronological activity log. Every wiki operation appends an entry. N
 
 Each entry: `## [YYYY-MM-DD] operation | Description`
 
-Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `output`, `refresh`, `librarian`, `audit`, `plan`, `project`, `inventory`, `dataset`, `schema`, `archive`, `ll`, `assess`
+Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `output`, `refresh`, `librarian`, `audit`, `plan`, `idea`, `project`, `inventory`, `dataset`, `schema`, `archive`, `ll`, `assess`
 
 Useful for: `grep "^## \[" log.md | tail -10` to see recent activity.
 
