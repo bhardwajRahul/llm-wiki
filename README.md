@@ -7,7 +7,7 @@
 ╚══════╝╚══════╝╚═╝     ╚═╝     ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝
 ```
 
-[github.com/nvk/llm-wiki](https://github.com/nvk/llm-wiki)
+[llm-wiki.net](https://llm-wiki.net/) · [@LLMWIKI on X](https://x.com/LLMWIKI) · [github.com/nvk/llm-wiki](https://github.com/nvk/llm-wiki)
 
 LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and shape them, then explicitly promote approved briefs into delivery Projects. Also includes parallel research, collector catalogs, session memory, source ingestion, compilation, audits, querying, and artifact generation. Ships for Claude Code, OpenAI Codex, OpenCode, and portable agents. Obsidian-compatible.
 
