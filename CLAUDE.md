@@ -38,6 +38,7 @@ git -C ~/.claude/plugins/marketplaces/llm-wiki remote set-url origin https://git
 ./tests/test-docs-consistency.sh   # README command table + manifest/version drift
 ./tests/test-structure.sh          # wiki fixture validation (84 assertions)
 ./tests/test-local-cli-lint.sh     # local scripts/llm-wiki lint helper
+./tests/test-local-cli-retract.sh  # local secret-safe retract + verification helper
 ./tests/test-session-capture.sh    # deterministic session capture helper
 ./tests/test-session-concurrency.sh # concurrent session-state regression
 ./tests/test-codex-sync.sh         # Codex plugin mirror matches Claude source

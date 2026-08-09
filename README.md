@@ -556,14 +556,15 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:output <type> --retardmax` | Ship it now — rough but comprehensive, iterate later |
 | `/wiki:project new <slug> "goal"` | Group related outputs under `output/projects/<slug>/` with a plain `WHY.md` rationale |
 | `/wiki:project list\|show\|add\|archive` | Manage output project folders without duplicating project state into frontmatter |
-| `/wiki:retract <source-path> --reason "why"` | Remove a bad source, map blast radius, and flag downstream claims for review |
+| `/wiki:retract [<source-path>]` | User-authoritative removal of a source and its downstream wiki references, including selected archives and sessions |
+| `scripts/llm-wiki retract --everywhere [--apply]` | Secret-safe local value scan: hidden/stdin input, common encoded forms, dry-run first, then apply and verify |
 | `/wiki:ll` | Extract lessons learned from the current session into the wiki |
 | `/wiki:ll --dry-run` | Preview extracted lessons without writing |
 | `/wiki:ll --rules` | Also suggest CLAUDE.md / AGENTS.md rule additions |
 | `/wiki:assess <path>` | Assess a repo against wiki research + market. Gap analysis. |
 | `/wiki:assess <path> --retardmax` | Wide net — adds adjacent fields and failure analysis |
 
-All commands accept `--wiki <name>` to target a specific topic wiki and `--local` to target the project wiki. Archived topic wikis are skipped by default; commands that support `--include-archived` require that explicit flag before reading or writing archived material. Commands that generate content (`query`, `output`, `plan`) also accept `--with <wiki>` to load supplementary wikis as cross-wiki context — e.g., `--with article-writing` applies writing craft knowledge when generating output from a domain wiki.
+All commands accept `--wiki <name>` to target a specific topic wiki and `--local` to target the project wiki. Archived topic wikis are skipped by default; commands that support `--include-archived` require that explicit flag before reading or writing archived material. Retraction is the exception: an explicitly selected archived target needs no additional gate, and `scripts/llm-wiki retract --everywhere` includes archives and session context. Commands that generate content (`query`, `output`, `plan`) also accept `--with <wiki>` to load supplementary wikis as cross-wiki context — e.g., `--with article-writing` applies writing craft knowledge when generating output from a domain wiki.
 
 `/wiki:librarian` is the focused wiki-maintenance tool. `/wiki:audit` is broader and may perform fresh research to decide whether the current knowledge or generated outputs are still trustworthy.
 
@@ -633,7 +634,7 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
   explicit delivery commitment. Natural language routes the whole lifecycle.
 - **`_index.md` navigation** — every existing wiki-managed directory has an index. Claude reads indexes first, never scans blindly.
 - **Articles are synthesized**, not copied — they explain, contextualize, cross-reference.
-- **Raw is immutable** — once ingested, sources are never modified.
+- **Raw is immutable in normal workflows** — explicit user-directed retraction is the exception and removes selected raw and derived references.
 - **Multi-wiki aware** — queries peek at sibling wiki indexes for overlap.
 - **Archive-aware** — archived topic wikis stay preserved under
   `topics/.archive/` but are hidden from default query/compile/research/collect/output

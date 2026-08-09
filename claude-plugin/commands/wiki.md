@@ -123,7 +123,8 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 
 | Priority | Intent | Signal patterns | Route to |
 |----------|--------|----------------|----------|
-| 0 | **Collection Ingest** | Words: "import wiki", "mirror wiki", "bulk ingest", "ingest collection", "import collection", "ingest repo", "import repo"; or a URL/path plus collection signals: `dump.xml`, `.xml.bz2`, `.xml.gz`, `api.php`, `MediaWiki`, `github.com/*/*` with "all", "repo", "docs", "BIPs", or "collection" | `Skill: wiki:ingest-collection` with the source and filters |
+| 0 | **Retract** | "retract", "remove source", "remove this everywhere", "forget this data", "wipe references", "delete this from the wiki" | `Skill: wiki:retract` before loading semantic wiki context |
+| 0a | **Collection Ingest** | Words: "import wiki", "mirror wiki", "bulk ingest", "ingest collection", "import collection", "ingest repo", "import repo"; or a URL/path plus collection signals: `dump.xml`, `.xml.bz2`, `.xml.gz`, `api.php`, `MediaWiki`, `github.com/*/*` with "all", "repo", "docs", "BIPs", or "collection" | `Skill: wiki:ingest-collection` with the source and filters |
 | 0b | **Collect** | "collect", "collector", "catalog", "curate", "gather examples", "find all", "make a list of", "inventory all", "find and inventory", "collect and inventory"; especially with object words like "memes", "tools", "projects", "examples", "companies", "people", "quotes", "assets", "images", "videos", "screenshots" | `Skill: wiki:collect` |
 | 0c | **Idea (promote)** | "turn this idea into a project", "make this a project", "promote this idea", "approve the brief", "commit to this idea", "use the narrow/minimal/selected version" plus "project/build/ship" | `Skill: wiki:idea` with `promote` and the approved choice |
 | 0d | **Idea (shape)** | "shape this idea", "poke holes in this", "smallest useful version", "minimal and ideal versions", "make this approvable", "scope this idea", "what should we not build" | `Skill: wiki:idea` with `shape` |
@@ -147,7 +148,6 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 | 13 | **Plan** | "plan for", "implementation plan", "architecture for" | `Skill: wiki:plan` |
 | 13b | **Feedback** | "feedback", "good feedback", "capture correction", "user said this was right", "that worked", "promote feedback" | `Skill: wiki:feedback` |
 | 13c | **Lessons Learned** | "learn this", "learn that", "lesson learned", "lessons learned", "absorb this", "capture what we learned", "what did we learn", "session takeaways", "ll" | `Skill: wiki:ll` with the topic hint |
-| 14 | **Retract** | "remove source", "retract", "delete source", "pull out" | `Skill: wiki:retract` |
 | 15 | **Project (new)** | "new project", "start a project", "create project" (+ slug and goal) | `Skill: wiki:project` with `new <slug> "goal"` |
 | 16 | **Project (list)** | "list projects", "what projects", "show projects", "my projects" | `Skill: wiki:project` with `list` |
 | 17 | **Project (show)** | "show project X", "what's in project X", "open project X" | `Skill: wiki:project` with `show <slug>` |

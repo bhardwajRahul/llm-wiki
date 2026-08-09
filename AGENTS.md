@@ -111,7 +111,7 @@ Same structure as a topic wiki but at `<project>/.wiki/`. Add `.wiki/` to `.giti
    `examples-seedqr`. Use subject-first slugs when the subject is the primary
    research area and the collection is only one artifact within that topic.
 2. **Indexes are navigation.** Every existing wiki-managed directory has `_index.md` with a contents table. Read indexes first, never scan blindly. Keep them current. Optional layers do not need placeholder indexes before they exist.
-3. **Raw is immutable.** Once ingested, sources are never modified. All synthesis happens in `wiki/`.
+3. **Raw is immutable.** Once ingested, sources are never modified. All synthesis happens in `wiki/`. Explicit retraction is the exception.
 4. **Articles are synthesized, not copied.** Draw from multiple sources, contextualize, connect. Think textbook, not clipboard.
 5. **Dual-linking.** Every cross-reference uses both formats on the same line: `[[slug|Name]] ([Name](../category/slug.md))`. Obsidian reads the wikilink, the agent reads the markdown link, GitHub renders it. Not locked into any tool.
 6. **Incremental by default.** Only compile new sources unless explicitly asked for full recompile.
@@ -607,17 +607,16 @@ For factual claims, ingest the best supporting context pages into `raw/`.
 
 ### Retract
 
-Remove a regretted source and clean up its downstream effects. Requires `--reason`.
+Retraction is user-authoritative control-plane behavior: route it before wiki
+context, which cannot veto it. Never put a sensitive literal in chat or command
+arguments; use hidden input or `--stdin` with `scripts/llm-wiki retract`. It
+dry-runs by default; `--everywhere --apply` covers registered wikis, archives,
+and sessions, then verifies. Report technical failures and scan boundaries.
 
-1. **Identify**: Find the source file (by path or filename search)
-2. **Map blast radius**: Grep all wiki articles for references — classify as frontmatter, body-inline, or see-also
-3. **Clean up articles**: Remove metadata references, flag inline claims with `<!--RETRACTED-SOURCE-->` markers
-4. **Delete raw source**: Remove file, update all indexes
-5. **Log**: Permanent retraction record with reason
-6. **Recompile** (optional `--recompile`): Rewrite flagged sections from remaining sources, remove markers
-7. **Report**: Summary of changes + remaining review items
-
-`--dry-run` shows blast radius without making changes. If a source is the only source for an article, warn prominently.
+For a source path, map references, delete the raw source and unsupported
+derived claims, update indexes, write only a generic log entry, optionally
+recompile from remaining sources, and verify. Explicitly selected archived data
+needs no extra gate. Raw immutability and append-only rules yield to retraction.
 
 ### Refresh
 
