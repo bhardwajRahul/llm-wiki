@@ -1,7 +1,7 @@
 {
   "name": "wiki",
   "description": "LLM-compiled knowledge base with fuzzy Concept-to-Idea-to-Project workflows, token-efficient queries, collector catalogs, inventory, datasets, source ingestion, audits, topic guides, session memory, parallel research, and artifact generation.",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "author": {
     "name": "nvk"
   },
