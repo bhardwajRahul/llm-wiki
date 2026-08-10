@@ -19,6 +19,8 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
+**v0.17.1** — **Accidental sensitive-data cleanup.** Adds a dry-run-first local command for removing accidentally saved passwords, tokens, and other sensitive values from registered wikis, archives, and session context. It accepts hidden or stdin input, detects common encoded forms, keeps the selected value out of command arguments and reports, and verifies the selected local scope after explicit application.
+
 **v0.17.0** — **Ideas workflow.** Adds a fuzzy Concept → Idea → Project path: capture and catalog rough proposals under `inventory/ideas/`, research and shape them over time, then explicitly approve and promote a frozen `BRIEF.md` into a linked Project whose workspace owns delivery truth.
 
 **v0.16.0** — **Query Lite and token benchmarks.** Adds a compact read-only query protocol across Claude Code, Codex, Pi, DS4, OpenCode, and portable agents; reduces Claude `/wiki:query` instructions by 72.54%; adds explicit `$wiki-query`, read-only Pi launchers, static context budgets, corpus-identity gates, and reproducible Codex/Claude/DS4 benchmark lanes. OpenCode live-model behavior remains best effort.
@@ -28,8 +30,6 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 **v0.14.0** — **Default topic guides.** Adds advisory `schema.md` by default, safe adoption helpers for older wikis, proposal-only librarian convention updates, deterministic docs/lint checks, and clarifies the optional index/server layer as a rebuildable non-authoritative cache.
 
 **v0.12.0** — **Feedback curator.** Captures high-signal corrections, preferences, approvals, and plan acceptance as redacted feedback candidates under `HUB/.sessions/feedback/`; ignores generic acknowledgements; adds review/manual-capture/promotion workflows; and keeps promotion into topic `raw/notes/` explicit.
-
-**v0.11.1** — **Session helper compatibility.** Small hotfix so automated session capture works on Python 3.9/macOS system Python as well as newer Python runtimes.
 
 ## Install
 
