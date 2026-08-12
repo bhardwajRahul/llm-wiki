@@ -19,6 +19,8 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
+**v0.18.0** — **Hub-wide portfolio.** Adds `/wiki:portfolio`, a live read-only view across active topic wikis that lists canonical Ideas and active Projects separately, distinguishes explicitly promoted Projects from direct ones, preserves Concepts as supporting knowledge, and avoids catch-all topics, duplicated records, inferred lineage, and stale portfolio caches.
+
 **v0.17.1** — **Accidental sensitive-data cleanup.** Adds a dry-run-first local command for removing accidentally saved passwords, tokens, and other sensitive values from registered wikis, archives, and session context. It accepts hidden or stdin input, detects common encoded forms, keeps the selected value out of command arguments and reports, and verifies the selected local scope after explicit application.
 
 **v0.17.0** — **Ideas workflow.** Adds a fuzzy Concept → Idea → Project path: capture and catalog rough proposals under `inventory/ideas/`, research and shape them over time, then explicitly approve and promote a frozen `BRIEF.md` into a linked Project whose workspace owns delivery truth.
@@ -28,8 +30,6 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 **v0.15.0** — **Topic guides.** Reframes `schema.md` as a human-owned topic guide, adds the friendlier `llm-wiki schema adopt` helper, keeps `schema migrate --apply` as a compatibility alias, and updates librarian docs to talk about conventions proposals instead of database-style schema migrations.
 
 **v0.14.0** — **Default topic guides.** Adds advisory `schema.md` by default, safe adoption helpers for older wikis, proposal-only librarian convention updates, deterministic docs/lint checks, and clarifies the optional index/server layer as a rebuildable non-authoritative cache.
-
-**v0.12.0** — **Feedback curator.** Captures high-signal corrections, preferences, approvals, and plan acceptance as redacted feedback candidates under `HUB/.sessions/feedback/`; ignores generic acknowledgements; adds review/manual-capture/promotion workflows; and keeps promotion into topic `raw/notes/` explicit.
 
 ## Install
 
