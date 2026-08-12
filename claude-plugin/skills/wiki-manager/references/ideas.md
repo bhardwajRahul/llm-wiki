@@ -25,6 +25,8 @@ inventory/ideas/
 
 Use `related_wikis` for cross-topic relevance. A hub-wide catalog reads active
 topics' Idea indexes through `wikis.json`; never create a hub-level Ideas store.
+For a combined cross-topic view of Ideas plus direct and promoted Projects, use
+the read-only [Portfolio workflow](portfolio.md).
 
 ```yaml
 ---

@@ -64,11 +64,12 @@ text = skill_path.read_text()
 frontmatter = """---
 name: wiki-manager
 description: >
-  LLM-compiled knowledge base manager for OpenCode. Use it to initialize, ingest,
-  import collections, shape and promote Ideas, track inventory/datasets, archive topics, compile, query, lint, audit, research, plan, capture or rehydrate sessions, and generate outputs.
+  Manage LLM-compiled wikis in OpenCode: ingest/import, shape/promote Ideas,
+  review portfolios, track inventory/datasets, archive, compile/query/lint/audit,
+  research/plan, manage sessions, and generate outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
-  find all, idea, turn idea into project, inventory, source queue,
+  find all, idea, turn idea into project, portfolio, business ideas, projects, inventory, source queue,
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,

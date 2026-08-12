@@ -7,6 +7,9 @@ shaped Idea in `inventory/ideas/`. See [ideas.md](ideas.md). Direct Projects
 remain appropriate for maintenance, migrations, incident response, and other
 work that does not benefit from an incubation step.
 
+The read-only [Portfolio workflow](portfolio.md) lists Projects across active
+topic wikis and distinguishes explicitly promoted Projects from direct ones.
+
 ## Why projects exist at all
 
 Outputs are often multi-artifact. A single deliverable can produce a markdown playbook plus images referenced by `![](screenshot.png)`, a Python prototype, a CSV export, and a generated diagram. **Relative paths only work when these artifacts colocate.** A pure metadata overlay that keeps `output/` flat and tags via frontmatter breaks the moment the first binary asset appears — markdown image links no longer resolve, scripts can't find their data files, and the user has to manually prefix every asset reference.

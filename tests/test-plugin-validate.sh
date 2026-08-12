@@ -9,7 +9,7 @@ PLUGIN_JSON="$PLUGIN_DIR/.claude-plugin/plugin.json"
 PASS=0
 FAIL=0
 TOTAL=0
-REFERENCE_NAMES="archive audit command-prelude compilation datasets feedback hub-resolution ideas indexing ingestion inventory librarian linting projects query-lite research-infrastructure sessions wiki-structure"
+REFERENCE_NAMES="archive audit command-prelude compilation datasets feedback hub-resolution ideas indexing ingestion inventory librarian linting portfolio projects query-lite research-infrastructure sessions wiki-structure"
 
 log_pass() { PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[32mPASS\033[0m: %s\n" "$1"; }
 log_fail() { FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[31mFAIL\033[0m: %s — %s\n" "$1" "$2"; }
@@ -51,6 +51,21 @@ if grep -q '^type: notes$' "$LL_COMMAND" \
   log_pass "commands/ll.md raw-note template matches lint schema"
 else
   log_fail "commands/ll.md raw-note template schema drift" "expected type: notes, ingested, and lesson_kind"
+fi
+
+# Portfolio must remain a derived, read-only cross-topic view rather than a new
+# hub content layer or an inferred Idea/Project relationship store.
+PORTFOLIO_COMMAND="$PLUGIN_DIR/commands/portfolio.md"
+PORTFOLIO_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/portfolio.md"
+if grep -q 'read-only' "$PORTFOLIO_COMMAND" \
+  && grep -q 'inventory/ideas/_index.md' "$PORTFOLIO_COMMAND" \
+  && grep -q 'output/projects/\*/WHY.md' "$PORTFOLIO_COMMAND" \
+  && grep -q 'Never infer lineage' "$PORTFOLIO_COMMAND" \
+  && grep -q 'catch-all topic' "$PORTFOLIO_REFERENCE" \
+  && grep -q 'duplicate records' "$PORTFOLIO_REFERENCE"; then
+  log_pass "portfolio command preserves distributed source-of-truth invariants"
+else
+  log_fail "portfolio command invariant drift" "expected read-only index-first Ideas/Projects view"
 fi
 
 # SKILL.md exists

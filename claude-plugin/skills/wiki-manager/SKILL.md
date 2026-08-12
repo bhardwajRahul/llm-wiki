@@ -1,25 +1,13 @@
 ---
 name: wiki-manager
 description: >
-  LLM-compiled knowledge base manager. Activates when user works with wiki
-  directories, mentions knowledge base management, asks knowledge questions
-  in a project with a wiki, wants to ingest/import/compile/query/lint/audit knowledge,
-  collect/catalog artifacts, track inventory and Ideas,
-  manage source queues, candidates, corpora, entities, watch lists,
-  dataset manifests, large datasets, or data that is too big for the wiki,
-  archive old topic wikis, capture or rehydrate agent session context, curate user feedback, or uses /wiki commands. Also activates when user says "wiki", "knowledge base",
-  "ingest", "import wiki", "ingest collection", "collect", "catalog",
-  "curate", "find all", "compile wiki", "add to wiki", "search wiki", "audit", "librarian",
-  "scan quality", "article quality", "content review", "output drift", "idea",
-  "turn this into a project", "inventory",
-  "ingest queue", "source queue", "candidate list", "watch list", "backlog",
-  "dataset", "large data", "data registry", "dataset manifest",
-  "archive wiki", "archive topic", "restore wiki", "session capture",
-  "capture context", "rehydrate", "resume from session",
-  "feedback", "user feedback", "good feedback", "capture correction", "that worked",
-  "provenance", "trust this", or asks a factual question in a directory
-  containing .wiki/ or when ~/wiki/ exists or the configured hub path exists
-  (check ~/.config/llm-wiki/config.json for hub_path).
+  Manage LLM-compiled wikis: initialize, ingest/import, compile/query,
+  research/audit, collect catalogs, track inventory/datasets/Ideas, review
+  Idea/Project portfolios, manage archives/sessions/feedback, and generate
+  outputs. Activates for /wiki commands; wiki or knowledge-base work; ingest,
+  collect, catalog, compile, query, audit, librarian, inventory, idea,
+  portfolio, business ideas, projects, datasets, archives, sessions, feedback,
+  provenance, or questions in a directory with .wiki/ or a configured hub.
 tools:
   - Read
   - Write
@@ -143,6 +131,11 @@ Flow: Run an inventory fit check → track durable wiki-adjacent things (items, 
 See [references/ideas.md](references/ideas.md).
 Flow: capture in `inventory/ideas/` → research/shape → require approval →
 freeze `BRIEF.md` and promote. The Idea keeps lineage; the Project owns delivery.
+
+### Portfolio
+See [references/portfolio.md](references/portfolio.md).
+Flow: read active Idea indexes and Project `WHY.md` files → cross-link only
+explicit lineage → render separate read-only tables without copying records.
 
 ### Collect
 See [references/inventory.md](references/inventory.md) and

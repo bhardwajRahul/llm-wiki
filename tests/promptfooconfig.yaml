@@ -155,6 +155,18 @@ tests:
       - type: cost
         threshold: 0.50
 
+  - description: "Router: cross-topic Ideas and Projects route to portfolio"
+    vars:
+      prompt: "Show me one portfolio of all my business ideas and projects across every wiki topic. Don't copy or move anything."
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent routed to a read-only hub-wide portfolio, kept Ideas and Projects in their owning topics, did not create a catch-all topic, and did not treat every Concept as an Idea."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
   - description: "Router: dataset intent routes to dataset"
     vars:
       prompt: "Index this large Bitcointalk dataset so the wiki can query it without copying the data"

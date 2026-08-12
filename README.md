@@ -503,6 +503,7 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:idea develop\|shape <slug>` | Research an Idea, challenge assumptions, and prepare minimal/ideal shapes for approval |
 | `/wiki:idea promote <slug>` | Explicitly promote an approved snapshot into a linked Project with `WHY.md` and frozen `BRIEF.md` |
 | `/wiki:idea archive <slug>` | Archive the Idea record without implicitly archiving its linked Project |
+| `/wiki:portfolio [filters]` | Show a read-only hub-wide view of canonical Ideas and active Projects without creating a catch-all topic |
 | `/wiki:dataset list` | List dataset manifests as compact chat-friendly tables or bullets |
 | `/wiki:dataset list --view schema` | Show schema/readiness state without opening samples or data |
 | `/wiki:dataset add "title" --location <path-or-url>` | Add a dataset manifest without copying data into the wiki |
@@ -632,6 +633,8 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
 - **Concept → Idea → Project** — compiled Concepts hold knowledge, cataloged
   Ideas hold researched/shaped proposals, and Projects begin only after
   explicit delivery commitment. Natural language routes the whole lifecycle.
+- **Hub-wide portfolio** — one live, read-only view cross-references distributed
+  Ideas and direct/promoted Projects without duplicating topic-owned records.
 - **`_index.md` navigation** — every existing wiki-managed directory has an index. Claude reads indexes first, never scans blindly.
 - **Articles are synthesized**, not copied — they explain, contextualize, cross-reference.
 - **Raw is immutable in normal workflows** — explicit user-directed retraction is the exception and removes selected raw and derived references.

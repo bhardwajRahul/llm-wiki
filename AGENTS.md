@@ -671,6 +671,14 @@ rather than storing a stage. Only explicit approval may create linked `WHY.md`
 and frozen `BRIEF.md`. Fuzzy prompts route naturally; never auto-promote or
 merge.
 
+### Portfolio
+
+For all Ideas/Projects, read active topics from `wikis.json`, each
+`inventory/ideas/_index.md`, and active `output/projects/*/WHY.md`. Render
+separate read-only tables and link only explicit `project:` lineage. Concepts
+are not portfolio rows. Never create a catch-all topic, hub store, or duplicate;
+exclude archives by default and preview legacy candidate Ideas before capture.
+
 ### Dataset
 
 Manage manifests for data that is too large, mutable, sensitive, or operationally

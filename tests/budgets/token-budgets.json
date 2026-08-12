@@ -3,7 +3,7 @@
   "metrics": {
     "portable_protocol_bytes": {
       "baseline": 51174,
-      "max": 52000
+      "max": 52400
     },
     "claude_skill_bytes": {
       "baseline": 24703,
@@ -43,7 +43,7 @@
     },
     "codex_lazy_references_bytes": {
       "baseline": 205978,
-      "max": 213000
+      "max": 217000
     },
     "query_lite_reference_bytes": {
       "baseline": 2630,
