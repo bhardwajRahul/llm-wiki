@@ -2,48 +2,48 @@
   "schema_version": 1,
   "metrics": {
     "portable_protocol_bytes": {
-      "baseline": 51174,
-      "max": 52400
+      "baseline": 54140,
+      "max": 55500
     },
     "claude_skill_bytes": {
-      "baseline": 24703,
-      "max": 25000
+      "baseline": 25223,
+      "max": 25800
     },
     "claude_skill_description_chars": {
-      "baseline": 1392,
-      "max": 1450
+      "baseline": 547,
+      "max": 650
     },
     "claude_plugin_manifest_bytes": {
-      "baseline": 1004,
+      "baseline": 723,
       "max": 1100
     },
     "claude_plugin_description_chars": {
-      "baseline": 553,
+      "baseline": 203,
       "max": 650
     },
     "claude_lazy_commands_bytes": {
-      "baseline": 243672,
-      "max": 251000
+      "baseline": 253690,
+      "max": 262000
     },
     "claude_query_command_bytes": {
       "baseline": 3418,
       "max": 4500
     },
     "codex_skill_bytes": {
-      "baseline": 11692,
-      "max": 12000
+      "baseline": 12915,
+      "max": 13400
     },
     "codex_skill_description_chars": {
-      "baseline": 934,
-      "max": 1000
+      "baseline": 978,
+      "max": 1100
     },
     "codex_agents_metadata_bytes": {
-      "baseline": 386,
+      "baseline": 349,
       "max": 500
     },
     "codex_lazy_references_bytes": {
-      "baseline": 205978,
-      "max": 217000
+      "baseline": 221879,
+      "max": 230000
     },
     "query_lite_reference_bytes": {
       "baseline": 2630,
@@ -66,12 +66,12 @@
       "max": 400
     },
     "opencode_skill_bytes": {
-      "baseline": 25218,
-      "max": 26000
+      "baseline": 26651,
+      "max": 27500
     },
     "opencode_skill_description_chars": {
-      "baseline": 955,
-      "max": 1050
+      "baseline": 999,
+      "max": 1100
     },
     "opencode_query_skill_bytes": {
       "baseline": 2777,

@@ -106,6 +106,7 @@ Initialize a new wiki. Parse arguments:
    - `/wiki:research "topic" --sources 10` — auto-research to bootstrap
    - `/wiki:ingest <url|file|text>` — add source material
    - `/wiki:ingest-collection <repo|wiki-dump>` — bulk import a bounded upstream collection
+   - `/wiki:adapter list` — inspect explicitly registered local private adapters
    - `/wiki:collect "<things>"` — find, dedupe, and catalog examples, artifacts, tools, memes, or source candidates
    - `/wiki:idea new "<seed>"` — capture a proposal for research and shaping before Project commitment
    - `/wiki:inventory add ingest-candidate "title"` — track a candidate, corpus, entity, or next action
@@ -124,7 +125,8 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 | Priority | Intent | Signal patterns | Route to |
 |----------|--------|----------------|----------|
 | 0 | **Retract** | "retract", "remove source", "remove this everywhere", "forget this data", "wipe references", "delete this from the wiki" | `Skill: wiki:retract` before loading semantic wiki context |
-| 0a | **Collection Ingest** | Words: "import wiki", "mirror wiki", "bulk ingest", "ingest collection", "import collection", "ingest repo", "import repo"; or a URL/path plus collection signals: `dump.xml`, `.xml.bz2`, `.xml.gz`, `api.php`, `MediaWiki`, `github.com/*/*` with "all", "repo", "docs", "BIPs", or "collection" | `Skill: wiki:ingest-collection` with the source and filters |
+| 0a | **Private Adapter** | "private adapter", "registered adapter", "adapter add", "adapter list", "adapter doctor", "adapter run", "use the <name> adapter", or an explicit request to register/invoke an external local llm-wiki adapter; do not match `ingest-collection --adapter` | `Skill: wiki:adapter` with the management/run arguments |
+| 0a.1 | **Collection Ingest** | Words: "import wiki", "mirror wiki", "bulk ingest", "ingest collection", "import collection", "ingest repo", "import repo"; or a URL/path plus collection signals: `dump.xml`, `.xml.bz2`, `.xml.gz`, `api.php`, `MediaWiki`, `github.com/*/*` with "all", "repo", "docs", "BIPs", or "collection" | `Skill: wiki:ingest-collection` with the source and filters |
 | 0b | **Collect** | "collect", "collector", "catalog", "curate", "gather examples", "find all", "make a list of", "inventory all", "find and inventory", "collect and inventory"; especially with object words like "memes", "tools", "projects", "examples", "companies", "people", "quotes", "assets", "images", "videos", "screenshots" | `Skill: wiki:collect` |
 | 0c | **Idea (promote)** | "turn this idea into a project", "make this a project", "promote this idea", "approve the brief", "commit to this idea", "use the narrow/minimal/selected version" plus "project/build/ship" | `Skill: wiki:idea` with `promote` and the approved choice |
 | 0d | **Idea (shape)** | "shape this idea", "poke holes in this", "smallest useful version", "minimal and ideal versions", "make this approvable", "scope this idea", "what should we not build" | `Skill: wiki:idea` with `shape` |

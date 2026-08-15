@@ -1,7 +1,7 @@
 {
   "name": "wiki",
-  "description": "LLM-compiled knowledge base with fuzzy Concept-to-Idea-to-Project workflows, token-efficient queries, collector catalogs, inventory, datasets, source ingestion, audits, topic guides, session memory, parallel research, and artifact generation.",
-  "version": "0.18.0",
+  "description": "LLM-compiled knowledge base with explicitly trusted private adapters, fuzzy Concept-to-Idea-to-Project workflows, compact queries, inventory, datasets, ingestion, audits, sessions, research, and outputs.",
+  "version": "0.19.0",
   "author": {
     "name": "nvk"
   },
@@ -23,6 +23,8 @@
     "inventory",
     "ideas",
     "projects",
+    "adapters",
+    "private-adapters",
     "datasets",
     "archive",
     "sessions",

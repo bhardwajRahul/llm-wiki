@@ -124,6 +124,10 @@ normal query/compile/research/collect/output context unless explicitly included.
 queries may surface archived index matches separately.
 11. **Activity log.** Append every operation to `log.md`. Format: `## [YYYY-MM-DD] operation | Description`. Never edit existing entries.
 12. **Session capture is operational memory.** Automated harness-session capture lives under `HUB/.sessions/` or `.wiki/.sessions/`. It can preserve redacted checkpoints automatically, but topic wiki promotion is explicit and user-directed. Feedback candidates live under `.sessions/feedback/` and capture only high-signal corrections, preferences, approvals, or plan acceptance; generic acknowledgements are ignored.
+13. **Private adapters are external.** Executable registrations live in the
+machine-local `~/.config/llm-wiki/adapters.json`, never in `wikis.json` or a
+topic wiki. Adapter code and bulk output stay outside the wiki. Only reviewed
+`wiki-safe` candidates may be promoted through normal provenance workflows.
 
 ## File Formats
 
@@ -425,6 +429,41 @@ glossaries, standards families, and reference indexes. Do not create one
 compiled wiki article per upstream page by default. For BIPs, publication is
 provenance for proposal text, not proof of adoption or consensus. For community
 wikis, default confidence to medium unless corroborated by stronger sources.
+
+### Private Adapters
+
+Private adapters are explicitly trusted local executables implementing
+`llm-wiki-adapter/v1`. They are distinct from the fixed collection-ingestion
+adapter modes above.
+
+Use the bundled `bin/llm-wiki` from the installed plugin root, or
+`scripts/llm-wiki` in a source checkout:
+
+```bash
+llm-wiki adapter add /private/adapter \
+  --read-root /private/input \
+  --write-root /private/results
+llm-wiki adapter list
+llm-wiki adapter doctor <id>
+llm-wiki adapter run <id> --request /absolute/request.json --json
+llm-wiki adapter remove <id> --yes
+```
+
+Each adapter root contains `.llm-wiki-adapter.json` with a protocol, id,
+version, argv entrypoint, capabilities, operations, network declaration,
+`writes_wiki: false`, and output classes. The entrypoint implements `describe`
+and `execute --request <path> --response <path>`.
+
+The local registry is mode `0600`, stores environment-variable names but never
+their values, and scopes adapter input/output paths. Execution uses an argv
+array without a shell, checks manifest drift, applies timeouts, validates paths,
+and verifies returned artifact hashes. llm-wiki never clones or updates adapter
+repos and never imports run output automatically.
+
+After a run, inspect only `wiki-safe` candidates. Keep `private` and `bulk`
+artifacts external. Review provenance and privacy before writing the smallest
+useful raw note or evidence packet and compiling bounded conclusions. A
+`wiki-safe` label is a review hint, not proof that publication is appropriate.
 
 For large imports, preview the collection manifest shape and estimated child
 count first. If the user only wants to remember the corpus for later, create one

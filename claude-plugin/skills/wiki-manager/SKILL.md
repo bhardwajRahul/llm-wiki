@@ -7,7 +7,8 @@ description: >
   outputs. Activates for /wiki commands; wiki or knowledge-base work; ingest,
   collect, catalog, compile, query, audit, librarian, inventory, idea,
   portfolio, business ideas, projects, datasets, archives, sessions, feedback,
-  provenance, or questions in a directory with .wiki/ or a configured hub.
+  private adapters, adapter registries, provenance, or questions in a directory
+  with .wiki/ or a configured hub.
 tools:
   - Read
   - Write
@@ -93,6 +94,12 @@ and plan-acceptance signals may be captured as redacted candidates under
 `HUB/.sessions/feedback/`, but generic acknowledgements are ignored and durable
 wiki promotion remains explicit.
 
+13. **Private adapters are an external execution plane.** Their machine-local
+registry lives under `~/.config/llm-wiki/`, not in the hub. Adapter code and
+bulk outputs remain external; only reviewed `wiki-safe` candidates may enter
+the wiki through normal provenance and compilation workflows. See
+[references/adapters.md](references/adapters.md).
+
 ## Ambient Behavior
 
 When this skill activates outside of an explicit `/wiki:*` command:
@@ -122,6 +129,15 @@ Flow: Source (URL/file/text/tweet/inbox) → fetch/read → extract metadata →
 ### Collection Ingestion
 See [references/ingestion.md](references/ingestion.md) § Collection Ingestion.
 Flow: structured upstream collection (Git repo, BIP-style proposal set, MediaWiki dump/API) → upstream item inventory → write a `raw/repos/` manifest plus immutable child sources → rebuild raw indexes → optionally compile synthesized clusters. Use `/wiki:ingest-collection` for bulk imports; never recursively crawl HTML.
+
+### Private Adapters
+See [references/adapters.md](references/adapters.md).
+Flow: explicitly register an existing local adapter checkout → declare read and
+write roots → verify the manifest hash and `describe` handshake → execute a v1
+JSON request through the bundled deterministic CLI → verify artifact paths and
+hashes → leave all outputs external → optionally review only `wiki-safe`
+candidates and promote the smallest useful evidence through normal wiki writes.
+Never clone, install, update, publish, or auto-promote an adapter.
 
 ### Inventory
 See [references/inventory.md](references/inventory.md).

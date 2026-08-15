@@ -1,8 +1,8 @@
 interface:
   display_name: "Wiki Manager"
-  short_description: "Research, shape Ideas, review portfolios, promote Projects, and maintain llm-wiki knowledge bases."
+  short_description: "Research, run private adapters, shape Ideas, and maintain llm-wiki knowledge bases."
   brand_color: "#2F855A"
-  default_prompt: "Capture and shape an Idea, research a topic, or compile knowledge into a structured wiki."
+  default_prompt: "Use a registered private adapter, shape an Idea, research a topic, or compile knowledge into a structured wiki."
 
 policy:
   allow_implicit_invocation: true

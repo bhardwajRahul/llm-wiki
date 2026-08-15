@@ -1,0 +1,57 @@
+---
+description: "Register, inspect, validate, and run explicitly trusted local private adapters without putting their code or bulk data in the wiki."
+argument-hint: "add <path>|list|show <id>|doctor <id>|run <id> --request <json>|remove <id> --yes"
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(date:*), Bash(python3:*), Bash(scripts/llm-wiki:*), Bash(${CLAUDE_PLUGIN_ROOT}/bin/llm-wiki:*)
+---
+
+## Your task
+
+Manage or invoke a private llm-wiki adapter through the deterministic bundled
+CLI. Read `skills/wiki-manager/references/adapters.md` before acting.
+
+Private-adapter management is wiki-neutral. Do not put executable registrations
+or absolute machine paths in `wikis.json` or a topic wiki. Resolve a topic wiki
+only when the user asks to promote a reviewed result after execution.
+
+## Locate the CLI
+
+For Claude Code, use:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/llm-wiki" adapter <subcommand>
+```
+
+In a source checkout, use `scripts/llm-wiki`. Other runtimes should use the
+bundled `bin/llm-wiki` relative to the installed plugin root described in the
+adapter reference. Do not assume the command is globally installed.
+
+## Management operations
+
+- `add <path>`: require an existing local checkout and explicit read/write
+  roots. Never clone a repo or request credentials. Use `--replace` only when
+  the user intends to trust a changed manifest.
+- `list`: show compact id, version, capability, network, and local-root data.
+- `show <id>`: show the machine-local registration; do not print environment
+  variable values.
+- `doctor <id>`: verify manifest hash, executable, and handshake before a run.
+- `remove <id> --yes`: remove only the registration. Never delete adapter code,
+  inputs, or outputs.
+
+## Run operation
+
+1. Inspect the request JSON without opening referenced corpora or secrets.
+2. Confirm the adapter id, operation, declared paths, and requested output
+   directory match the user's intent.
+3. Run `doctor`; stop on any issue.
+4. Invoke `adapter run <id> --request <absolute-path> --json`.
+5. Report the run id, bounded summary, and artifact counts by class.
+6. Do not import anything automatically.
+
+If the user asks to update the wiki, inspect only `wiki-safe` artifacts. Review
+them as candidates, keep `private` and `bulk` artifacts external, write the
+smallest useful raw note/evidence packet, compile bounded conclusions, update
+indexes, and append the normal topic and hub logs.
+
+Private visibility is an access control, not permission to redistribute data or
+perform protected-content collection, deanonymization, sensitive inference,
+targeting, harassment, or other prohibited analysis.

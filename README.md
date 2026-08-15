@@ -19,6 +19,12 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
+**v0.19.0** — **Private adapter protocol.** Adds an explicitly trusted,
+machine-local adapter registry and portable `llm-wiki-adapter/v1` JSON contract,
+with manifest handshakes, path scopes, sanitized environments, hash-verified
+artifacts, bundled management CLI, and an explicit workflow boundary that never
+passes a wiki destination or auto-promotes adapter output.
+
 **v0.18.0** — **Hub-wide portfolio.** Adds `/wiki:portfolio`, a live read-only view across active topic wikis that lists canonical Ideas and active Projects separately, distinguishes explicitly promoted Projects from direct ones, preserves Concepts as supporting knowledge, and avoids catch-all topics, duplicated records, inferred lineage, and stale portfolio caches.
 
 **v0.17.1** — **Accidental sensitive-data cleanup.** Adds a dry-run-first local command for removing accidentally saved passwords, tokens, and other sensitive values from registered wikis, archives, and session context. It accepts hidden or stdin input, detects common encoded forms, keeps the selected value out of command arguments and reports, and verifies the selected local scope after explicit application.
@@ -431,6 +437,9 @@ checks without an agent:
 ./scripts/llm-wiki-session --hub /path/to/hub enable --mode balanced --tool-events 50
 ./scripts/llm-wiki-session --hub /path/to/hub rehydrate --cwd "$PWD"
 ./scripts/llm-wiki-session --hub /path/to/hub feedback list --unpromoted
+./scripts/llm-wiki adapter add /private/adapter --read-root /private/input --write-root /private/results
+./scripts/llm-wiki adapter doctor <id>
+./scripts/llm-wiki adapter run <id> --request /absolute/request.json --json
 ```
 
 This local helper covers structural checks and safe migrations that do not
@@ -487,6 +496,10 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:ingest-collection <source>` | Bulk-ingest Git doc repos, BIP-style proposal sets, MediaWiki dumps/API sites, message archives, or Wayback CDX snapshots |
 | `/wiki:ingest-collection <source> --adapter git\|mediawiki-dump\|mediawiki-api\|csv-messages\|wayback-cdx` | Force a collection adapter |
 | `/wiki:ingest-collection <source> --limit <N> --dry-run` | Preview or cap a large collection import |
+| `/wiki:adapter add <local-path>` | Register an existing explicitly trusted private adapter checkout; never clones or publishes it |
+| `/wiki:adapter list\|show\|doctor` | Inspect registrations and verify manifest/executable handshakes |
+| `/wiki:adapter run <id> --request <json>` | Execute a scoped v1 request and verify returned artifact paths and hashes without automatic wiki import |
+| `/wiki:adapter remove <id> --yes` | Remove only the machine-local registration, not adapter code or data |
 | `/wiki:collect "<things>"` | Find, dedupe, and catalog artifacts, examples, resources, media, memes, tools, entities, or source candidates |
 | `/wiki:collect "<things>" --scale tiny\|small\|medium\|large\|huge` | Control write behavior by operational scale, not just row count |
 | `/wiki:collect "<things>" --media archive\|thumbnail\|reference` | Download/cache bounded originals by default; use thumbnail for previews or reference to opt out |

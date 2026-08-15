@@ -39,6 +39,7 @@ git -C ~/.claude/plugins/marketplaces/llm-wiki remote set-url origin https://git
 ./tests/test-structure.sh          # wiki fixture validation (84 assertions)
 ./tests/test-local-cli-lint.sh     # local scripts/llm-wiki lint helper
 ./tests/test-local-cli-retract.sh  # local secret-safe retract + verification helper
+./tests/test-local-cli-adapters.sh # private-adapter registry + v1 execution boundary
 ./tests/test-session-capture.sh    # deterministic session capture helper
 ./tests/test-session-concurrency.sh # concurrent session-state regression
 ./tests/test-codex-sync.sh         # Codex plugin mirror matches Claude source
@@ -88,6 +89,8 @@ Requires `ANTHROPIC_API_KEY`. Costs ~$2-5 per run.
 - **Changed user-facing command docs or versions**: update README command rows and all plugin/marketplace manifest versions together, then run `test-docs-consistency.sh`.
 - **Changed the fuzzy router**: add or update test cases in `promptfooconfig.yaml` covering the new routing behavior plus negative controls.
 - **Added a new reference file**: `test-plugin-validate.sh` has three `for ref in ...` loops (Claude-side existence, Codex-side copied-reference validation, OpenCode-side symlink reachability) — add the new filename to all three.
+- **Changed `scripts/llm-wiki`**: run both plugin sync scripts so the bundled
+  `bin/llm-wiki` copies for Claude, Codex, and OpenCode match the source helper.
 - **Changed `references/query-lite.md`**: run `scripts/sync-query-lite-profile.sh`, `scripts/sync-codex-plugin.sh`, and `scripts/sync-opencode-plugin.sh`, then run `tests/test-query-lite-sync.sh` and the two mirror sync tests.
 - **Changed directory structure** (new `raw/` or `wiki/` subdirectory): update `test-structure.sh` C1 directory list and C11 placement checks. Update the golden wiki fixture if needed.
 - **Edited `claude-plugin/skills/wiki-manager/`**: both `test-codex-sync.sh` and `test-opencode-sync.sh` will fail until you re-run both sync scripts and commit `plugins/`. Never edit `plugins/llm-wiki/` or `plugins/llm-wiki-opencode/` by hand — they are generated. Codex gets copied references for marketplace caching; OpenCode keeps a symlink into the Claude source.

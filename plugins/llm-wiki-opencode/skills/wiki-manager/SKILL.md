@@ -3,16 +3,17 @@ name: wiki-manager
 description: >
   Manage LLM-compiled wikis in OpenCode: ingest/import, shape/promote Ideas,
   review portfolios, track inventory/datasets, archive, compile/query/lint/audit,
-  research/plan, manage sessions, and generate outputs.
+  research/plan, manage sessions/private adapters, and generate outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
   find all, idea, turn idea into project, portfolio, business ideas, projects, inventory, source queue,
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
-  archive wiki, archive topic, restore wiki, session capture, capture
-  context, rehydrate, resume from session, lessons learned, implementation
-  plan, or uses wiki-related shorthand in a repo with .wiki/, ~/wiki/, or a
+  archive wiki, archive topic, restore wiki, private adapter, adapter registry,
+  adapter doctor, adapter run, session capture, capture context, rehydrate,
+  resume from session, lessons learned, implementation plan, or uses
+  wiki-related shorthand in a repo with .wiki/, ~/wiki/, or a
   configured hub path.
 ---
 
@@ -98,6 +99,12 @@ and plan-acceptance signals may be captured as redacted candidates under
 `HUB/.sessions/feedback/`, but generic acknowledgements are ignored and durable
 wiki promotion remains explicit.
 
+13. **Private adapters are an external execution plane.** Their machine-local
+registry lives under `~/.config/llm-wiki/`, not in the hub. Adapter code and
+bulk outputs remain external; only reviewed `wiki-safe` candidates may enter
+the wiki through normal provenance and compilation workflows. See
+[references/adapters.md](references/adapters.md).
+
 ## Ambient Behavior
 
 When this skill activates outside of an explicit wiki-related request:
@@ -127,6 +134,15 @@ Flow: Source (URL/file/text/tweet/inbox) → fetch/read → extract metadata →
 ### Collection Ingestion
 See [references/ingestion.md](references/ingestion.md) § Collection Ingestion.
 Flow: structured upstream collection (Git repo, BIP-style proposal set, MediaWiki dump/API) → upstream item inventory → write a `raw/repos/` manifest plus immutable child sources → rebuild raw indexes → optionally compile synthesized clusters. Use `/wiki:ingest-collection` for bulk imports; never recursively crawl HTML.
+
+### Private Adapters
+See [references/adapters.md](references/adapters.md).
+Flow: explicitly register an existing local adapter checkout → declare read and
+write roots → verify the manifest hash and `describe` handshake → execute a v1
+JSON request through the bundled deterministic CLI → verify artifact paths and
+hashes → leave all outputs external → optionally review only `wiki-safe`
+candidates and promote the smallest useful evidence through normal wiki writes.
+Never clone, install, update, publish, or auto-promote an adapter.
 
 ### Inventory
 See [references/inventory.md](references/inventory.md).

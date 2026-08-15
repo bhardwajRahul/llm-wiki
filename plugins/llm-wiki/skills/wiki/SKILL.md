@@ -3,14 +3,16 @@ name: wiki
 description: >
   Manage LLM-compiled wikis in Codex: ingest/import, shape/promote Ideas,
   review portfolios, track inventory/datasets, archive, compile/query/lint/audit,
-  research/plan, manage sessions, and generate outputs.
+  research/plan, manage sessions/private adapters, and generate outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
   find all, idea, turn idea into project, portfolio, business ideas, projects, inventory, source queue,
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
-  archive wiki, archive topic, restore wiki, session capture, capture context, rehydrate, resume from session, implementation plan, or uses
+  archive wiki, archive topic, restore wiki, private adapter, adapter registry,
+  adapter doctor, adapter run, session capture, capture context, rehydrate,
+  resume from session, implementation plan, or uses
   /wiki-style shorthand in a repo with .wiki/, ~/wiki/, or a configured hub path.
 ---
 
@@ -92,6 +94,12 @@ and plan-acceptance signals may be captured as redacted candidates under
 `HUB/.sessions/feedback/`, but generic acknowledgements are ignored and durable
 wiki promotion remains explicit.
 
+13. **Private adapters are an external execution plane.** Their machine-local
+registry lives under `~/.config/llm-wiki/`, not in the hub. Adapter code and
+bulk outputs remain external; only reviewed `wiki-safe` candidates may enter
+the wiki through normal provenance and compilation workflows. See
+[references/adapters.md](references/adapters.md).
+
 ## Ambient Behavior
 
 When this skill activates outside of an explicit `@wiki` invocation or `/wiki`-style shorthand:
@@ -118,6 +126,7 @@ Choose the smallest workflow that matches the request, then load only the
 reference material you need for that workflow:
 
 - `ingest` and `ingest-collection` → `references/ingestion.md`
+- `adapter` and private-adapter execution → `references/adapters.md`
 - `collect` → `references/inventory.md` and `references/research-infrastructure.md`
 - `inventory` → `references/inventory.md`
 - `idea` → `references/ideas.md`
@@ -135,6 +144,14 @@ reference material you need for that workflow:
 - hub lookup and path handling → `references/hub-resolution.md`
 - session capture, automated hooks, rehydration, promotion → `references/sessions.md`
 - feedback curation, corrections, approvals, candidate promotion → `references/feedback.md`
+
+Private adapters are explicitly trusted local executables. Resolve the bundled
+`bin/llm-wiki` from the installed plugin root containing this skill; in a source
+checkout use `scripts/llm-wiki`. Never clone or update an adapter, store its
+registration in the hub, pass unregistered paths, or import outputs
+automatically. Verify the manifest/handshake, run a v1 JSON request, keep
+`private` and `bulk` artifacts external, and review `wiki-safe` candidates
+before any normal wiki write.
 
 Collect requests create bounded catalogs of discoverable things: artifacts,
 examples, resources, entities, tools, media, memes, or source candidates. Infer

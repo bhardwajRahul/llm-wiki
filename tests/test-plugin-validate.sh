@@ -9,7 +9,7 @@ PLUGIN_JSON="$PLUGIN_DIR/.claude-plugin/plugin.json"
 PASS=0
 FAIL=0
 TOTAL=0
-REFERENCE_NAMES="archive audit command-prelude compilation datasets feedback hub-resolution ideas indexing ingestion inventory librarian linting portfolio projects query-lite research-infrastructure sessions wiki-structure"
+REFERENCE_NAMES="adapters archive audit command-prelude compilation datasets feedback hub-resolution ideas indexing ingestion inventory librarian linting portfolio projects query-lite research-infrastructure sessions wiki-structure"
 
 log_pass() { PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[32mPASS\033[0m: %s\n" "$1"; }
 log_fail() { FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[31mFAIL\033[0m: %s — %s\n" "$1" "$2"; }
@@ -101,6 +101,14 @@ if [ -f "$PROJECT_ROOT/AGENTS.md" ]; then
   log_pass "AGENTS.md exists"
 else
   log_fail "AGENTS.md missing" "missing file"
+fi
+
+CLAUDE_LOCAL_CLI="$PLUGIN_DIR/bin/llm-wiki"
+if [ -x "$CLAUDE_LOCAL_CLI" ] \
+  && cmp -s "$CLAUDE_LOCAL_CLI" "$PROJECT_ROOT/scripts/llm-wiki"; then
+  log_pass "Claude plugin bundles the current deterministic llm-wiki CLI"
+else
+  log_fail "Claude bundled llm-wiki CLI missing or stale" "run a plugin sync script"
 fi
 
 # Codex mirror validation — the artifacts that Codex installs from this repo.
@@ -237,6 +245,14 @@ else
   log_fail "Codex wiki-query metadata invalid" "expected interface and explicit-only policy"
 fi
 
+CODEX_LOCAL_CLI="$CODEX_PLUGIN/bin/llm-wiki"
+if [ -x "$CODEX_LOCAL_CLI" ] \
+  && cmp -s "$CODEX_LOCAL_CLI" "$PROJECT_ROOT/scripts/llm-wiki"; then
+  log_pass "Codex plugin bundles the current deterministic llm-wiki CLI"
+else
+  log_fail "Codex bundled llm-wiki CLI missing or stale" "run scripts/sync-codex-plugin.sh"
+fi
+
 # OpenCode mirror validation — the artifacts that OpenCode loads via the
 # "instructions" key in opencode.json. Drift between Claude source and this
 # mirror is covered by test-opencode-sync.sh; what's checked here is whether
@@ -306,6 +322,14 @@ if [ -f "$OPENCODE_PLUGIN/README.md" ]; then
   log_pass "OpenCode README.md exists"
 else
   log_fail "OpenCode README.md not found" "missing file"
+fi
+
+OPENCODE_LOCAL_CLI="$OPENCODE_PLUGIN/bin/llm-wiki"
+if [ -x "$OPENCODE_LOCAL_CLI" ] \
+  && cmp -s "$OPENCODE_LOCAL_CLI" "$PROJECT_ROOT/scripts/llm-wiki"; then
+  log_pass "OpenCode plugin bundles the current deterministic llm-wiki CLI"
+else
+  log_fail "OpenCode bundled llm-wiki CLI missing or stale" "run scripts/sync-opencode-plugin.sh"
 fi
 
 echo ""

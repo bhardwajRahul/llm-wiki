@@ -33,6 +33,7 @@ Standard process for testing and shipping a new version of the llm-wiki plugin.
    ./tests/test-docs-consistency.sh
    ./tests/test-structure.sh
    ./tests/test-local-cli-lint.sh
+   ./tests/test-local-cli-adapters.sh
    ./tests/test-codex-sync.sh
    ./tests/test-opencode-sync.sh
    ./tests/test-codex-runtime.sh

@@ -1,6 +1,6 @@
 {
   "name": "wiki",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "LLM-compiled knowledge bases for Codex with fuzzy Idea capture, research, shaping, and explicit Project promotion, plus inventory, datasets, source ingestion, compilation, audits, sessions, and artifact generation.",
   "author": {
     "name": "nvk",
@@ -29,7 +29,9 @@
     "hooks",
     "context",
     "ideas",
-    "projects"
+    "projects",
+    "adapters",
+    "private-adapters"
   ],
   "skills": "./skills/",
   "interface": {
@@ -45,6 +47,7 @@
     "websiteURL": "https://github.com/nvk/llm-wiki",
     "defaultPrompt": [
       "Capture this rough Idea, research it, shape alternatives, and wait for approval before creating a Project.",
+      "Run a registered private adapter and review only its wiki-safe evidence candidates.",
       "Research a new topic and compile it into a wiki.",
       "Collect a catalog of examples, tools, memes, media, projects, or source candidates and decide what should become inventory.",
       "Archive an old topic wiki so it stays preserved but out of default context.",

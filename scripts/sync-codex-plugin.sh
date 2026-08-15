@@ -10,6 +10,7 @@ TARGET_QUERY="$TARGET_PLUGIN/skills/wiki-query"
 CLAUDE_MANIFEST="$ROOT/claude-plugin/.claude-plugin/plugin.json"
 CODEX_MANIFEST="$TARGET_PLUGIN/.codex-plugin/plugin.json"
 SESSION_HELPER="$ROOT/scripts/llm-wiki-session"
+LOCAL_HELPER="$ROOT/scripts/llm-wiki"
 
 if [ ! -d "$SOURCE_SKILL" ]; then
   echo "Missing source skill: $SOURCE_SKILL" >&2
@@ -35,6 +36,19 @@ if [ ! -f "$SESSION_HELPER" ]; then
   echo "Missing session helper: $SESSION_HELPER" >&2
   exit 1
 fi
+
+if [ ! -f "$LOCAL_HELPER" ]; then
+  echo "Missing local helper: $LOCAL_HELPER" >&2
+  exit 1
+fi
+
+# The deterministic helper is shared by every runtime package. The public
+# script remains the source of truth; packaged copies make adapter management
+# available even when the plugin is installed without the full repository.
+mkdir -p "$ROOT/claude-plugin/bin" "$TARGET_PLUGIN/bin"
+cp "$LOCAL_HELPER" "$ROOT/claude-plugin/bin/llm-wiki"
+cp "$LOCAL_HELPER" "$TARGET_PLUGIN/bin/llm-wiki"
+chmod 0755 "$ROOT/claude-plugin/bin/llm-wiki" "$TARGET_PLUGIN/bin/llm-wiki"
 
 mkdir -p "$TARGET_PLUGIN/skills"
 # The Codex marketplace caches plugin contents eagerly, so references/ must be
@@ -137,9 +151,9 @@ EOF
 cat > "$TARGET_SKILL/agents/openai.yaml" <<'EOF'
 interface:
   display_name: "Wiki Manager"
-  short_description: "Research, shape Ideas, review portfolios, promote Projects, and maintain llm-wiki knowledge bases."
+  short_description: "Research, run private adapters, shape Ideas, and maintain llm-wiki knowledge bases."
   brand_color: "#2F855A"
-  default_prompt: "Capture and shape an Idea, research a topic, or compile knowledge into a structured wiki."
+  default_prompt: "Use a registered private adapter, shape an Idea, research a topic, or compile knowledge into a structured wiki."
 
 policy:
   allow_implicit_invocation: true
@@ -186,14 +200,16 @@ name: wiki
 description: >
   Manage LLM-compiled wikis in Codex: ingest/import, shape/promote Ideas,
   review portfolios, track inventory/datasets, archive, compile/query/lint/audit,
-  research/plan, manage sessions, and generate outputs.
+  research/plan, manage sessions/private adapters, and generate outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
   find all, idea, turn idea into project, portfolio, business ideas, projects, inventory, source queue,
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
-  archive wiki, archive topic, restore wiki, session capture, capture context, rehydrate, resume from session, implementation plan, or uses
+  archive wiki, archive topic, restore wiki, private adapter, adapter registry,
+  adapter doctor, adapter run, session capture, capture context, rehydrate,
+  resume from session, implementation plan, or uses
   /wiki-style shorthand in a repo with .wiki/, ~/wiki/, or a configured hub path.
 ---
 """
@@ -268,6 +284,7 @@ Choose the smallest workflow that matches the request, then load only the
 reference material you need for that workflow:
 
 - `ingest` and `ingest-collection` → `references/ingestion.md`
+- `adapter` and private-adapter execution → `references/adapters.md`
 - `collect` → `references/inventory.md` and `references/research-infrastructure.md`
 - `inventory` → `references/inventory.md`
 - `idea` → `references/ideas.md`
@@ -285,6 +302,14 @@ reference material you need for that workflow:
 - hub lookup and path handling → `references/hub-resolution.md`
 - session capture, automated hooks, rehydration, promotion → `references/sessions.md`
 - feedback curation, corrections, approvals, candidate promotion → `references/feedback.md`
+
+Private adapters are explicitly trusted local executables. Resolve the bundled
+`bin/llm-wiki` from the installed plugin root containing this skill; in a source
+checkout use `scripts/llm-wiki`. Never clone or update an adapter, store its
+registration in the hub, pass unregistered paths, or import outputs
+automatically. Verify the manifest/handshake, run a v1 JSON request, keep
+`private` and `bulk` artifacts external, and review `wiki-safe` candidates
+before any normal wiki write.
 
 Collect requests create bounded catalogs of discoverable things: artifacts,
 examples, resources, entities, tools, media, memes, or source candidates. Infer
