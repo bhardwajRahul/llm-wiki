@@ -1,5 +1,5 @@
 ---
-description: "LLM wiki knowledge base — understands natural language. Say what you want (capture or shape an Idea, turn an approved Idea into a Project, add a URL, collect a catalog, track inventory, ask a question, research, audit, or resume work) and it routes to the right workflow. Also handles init, status, and config."
+description: "LLM wiki knowledge base — understands natural language. Say what you want (edit a Google Doc through a registered adapter, capture or shape an Idea, add a URL, collect a catalog, track inventory, ask a question, research, audit, or resume work) and it routes to the right workflow. Also handles init, status, and config."
 argument-hint: "[<natural language request>] [init <topic-name> [--local]] [config hub-path [<path>]] [--wiki <name>]"
 allowed-tools: Read, Write, Edit, Glob, Bash(ls:*), Bash(wc:*), Bash(mkdir:*), Bash(date:*), Bash(mv:*)
 ---
@@ -125,8 +125,9 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 | Priority | Intent | Signal patterns | Route to |
 |----------|--------|----------------|----------|
 | 0 | **Retract** | "retract", "remove source", "remove this everywhere", "forget this data", "wipe references", "delete this from the wiki" | `Skill: wiki:retract` before loading semantic wiki context |
-| 0a | **Private Adapter** | "private adapter", "registered adapter", "adapter add", "adapter list", "adapter doctor", "adapter run", "use the <name> adapter", or an explicit request to register/invoke an external local llm-wiki adapter; do not match `ingest-collection --adapter` | `Skill: wiki:adapter` with the management/run arguments |
-| 0a.1 | **Collection Ingest** | Words: "import wiki", "mirror wiki", "bulk ingest", "ingest collection", "import collection", "ingest repo", "import repo"; or a URL/path plus collection signals: `dump.xml`, `.xml.bz2`, `.xml.gz`, `api.php`, `MediaWiki`, `github.com/*/*` with "all", "repo", "docs", "BIPs", or "collection" | `Skill: wiki:ingest-collection` with the source and filters |
+| 0a | **Google Docs Edit** | An edit verb (edit, revise, update, proofread, replace, or suggest changes) plus a URL matching `https://docs.google.com/document/d/...` | `Skill: wiki:adapter`; select registered `google-docs-editing`, check exact registration before any auth, apply tracked suggestions, then verify |
+| 0a.1 | **Private Adapter** | "private adapter", "registered adapter", "adapter add", "adapter list", "adapter doctor", "adapter run", "use the <name> adapter", or an explicit request to register/invoke an external local llm-wiki adapter; do not match `ingest-collection --adapter` | `Skill: wiki:adapter` with the management/run arguments |
+| 0a.2 | **Collection Ingest** | Words: "import wiki", "mirror wiki", "bulk ingest", "ingest collection", "import collection", "ingest repo", "import repo"; or a URL/path plus collection signals: `dump.xml`, `.xml.bz2`, `.xml.gz`, `api.php`, `MediaWiki`, `github.com/*/*` with "all", "repo", "docs", "BIPs", or "collection" | `Skill: wiki:ingest-collection` with the source and filters |
 | 0b | **Collect** | "collect", "collector", "catalog", "curate", "gather examples", "find all", "make a list of", "inventory all", "find and inventory", "collect and inventory"; especially with object words like "memes", "tools", "projects", "examples", "companies", "people", "quotes", "assets", "images", "videos", "screenshots" | `Skill: wiki:collect` |
 | 0c | **Idea (promote)** | "turn this idea into a project", "make this a project", "promote this idea", "approve the brief", "commit to this idea", "use the narrow/minimal/selected version" plus "project/build/ship" | `Skill: wiki:idea` with `promote` and the approved choice |
 | 0d | **Idea (shape)** | "shape this idea", "poke holes in this", "smallest useful version", "minimal and ideal versions", "make this approvable", "scope this idea", "what should we not build" | `Skill: wiki:idea` with `shape` |
@@ -181,6 +182,12 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 - Inventory and dataset signals outrank generic question or URL patterns. For
   example, "what should become inventory?" routes to inventory, and "track this
   URL as a candidate" routes to inventory rather than immediate ingest.
+- A Google Docs edit route outranks generic URL ingestion. Check whether the
+  exact document resource is already registered before starting OAuth; never
+  reauthorize a registered target. A bounded edit imperative approves only its
+  faithful plan, so pass its plan hash internally instead of asking the user to
+  paste it. A URL without an edit instruction is not authorization to invent
+  changes.
 - Collect signals outrank plain inventory and research when the user asks to
   discover many objects before tracking them. For example, "collect and
   inventory all bitcoin memes" routes to collect, which writes a bounded

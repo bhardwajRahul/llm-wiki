@@ -71,6 +71,30 @@ tests:
       - type: cost
         threshold: 0.50
 
+  - description: "Router: Google Docs edit uses the private adapter before URL ingestion"
+    vars:
+      prompt: "Edit this Google Doc: replace 'old wording' with 'new wording' https://docs.google.com/document/d/synthetic-document-id/edit"
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent routes to the registered google-docs-editing private adapter, not URL ingestion, arbitrary browser automation, or a direct Docs API write. It checks exact registration before authorization, treats the bounded replacement instruction as approval for only the faithful revision-locked plan, passes the plan hash internally, applies tracked suggestions, and independently verifies the result."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  - description: "Router: Google Docs URL alone does not authorize a write"
+    vars:
+      prompt: "Edit this Google Doc https://docs.google.com/document/d/synthetic-document-id/edit"
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent selects the google-docs-editing route but asks for the missing edit instruction and does not invent or execute document changes from the URL alone."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
   - description: "Router: collection import routes to ingest-collection"
     vars:
       prompt: "Import the bitcoin BIPs repo into my bitcoin wiki: https://github.com/bitcoin/bips"

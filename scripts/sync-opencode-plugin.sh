@@ -85,7 +85,7 @@ description: >
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
   archive wiki, archive topic, restore wiki, private adapter, adapter registry,
-  adapter doctor, adapter run, session capture, capture context, rehydrate,
+  adapter doctor, adapter run, edit Google Doc, session capture, capture context, rehydrate,
   resume from session, lessons learned, implementation plan, or uses
   wiki-related shorthand in a repo with .wiki/, ~/wiki/, or a
   configured hub path.

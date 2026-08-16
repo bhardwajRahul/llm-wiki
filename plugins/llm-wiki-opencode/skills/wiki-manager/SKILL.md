@@ -11,7 +11,7 @@ description: >
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
   archive wiki, archive topic, restore wiki, private adapter, adapter registry,
-  adapter doctor, adapter run, session capture, capture context, rehydrate,
+  adapter doctor, adapter run, edit Google Doc, session capture, capture context, rehydrate,
   resume from session, lessons learned, implementation plan, or uses
   wiki-related shorthand in a repo with .wiki/, ~/wiki/, or a
   configured hub path.
@@ -105,6 +105,14 @@ Adapter repositories contain tool code only; real inputs and all runtime
 outputs remain in separately controlled external data planes. Only reviewed
 `wiki-safe` candidates may enter the wiki through normal provenance and
 compilation workflows. See
+[references/adapters.md](references/adapters.md).
+
+## Adapter Routing
+
+Before ingestion, a `docs.google.com/document/d/` URL with edit verb uses
+`google-docs-editing`. Check registration before OAuth; never reauthorize. Ask
+if the edit is missing. A bounded imperative approves its exact plan: pass the
+hash internally, apply suggestions, and verify. See
 [references/adapters.md](references/adapters.md).
 
 ## Ambient Behavior

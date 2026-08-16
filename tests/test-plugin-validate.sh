@@ -82,6 +82,23 @@ else
   log_fail "SKILL.md not found" "missing file"
 fi
 
+# External edit intents must route before generic URL ingestion on every
+# maintained instruction surface.
+ADAPTER_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/adapters.md"
+if grep -q '## Adapter Routing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'docs.google.com/document/d/' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'google-docs-editing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q '## Intent routing' "$ADAPTER_REFERENCE" \
+  && grep -q 'If it is already registered, do' "$ADAPTER_REFERENCE" \
+  && grep -q 'do not ask the user to copy, paste, or repeat the hash' "$ADAPTER_REFERENCE" \
+  && grep -q 'Google Docs Edit' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q '## Auto-routed Google Docs edits' "$PLUGIN_DIR/commands/adapter.md" \
+  && grep -q 'google-docs-editing' "$PROJECT_ROOT/AGENTS.md"; then
+  log_pass "Google Docs edit intent routes through the governed private adapter"
+else
+  log_fail "Google Docs adapter routing drift" "expected edit-before-ingest routing, registration-first auth, internal hash approval, and portable protocol coverage"
+fi
+
 # Reference files exist
 echo ""
 echo "--- Reference files ---"
@@ -203,6 +220,11 @@ if [ -f "$CODEX_SKILL/SKILL.md" ]; then
   else
     log_fail "Codex SKILL.md uses the wrong skill name" "expected 'name: wiki'"
   fi
+  if sed -n '2,/^---$/p' "$CODEX_SKILL/SKILL.md" | grep -q 'edit Google Doc'; then
+    log_pass "Codex implicit skill metadata advertises Google Docs editing"
+  else
+    log_fail "Codex Google Docs invocation metadata missing" "expected edit Google Doc in frontmatter"
+  fi
 else
   log_fail "Codex SKILL.md not found" "missing file"
 fi
@@ -300,6 +322,11 @@ if [ -f "$OPENCODE_SKILL/SKILL.md" ]; then
     log_pass "OpenCode SKILL.md has no 'Claude Code' references"
   else
     log_fail "OpenCode SKILL.md contains 'Claude Code'" "sync script missed a replacement"
+  fi
+  if sed -n '2,/^---$/p' "$OPENCODE_SKILL/SKILL.md" | grep -q 'edit Google Doc'; then
+    log_pass "OpenCode skill metadata advertises Google Docs editing"
+  else
+    log_fail "OpenCode Google Docs invocation metadata missing" "expected edit Google Doc in frontmatter"
   fi
 else
   log_fail "OpenCode SKILL.md not found" "missing file"

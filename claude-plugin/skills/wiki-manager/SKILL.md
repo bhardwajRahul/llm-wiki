@@ -7,7 +7,8 @@ description: >
   outputs. Activates for /wiki commands; wiki or knowledge-base work; ingest,
   collect, catalog, compile, query, audit, librarian, inventory, idea,
   portfolio, business ideas, projects, datasets, archives, sessions, feedback,
-  private adapters, adapter registries, provenance, or questions in a directory
+  private adapters, adapter registries, provenance, edit Google Doc, revise
+  Google Doc, suggest changes in a Google Doc URL, or questions in a directory
   with .wiki/ or a configured hub.
 tools:
   - Read
@@ -100,6 +101,14 @@ Adapter repositories contain tool code only; real inputs and all runtime
 outputs remain in separately controlled external data planes. Only reviewed
 `wiki-safe` candidates may enter the wiki through normal provenance and
 compilation workflows. See
+[references/adapters.md](references/adapters.md).
+
+## Adapter Routing
+
+Before ingestion, a `docs.google.com/document/d/` URL with edit verb uses
+`google-docs-editing`. Check registration before OAuth; never reauthorize. Ask
+if the edit is missing. A bounded imperative approves its exact plan: pass the
+hash internally, apply suggestions, and verify. See
 [references/adapters.md](references/adapters.md).
 
 ## Ambient Behavior

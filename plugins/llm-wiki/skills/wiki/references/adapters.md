@@ -75,6 +75,63 @@ plugin path. In a source checkout, use `scripts/llm-wiki`.
 Do not assume a globally installed `llm-wiki` executable. In examples below,
 `LLM_WIKI` means the resolved bundled or source-checkout executable.
 
+## Intent routing
+
+Route by the requested effect and target before applying normal wiki URL
+rules. A URL is not automatically an ingestion request when the user is asking
+an external tool to act on that resource. Use `adapter list`, `adapter show`,
+and `adapter doctor` to resolve registered capabilities; the registry is the
+runtime authority, not remembered repository paths or wiki content.
+
+### Google Docs edits
+
+The built-in route for an edit verb plus a URL matching
+`https://docs.google.com/document/d/...` is adapter id
+`google-docs-editing`. Edit verbs include edit, revise, update, proofread,
+replace, and suggest changes. This route takes precedence over generic URL
+ingestion. Never fall back to arbitrary browser automation or a direct Docs API
+write because neither path provides the adapter's revision lock,
+exact-resource policy, tracked-suggestion guarantee, idempotency journal, and
+independent read-back verification.
+
+Use this workflow:
+
+1. Resolve the bundled `LLM_WIKI`, then run `adapter list`, `adapter show
+   google-docs-editing`, and `adapter doctor google-docs-editing` without
+   printing private request or result files.
+2. Check the exact `google-docs:<document-id>` resource against the current
+   registry before starting authorization. If it is already registered, do
+   not open Google Picker or ask the user to authorize it again. If it is not,
+   run the adapter's owner-provisioned `auth --document <url>` Google Picker
+   flow and ask only for that one-time provider interaction. When replacing
+   the registration, preserve all existing read roots, write roots, allowed
+   environment names, and remote resources while adding the newly authorized
+   resource; never shrink or overwrite the allowlist accidentally.
+3. If the normal-Chrome extension has never been paired or its external token
+   is unavailable, run the adapter's one-time `extension-pair` flow. Pairing is
+   setup, not an approval step. A normal edit must not require clicking the
+   extension or approving the job in its side panel.
+4. Keep the exact target document active in the paired normal Chrome window.
+   Inspect it privately and create the smallest exact replacement plan that
+   implements the user's instruction. If the document has unresolved existing
+   suggestions, stop and ask the user to resolve them before planning.
+5. A URL alone is not authorization to invent edits. If the edit instruction
+   is missing or materially ambiguous, ask for that instruction. Otherwise, a
+   bounded imperative is the user's approval of its faithful plan. Hash the
+   private plan and pass the same value to `--approve-remote-write` internally;
+   do not ask the user to copy, paste, or repeat the hash. Additional changes
+   outside the instruction require new approval.
+6. Apply through `google-docs-editing` as tracked suggestions, with the expected
+   revision and a caller-stable idempotency key. Then run the separate `verify`
+   operation against the private verified receipt. Report only content-free
+   status and counts unless the user explicitly asks to see document content.
+
+Keep OAuth material, document projections, edit specs, plans, hashes,
+idempotency journals, receipts, and verification artifacts in the adapter's
+registered external data plane. Do not put any of them in the adapter repo,
+wiki, session capture, shell history, or public logs. The adapter remains a
+tool; the document remains external content.
+
 ## Adapter manifest
 
 Every adapter root contains `.llm-wiki-adapter.json`:

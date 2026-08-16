@@ -13,6 +13,26 @@ Private-adapter management is wiki-neutral. Do not put executable registrations
 or absolute machine paths in `wikis.json` or a topic wiki. Resolve a topic wiki
 only when the user asks to promote a reviewed result after execution.
 
+## Auto-routed Google Docs edits
+
+When the router passes an edit verb plus a
+`https://docs.google.com/document/d/...` URL, select registered adapter id
+`google-docs-editing`; do not send the URL to ingestion. Run `list`, `show`, and
+`doctor`, then check the exact target against the registered remote resources
+before doing anything with OAuth. If registered, skip authorization. If not,
+use the adapter's pinned Google Picker flow once and preserve all existing
+roots, environment names, and remote resources when adding the new exact
+resource.
+
+Inspect and plan privately, create only exact replacements that faithfully
+implement the user's bounded instruction, and keep the exact document active
+in the paired normal Chrome window. The imperative is explicit approval for
+that plan; compute and pass its hash to `--approve-remote-write` internally
+instead of asking the user to paste a hash. Apply as tracked suggestions and
+run the separate `verify` operation before reporting success. A URL without a
+clear edit instruction requires clarification, not an invented write. Normal
+edits require no extension click; pair only during one-time setup.
+
 ## Locate the CLI
 
 For Claude Code, use:

@@ -134,6 +134,9 @@ outputs stay in separately controlled external data planes. Only reviewed
 declared remote effects, bind explicit approval to the exact plan hash and
 expected revision, use a caller-stable idempotency key, and require a private
 read-back-verified receipt. A request file alone is never approval.
+15. **Route edits before ingestion.** A Google Docs edit URL routes to
+registered `google-docs-editing`; check registration before OAuth, keep approval
+bounded, apply suggestions, and verify.
 
 ## File Formats
 
@@ -441,6 +444,11 @@ wikis, default confidence to medium unless corroborated by stronger sources.
 Private adapters are explicitly trusted local executables implementing
 `llm-wiki-adapter/v1`. They are distinct from the fixed collection-ingestion
 adapter modes above.
+
+For a Google Docs URL plus an edit verb, use `google-docs-editing`, not
+ingestion. Never reauthorize a registered resource; preserve scopes when adding
+one. Pair once, keep the target active, pass the bounded plan hash internally,
+apply tracked suggestions, and verify independently.
 
 Use the bundled `bin/llm-wiki` from the installed plugin root, or
 `scripts/llm-wiki` in a source checkout:
