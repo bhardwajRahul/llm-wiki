@@ -94,6 +94,18 @@ if len(set(versions.values())) > 1:
     fail("manifest versions differ: " + ", ".join(f"{k}={v}" for k, v in versions.items()))
 
 
+# Publishing is never implied by implementation work. Keep the explicit user
+# authorization and release-consolidation gates in the durable repo contract.
+release_guide = (root / ".claude/release-checklist.md").read_text(encoding="utf-8")
+normalized_release_guide = " ".join(release_guide.split())
+for required in [
+    "explicit user authorization for that release in the current task",
+    "Batch adjacent fixes for one feature tranche into one proposed release",
+]:
+    if required not in normalized_release_guide:
+        fail(f"release checklist is missing authorization rule: {required}")
+
+
 # REFERENCE_NAMES is intentionally duplicated across validation loops. It should
 # enumerate every tracked Claude-side reference file.
 validate = (root / "tests/test-plugin-validate.sh").read_text(encoding="utf-8")

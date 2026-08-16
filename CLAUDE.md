@@ -143,4 +143,12 @@ tests/                          — test suite (see above)
 
 ## Release Process
 
-See `.claude/release-checklist.md` for the full ship process. Run all structural tests before bumping version.
+Publishing is a user-controlled action. Never bump a distribution version,
+create or push a version tag, publish or edit a GitHub release, or upgrade the
+installed release unless the user explicitly authorizes that release in the
+current task. Preparing, testing, committing, or pushing code is not release
+permission. Consolidate adjacent fixes into one proposed release unless the
+user explicitly asks for separate versions.
+
+See `.claude/release-checklist.md` for the full ship process. Run all structural
+tests before an authorized version bump.

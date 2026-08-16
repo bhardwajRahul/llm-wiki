@@ -19,28 +19,15 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
-**v0.21.3** — **Automatic Google Docs UI preparation.** The private connector
-owns opening and focusing the exact Doc, entering Suggesting mode, and opening
-Find and replace. Agents must repair a pre-mutation activation failure rather
-than asking the user to prepare or leave browser UI open.
-
-**v0.21.2** — **Additive Google Docs suggestions.** Existing unresolved
-suggestions no longer block an entire document. The private adapter may create
-additional plans against non-overlapping text while preserving the existing
-suggestion set as its verified baseline; overlapping targets and duplicate or
-partial retries still fail closed.
-
-**v0.21.1** — **Exact-file authorization repair.** Separates llm-wiki's exact
-resource registration from Google's per-file `drive.file` grant. Registered
-Docs now get a content-free live access probe; only a missing grant opens pinned
-Picker, and a bounded edit instruction starts that repair without another
-permission or approval-hash prompt.
-
-**v0.21.0** — **Zero-interaction Google Docs connector.** Routes approved
-Google Docs edits through the private adapter's stable Native Messaging
-connector, which opens the exact Doc and applies verified tracked suggestions
-without a port, pairing code, side-panel click, or active-tab preparation. Codex
-session hooks now survive replacement of their loaded versioned plugin cache.
+**v0.21.3** — **Consolidated Google Docs editing.** The v0.21 line adds the
+stable Native Messaging connector, separates exact registration from Google's
+per-file grant, permits additional non-overlapping suggestion plans, and makes
+the connector own exact-Doc focus, Suggesting mode, and Find-and-replace
+activation. Approved edits require no port, pairing code, side-panel click,
+active-tab preparation, repeated approval hash, or manual dialog setup; overlap,
+duplicate, partial-write, revision, idempotency, and read-back safeguards remain
+fail closed. Codex session hooks also survive replacement of their loaded
+versioned plugin cache.
 
 **v0.20.0** — **Governed remote writes.** Extends private adapters with exact
 remote-resource allowlists, declared read/write effects, explicit approval
