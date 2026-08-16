@@ -148,6 +148,35 @@ cat > "$TARGET_PLUGIN/hooks/hooks.json" <<'EOF'
 }
 EOF
 
+# Codex keeps the expanded hook command in a running session. During an update,
+# that session's versioned cache directory can disappear before the process is
+# restarted. Keep the command itself self-healing: use the loaded plugin helper
+# when present, otherwise execute the newest installed llm-wiki helper. The
+# fallback contains no user content and prevents a missing old cache from
+# blocking UserPromptSubmit.
+python3 - "$TARGET_PLUGIN/hooks/hooks.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+value = json.loads(path.read_text(encoding="utf-8"))
+launcher = (
+    "python3 -c 'import glob,os,runpy,sys; "
+    "p=os.path.join(os.environ.get(\"PLUGIN_ROOT\",\"\"),\"hooks\",\"llm_wiki_session.py\"); "
+    "xs=glob.glob(os.path.expanduser(\"~/.codex/plugins/cache/llm-wiki/wiki/*/hooks/llm_wiki_session.py\")); "
+    "p=p if os.path.isfile(p) else (max(xs,key=os.path.getmtime) if xs else \"\"); "
+    "sys.exit(0) if not p else None; "
+    "sys.argv=[p,*sys.argv[1:]]; runpy.run_path(p,run_name=\"__main__\")' "
+    "hook --harness codex --if-enabled"
+)
+for entries in value["hooks"].values():
+    for entry in entries:
+        for hook in entry["hooks"]:
+            hook["command"] = launcher
+path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+PY
+
 cat > "$TARGET_SKILL/agents/openai.yaml" <<'EOF'
 interface:
   display_name: "Wiki Manager"

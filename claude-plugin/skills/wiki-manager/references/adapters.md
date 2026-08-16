@@ -107,14 +107,17 @@ Use this workflow:
    the registration, preserve all existing read roots, write roots, allowed
    environment names, and remote resources while adding the newly authorized
    resource; never shrink or overwrite the allowlist accidentally.
-3. If the normal-Chrome extension has never been paired or its external token
-   is unavailable, run the adapter's one-time `extension-pair` flow. Pairing is
-   setup, not an approval step. A normal edit must not require clicking the
-   extension or approving the job in its side panel.
-4. Keep the exact target document active in the paired normal Chrome window.
-   Inspect it privately and create the smallest exact replacement plan that
-   implements the user's instruction. If the document has unresolved existing
-   suggestions, stop and ask the user to resolve them before planning.
+3. The v0.8 normal-Chrome connector uses Chrome Native Messaging rather than a
+   port, pairing code, token, or poller. During genuine one-time setup, run the
+   private adapter's `browser-install`, load its stable-ID unpacked extension,
+   and confirm `browser-status` reports installed and connected. Never ask for
+   an extension click during a normal edit. If installed but disconnected, ask
+   only that normal Chrome remain running with the extension enabled.
+4. Inspect privately and create the smallest exact replacement plan that
+   implements the user's instruction. The connector opens or focuses the exact
+   approved Doc automatically; do not ask the user to prepare the active tab.
+   If the document has unresolved existing suggestions, stop and ask the user
+   to resolve them before planning.
 5. A URL alone is not authorization to invent edits. If the edit instruction
    is missing or materially ambiguous, ask for that instruction. Otherwise, a
    bounded imperative is the user's approval of its faithful plan. Hash the

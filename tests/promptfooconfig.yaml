@@ -78,7 +78,7 @@ tests:
       - type: skill-used
         value: wiki
       - type: llm-rubric
-        value: "Agent routes to the registered google-docs-editing private adapter, not URL ingestion, arbitrary browser automation, or a direct Docs API write. It checks exact registration before authorization, treats the bounded replacement instruction as approval for only the faithful revision-locked plan, passes the plan hash internally, applies tracked suggestions, and independently verifies the result."
+        value: "Agent routes to the registered google-docs-editing private adapter, not URL ingestion, arbitrary browser automation, or a direct Docs API write. It checks exact registration before authorization, treats the bounded replacement instruction as approval for only the faithful revision-locked plan, passes the plan hash internally, relies on the installed native Chrome connector to open or focus the exact Doc without an extension click or pairing prompt, applies tracked suggestions, and independently verifies the result."
         threshold: 0.75
       - type: cost
         threshold: 0.50

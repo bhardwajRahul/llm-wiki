@@ -136,7 +136,7 @@ expected revision, use a caller-stable idempotency key, and require a private
 read-back-verified receipt. A request file alone is never approval.
 15. **Route edits before ingestion.** A Google Docs edit URL routes to
 registered `google-docs-editing`; check registration before OAuth, keep approval
-bounded, apply suggestions, and verify.
+bounded; native Chrome opens, suggests, then verify.
 
 ## File Formats
 

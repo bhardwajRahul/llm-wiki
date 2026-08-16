@@ -25,13 +25,16 @@ roots, environment names, and remote resources when adding the new exact
 resource.
 
 Inspect and plan privately, create only exact replacements that faithfully
-implement the user's bounded instruction, and keep the exact document active
-in the paired normal Chrome window. The imperative is explicit approval for
-that plan; compute and pass its hash to `--approve-remote-write` internally
+implement the user's bounded instruction. The installed normal-Chrome native
+connector opens or focuses the exact document automatically. The imperative is
+explicit approval for that plan; compute and pass its hash to
+`--approve-remote-write` internally
 instead of asking the user to paste a hash. Apply as tracked suggestions and
 run the separate `verify` operation before reporting success. A URL without a
 clear edit instruction requires clarification, not an invented write. Normal
-edits require no extension click; pair only during one-time setup.
+edits require no extension click, port, pairing code, or active-tab preparation.
+Use the private adapter's `browser-install` and `browser-status` only for
+genuine connector setup or diagnosis.
 
 ## Locate the CLI
 
