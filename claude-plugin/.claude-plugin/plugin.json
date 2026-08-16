@@ -1,7 +1,7 @@
 {
   "name": "wiki",
   "description": "LLM-compiled knowledge base with explicitly trusted private adapters, fuzzy Concept-to-Idea-to-Project workflows, compact queries, inventory, datasets, ingestion, audits, sessions, research, and outputs.",
-  "version": "0.21.0",
+  "version": "0.21.1",
   "author": {
     "name": "nvk"
   },

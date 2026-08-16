@@ -135,8 +135,8 @@ declared remote effects, bind explicit approval to the exact plan hash and
 expected revision, use a caller-stable idempotency key, and require a private
 read-back-verified receipt. A request file alone is never approval.
 15. **Route edits before ingestion.** A Google Docs edit URL routes to
-registered `google-docs-editing`; check registration before OAuth, keep approval
-bounded; native Chrome opens, suggests, then verify.
+registered `google-docs-editing`; check registry and live file grant, repair
+only via pinned Picker, then have native Chrome suggest and verify.
 
 ## File Formats
 

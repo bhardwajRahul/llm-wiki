@@ -78,7 +78,7 @@ tests:
       - type: skill-used
         value: wiki
       - type: llm-rubric
-        value: "Agent routes to the registered google-docs-editing private adapter, not URL ingestion, arbitrary browser automation, or a direct Docs API write. It checks exact registration before authorization, treats the bounded replacement instruction as approval for only the faithful revision-locked plan, passes the plan hash internally, relies on the installed native Chrome connector to open or focus the exact Doc without an extension click or pairing prompt, applies tracked suggestions, and independently verifies the result."
+        value: "Agent routes to the registered google-docs-editing private adapter, not URL ingestion, arbitrary browser automation, or a direct Docs API write. It checks exact registration and the separate live Google per-file grant before inspection, treats the bounded replacement instruction as approval for only the faithful revision-locked plan and for starting pinned Picker only if the live provider probe requires it, passes the plan hash internally, relies on the installed native Chrome connector to open or focus the exact Doc without an extension click or pairing prompt, applies tracked suggestions, and independently verifies the result."
         threshold: 0.75
       - type: cost
         threshold: 0.50
@@ -91,6 +91,18 @@ tests:
         value: wiki
       - type: llm-rubric
         value: "Agent selects the google-docs-editing route but asks for the missing edit instruction and does not invent or execute document changes from the URL alone."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  - description: "Router: registered Google Doc with missing provider grant repairs without a second permission prompt"
+    vars:
+      prompt: "Edit this registered Google Doc by replacing 'old wording' with 'new wording'. The adapter's live auth-status probe returns picker_required true. https://docs.google.com/document/d/synthetic-document-id/edit"
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent distinguishes llm-wiki registration from Google's drive.file grant, automatically starts the adapter's pinned exact-document authorization flow because the bounded edit already authorizes it, asks only for completion of Google's unavoidable provider interaction, preserves prior grants, rechecks live access, and does not ask the user for another llm-wiki permission or approval hash."
         threshold: 0.75
       - type: cost
         threshold: 0.50

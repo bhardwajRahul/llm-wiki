@@ -89,7 +89,9 @@ if grep -q '## Adapter Routing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
   && grep -q 'docs.google.com/document/d/' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
   && grep -q 'google-docs-editing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
   && grep -q '## Intent routing' "$ADAPTER_REFERENCE" \
-  && grep -q 'If it is already registered, do' "$ADAPTER_REFERENCE" \
+  && grep -q 'Registration is llm-wiki authority' "$ADAPTER_REFERENCE" \
+  && grep -q 'auth-status --document' "$ADAPTER_REFERENCE" \
+  && grep -q 'do not stop to ask for another llm-wiki' "$ADAPTER_REFERENCE" \
   && grep -q 'do not ask the user to copy, paste, or repeat the hash' "$ADAPTER_REFERENCE" \
   && grep -q 'Chrome Native Messaging' "$ADAPTER_REFERENCE" \
   && grep -q 'browser-install' "$ADAPTER_REFERENCE" \
@@ -100,7 +102,7 @@ if grep -q '## Adapter Routing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
   && grep -q 'google-docs-editing' "$PROJECT_ROOT/AGENTS.md"; then
   log_pass "Google Docs edit intent routes through the governed private adapter"
 else
-  log_fail "Google Docs adapter routing drift" "expected edit-before-ingest routing, registration-first auth, native connector auto-open, internal hash approval, and portable protocol coverage"
+  log_fail "Google Docs adapter routing drift" "expected edit-before-ingest routing, separate registration/provider checks, pinned grant repair, native connector auto-open, internal hash approval, and portable protocol coverage"
 fi
 
 # Reference files exist

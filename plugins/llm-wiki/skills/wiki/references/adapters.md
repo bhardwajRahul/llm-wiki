@@ -100,31 +100,34 @@ Use this workflow:
    google-docs-editing`, and `adapter doctor google-docs-editing` without
    printing private request or result files.
 2. Check the exact `google-docs:<document-id>` resource against the current
-   registry before starting authorization. If it is already registered, do
-   not open Google Picker or ask the user to authorize it again. If it is not,
-   run the adapter's owner-provisioned `auth --document <url>` Google Picker
-   flow and ask only for that one-time provider interaction. When replacing
-   the registration, preserve all existing read roots, write roots, allowed
-   environment names, and remote resources while adding the newly authorized
-   resource; never shrink or overwrite the allowlist accidentally.
-3. The v0.8 normal-Chrome connector uses Chrome Native Messaging rather than a
+   registry before starting authorization. Registration is llm-wiki authority;
+   it does not prove Google's per-file `drive.file` grant. If missing, run pinned
+   `auth --document <url>`, then add the resource without shrinking existing
+   roots, allowed environment names, or remote resources.
+3. Run content-free `auth-status --document <url>` before inspection. On
+   `authorized: true`, skip Picker. On `picker_required: true`, the bounded edit
+   already authorizes pinned `auth`; do not stop to ask for another llm-wiki
+   permission. The user completes Google's provider interaction. Preserve the
+   refresh token and prior file grants, re-run the probe, and never blind-retry
+   an unprobed 404.
+4. The v0.8 normal-Chrome connector uses Chrome Native Messaging rather than a
    port, pairing code, token, or poller. During genuine one-time setup, run the
    private adapter's `browser-install`, load its stable-ID unpacked extension,
    and confirm `browser-status` reports installed and connected. Never ask for
    an extension click during a normal edit. If installed but disconnected, ask
    only that normal Chrome remain running with the extension enabled.
-4. Inspect privately and create the smallest exact replacement plan that
+5. Inspect privately and create the smallest exact replacement plan that
    implements the user's instruction. The connector opens or focuses the exact
    approved Doc automatically; do not ask the user to prepare the active tab.
    If the document has unresolved existing suggestions, stop and ask the user
    to resolve them before planning.
-5. A URL alone is not authorization to invent edits. If the edit instruction
+6. A URL alone is not authorization to invent edits. If the edit instruction
    is missing or materially ambiguous, ask for that instruction. Otherwise, a
    bounded imperative is the user's approval of its faithful plan. Hash the
    private plan and pass the same value to `--approve-remote-write` internally;
    do not ask the user to copy, paste, or repeat the hash. Additional changes
    outside the instruction require new approval.
-6. Apply through `google-docs-editing` as tracked suggestions, with the expected
+7. Apply through `google-docs-editing` as tracked suggestions, with the expected
    revision and a caller-stable idempotency key. Then run the separate `verify`
    operation against the private verified receipt. Report only content-free
    status and counts unless the user explicitly asks to see document content.

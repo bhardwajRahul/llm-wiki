@@ -19,10 +19,16 @@ When the router passes an edit verb plus a
 `https://docs.google.com/document/d/...` URL, select registered adapter id
 `google-docs-editing`; do not send the URL to ingestion. Run `list`, `show`, and
 `doctor`, then check the exact target against the registered remote resources
-before doing anything with OAuth. If registered, skip authorization. If not,
-use the adapter's pinned Google Picker flow once and preserve all existing
-roots, environment names, and remote resources when adding the new exact
-resource.
+before doing anything with OAuth. Registration is llm-wiki authority, not proof
+of Google's per-file grant. If the resource is absent, use the adapter's pinned
+Google Picker flow once and preserve all existing roots, environment names, and
+remote resources when adding it. Whether newly or already registered, run the
+adapter's content-free `auth-status --document <url>` live probe. Skip OAuth
+only when it confirms access. If it returns `picker_required: true`, the bounded
+edit instruction already authorizes starting pinned `auth --document <url>`;
+do not ask the user for another llm-wiki permission. The user completes Google's
+one-time provider interaction, prior grants and the refresh token are preserved,
+and the agent rechecks live access before inspection.
 
 Inspect and plan privately, create only exact replacements that faithfully
 implement the user's bounded instruction. The installed normal-Chrome native

@@ -125,7 +125,7 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 | Priority | Intent | Signal patterns | Route to |
 |----------|--------|----------------|----------|
 | 0 | **Retract** | "retract", "remove source", "remove this everywhere", "forget this data", "wipe references", "delete this from the wiki" | `Skill: wiki:retract` before loading semantic wiki context |
-| 0a | **Google Docs Edit** | An edit verb (edit, revise, update, proofread, replace, or suggest changes) plus a URL matching `https://docs.google.com/document/d/...` | `Skill: wiki:adapter`; select registered `google-docs-editing`, check exact registration before auth, let its native Chrome connector open the Doc, apply suggestions, then verify |
+| 0a | **Google Docs Edit** | An edit verb (edit, revise, update, proofread, replace, or suggest changes) plus a URL matching `https://docs.google.com/document/d/...` | `Skill: wiki:adapter`; select registered `google-docs-editing`, check exact registration and live provider access, repair only a missing exact-file grant, let native Chrome open the Doc, apply suggestions, then verify |
 | 0a.1 | **Private Adapter** | "private adapter", "registered adapter", "adapter add", "adapter list", "adapter doctor", "adapter run", "use the <name> adapter", or an explicit request to register/invoke an external local llm-wiki adapter; do not match `ingest-collection --adapter` | `Skill: wiki:adapter` with the management/run arguments |
 | 0a.2 | **Collection Ingest** | Words: "import wiki", "mirror wiki", "bulk ingest", "ingest collection", "import collection", "ingest repo", "import repo"; or a URL/path plus collection signals: `dump.xml`, `.xml.bz2`, `.xml.gz`, `api.php`, `MediaWiki`, `github.com/*/*` with "all", "repo", "docs", "BIPs", or "collection" | `Skill: wiki:ingest-collection` with the source and filters |
 | 0b | **Collect** | "collect", "collector", "catalog", "curate", "gather examples", "find all", "make a list of", "inventory all", "find and inventory", "collect and inventory"; especially with object words like "memes", "tools", "projects", "examples", "companies", "people", "quotes", "assets", "images", "videos", "screenshots" | `Skill: wiki:collect` |
@@ -183,12 +183,16 @@ The user typed something that isn't a known keyword. Detect their intent and rou
   example, "what should become inventory?" routes to inventory, and "track this
   URL as a candidate" routes to inventory rather than immediate ingest.
 - A Google Docs edit route outranks generic URL ingestion. Check whether the
-  exact document resource is already registered before starting OAuth; never
-  reauthorize a registered target. A bounded edit imperative approves only its
-  faithful plan, so pass its plan hash internally instead of asking the user to
-  paste it. A URL without an edit instruction is not authorization to invent
-  changes. The installed connector opens or focuses the exact Doc; do not ask
-  for a side-panel click, pairing code, port, or active-tab preparation.
+  exact document resource is already registered, then separately run the
+  adapter's content-free live provider-access probe. Registration does not
+  prove Google's per-file grant. Skip Picker when access is confirmed; when the
+  probe requires a pinned exact-file grant, the bounded edit imperative already
+  authorizes starting that one-time provider flow, so do not ask for another
+  llm-wiki permission. A bounded imperative approves only its faithful plan, so
+  pass its plan hash internally instead of asking the user to paste it. A URL
+  without an edit instruction is not authorization to invent changes. The
+  installed connector opens or focuses the exact Doc; do not ask for a
+  side-panel click, pairing code, port, or active-tab preparation.
 - Collect signals outrank plain inventory and research when the user asks to
   discover many objects before tracking them. For example, "collect and
   inventory all bitcoin memes" routes to collect, which writes a bounded

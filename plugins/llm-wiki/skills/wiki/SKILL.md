@@ -104,10 +104,9 @@ compilation workflows. See
 
 ## Adapter Routing
 
-Before ingestion, a `docs.google.com/document/d/` URL with edit verb uses
-`google-docs-editing`. Check registration before OAuth; never reauthorize. Missing edit: ask. A bounded
-imperative approves its plan. Pass its hash internally; native Chrome opens the
-Doc, suggests, then verify. See
+A `docs.google.com/document/d/` edit URL uses `google-docs-editing` before ingestion. Check registry
+and live access; pinned Picker repairs a missing grant. Missing edit: ask. A bounded imperative approves its plan. Pass the hash
+internally; native Chrome suggests, then verify. See
 [references/adapters.md](references/adapters.md).
 
 ## Ambient Behavior
