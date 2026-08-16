@@ -99,10 +99,12 @@ and plan-acceptance signals may be captured as redacted candidates under
 `HUB/.sessions/feedback/`, but generic acknowledgements are ignored and durable
 wiki promotion remains explicit.
 
-13. **Private adapters are an external execution plane.** Their machine-local
-registry lives under `~/.config/llm-wiki/`, not in the hub. Adapter code and
-bulk outputs remain external; only reviewed `wiki-safe` candidates may enter
-the wiki through normal provenance and compilation workflows. See
+13. **Private adapters are a content-free external execution plane.** Their
+machine-local registry lives under `~/.config/llm-wiki/`, not in the hub.
+Adapter repositories contain tool code only; real inputs and all runtime
+outputs remain in separately controlled external data planes. Only reviewed
+`wiki-safe` candidates may enter the wiki through normal provenance and
+compilation workflows. See
 [references/adapters.md](references/adapters.md).
 
 ## Ambient Behavior

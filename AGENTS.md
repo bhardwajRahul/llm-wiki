@@ -124,9 +124,11 @@ normal query/compile/research/collect/output context unless explicitly included.
 queries may surface archived index matches separately.
 11. **Activity log.** Append every operation to `log.md`. Format: `## [YYYY-MM-DD] operation | Description`. Never edit existing entries.
 12. **Session capture is operational memory.** Automated harness-session capture lives under `HUB/.sessions/` or `.wiki/.sessions/`. It can preserve redacted checkpoints automatically, but topic wiki promotion is explicit and user-directed. Feedback candidates live under `.sessions/feedback/` and capture only high-signal corrections, preferences, approvals, or plan acceptance; generic acknowledgements are ignored.
-13. **Private adapters are external.** Executable registrations live in the
-machine-local `~/.config/llm-wiki/adapters.json`, never in `wikis.json` or a
-topic wiki. Adapter code and bulk output stay outside the wiki. Only reviewed
+13. **Private adapters are content-free external tools.** Executable
+registrations live in the machine-local `~/.config/llm-wiki/adapters.json`,
+never in `wikis.json` or a topic wiki. Adapter repositories contain code,
+manifests, docs, tests, and synthetic fixtures only; real inputs and runtime
+outputs stay in separately controlled external data planes. Only reviewed
 `wiki-safe` candidates may be promoted through normal provenance workflows.
 
 ## File Formats
@@ -453,6 +455,13 @@ Each adapter root contains `.llm-wiki-adapter.json` with a protocol, id,
 version, argv entrypoint, capabilities, operations, network declaration,
 `writes_wiki: false`, and output classes. The entrypoint implements `describe`
 and `execute --request <path> --response <path>`.
+
+Private adapter repositories are named
+`llm-wiki-adapter-<domain>-<capability>`. Their stable manifest id is the
+suffix portion `<domain>-<capability>`. Adapter repositories are tools only:
+never commit real content, case configuration, corpora, captures, documents,
+recordings, transcripts, indexes, credentials, results, evidence packets, or
+source-specific identifiers, even when the repository is private.
 
 The local registry is mode `0600`, stores environment-variable names but never
 their values, and scopes adapter input/output paths. Execution uses an argv

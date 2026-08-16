@@ -7,6 +7,14 @@ publishing their source code, credentials, corpora, or generated bulk data.
 The public llm-wiki project defines the `llm-wiki-adapter/v1` control-plane
 contract; adapter implementations remain in their own local or private repos.
 
+An adapter repository is always a **tool-only, content-free code plane**. It
+may contain executable code, manifests, schemas, documentation, tests, and
+synthetic fixtures generated in temporary test directories. It must never
+contain real source content, source-specific case configuration, corpora,
+captures, documents, recordings, transcripts, indexes, credentials, generated
+results, evidence packets, or source-specific identifiers. Private visibility
+is defense in depth, not permission to mix code and content.
+
 This is separate from `ingest-collection --adapter`. Collection adapters are
 agent instructions for known upstream formats. Private adapters are explicitly
 registered executables with a machine-local trust and path policy.
@@ -27,6 +35,27 @@ and read/write roots. It never stores environment-variable values.
 Registration is explicit and local. llm-wiki does not clone, install, update,
 publish, or mirror adapter repositories.
 
+## Repository naming
+
+Private adapter repositories use the prefix convention:
+
+```text
+llm-wiki-adapter-<domain>-<capability>
+```
+
+The manifest id is the stable lowercase kebab-case portion after the prefix:
+
+```text
+<domain>-<capability>
+```
+
+For example, repository `llm-wiki-adapter-x-community-intelligence` declares
+manifest id `x-community-intelligence`. Do not put `private`, an owner name, or
+a version in either name. Reserve `intelligence` for substantive analysis;
+use narrower terms such as `sync`, `indexing`, `validation`, or
+`transcription` when they describe the tool more accurately. Content
+repositories remain separately named, for example `bitcoin-wiki`.
+
 ## Locate the bundled CLI
 
 Use the bundled `bin/llm-wiki` from the installed plugin root. Claude exposes
@@ -44,7 +73,7 @@ Every adapter root contains `.llm-wiki-adapter.json`:
 ```json
 {
   "protocol": "llm-wiki-adapter/v1",
-  "id": "example-private-adapter",
+  "id": "example-analysis",
   "version": "1.0.0",
   "distribution": "private",
   "entrypoint": [".venv/bin/python", "-m", "example.adapter"],
@@ -79,7 +108,7 @@ Request:
 ```json
 {
   "protocol": "llm-wiki-adapter/v1",
-  "adapter_id": "example-private-adapter",
+  "adapter_id": "example-analysis",
   "operation": "analyze",
   "arguments": {"case": "/absolute/private/case.json"},
   "output_dir": "/absolute/private/results/run-1",
@@ -92,7 +121,7 @@ Response:
 ```json
 {
   "protocol": "llm-wiki-adapter/v1",
-  "adapter_id": "example-private-adapter",
+  "adapter_id": "example-analysis",
   "adapter_version": "1.0.0",
   "operation": "analyze",
   "status": "ok",
@@ -122,10 +151,10 @@ $LLM_WIKI adapter add /private/adapter \
   --read-root /private/input \
   --write-root /private/results
 $LLM_WIKI adapter list
-$LLM_WIKI adapter show example-private-adapter
-$LLM_WIKI adapter doctor example-private-adapter
-$LLM_WIKI adapter run example-private-adapter --request /private/request.json --json
-$LLM_WIKI adapter remove example-private-adapter --yes
+$LLM_WIKI adapter show example-analysis
+$LLM_WIKI adapter doctor example-analysis
+$LLM_WIKI adapter run example-analysis --request /private/request.json --json
+$LLM_WIKI adapter remove example-analysis --yes
 ```
 
 `add` trusts an existing checkout but does not fetch it. `doctor` verifies the
@@ -137,6 +166,10 @@ execution until the user explicitly re-registers with `add --replace`.
 Adapters never receive a wiki write path and must declare `writes_wiki: false`.
 Execution only produces external artifacts and a verified receipt. It never
 imports content into `raw/`, `wiki/`, `output/`, inventory, or datasets.
+The executable may read authorized external inputs and write authorized
+external runtime results, but it does not own, embed, publish, or automatically
+surface that content. Inputs and outputs belong to the separately controlled
+data plane.
 This is a protocol and workflow boundary, not an operating-system sandbox:
 explicitly registered adapter code runs with the permissions of its parent
 process, so register only code you trust.
