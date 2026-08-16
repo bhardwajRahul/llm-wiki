@@ -19,6 +19,12 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
+**v0.21.0** — **Zero-interaction Google Docs connector.** Routes approved
+Google Docs edits through the private adapter's stable Native Messaging
+connector, which opens the exact Doc and applies verified tracked suggestions
+without a port, pairing code, side-panel click, or active-tab preparation. Codex
+session hooks now survive replacement of their loaded versioned plugin cache.
+
 **v0.20.0** — **Governed remote writes.** Extends private adapters with exact
 remote-resource allowlists, declared read/write effects, explicit approval
 bound to an exact plan hash, expected revisions, stable idempotency keys,
