@@ -19,6 +19,11 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
+**v0.20.0** — **Governed remote writes.** Extends private adapters with exact
+remote-resource allowlists, declared read/write effects, explicit approval
+bound to an exact plan hash, expected revisions, stable idempotency keys,
+private verified receipts, and content-free terminal reporting.
+
 **v0.19.0** — **Private adapter protocol.** Adds an explicitly trusted,
 machine-local adapter registry and portable `llm-wiki-adapter/v1` JSON contract,
 with manifest handshakes, path scopes, sanitized environments, hash-verified
@@ -440,6 +445,9 @@ checks without an agent:
 ./scripts/llm-wiki adapter add /private/adapter --read-root /private/input --write-root /private/results
 ./scripts/llm-wiki adapter doctor <id>
 ./scripts/llm-wiki adapter run <id> --request /absolute/request.json --json
+./scripts/llm-wiki adapter run <id> --request /absolute/apply.json \
+  --response /private/results/receipt.json \
+  --approve-remote-write <plan-sha256> --json
 ```
 
 This local helper covers structural checks and safe migrations that do not
@@ -498,7 +506,7 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:ingest-collection <source> --limit <N> --dry-run` | Preview or cap a large collection import |
 | `/wiki:adapter add <local-path>` | Register an existing explicitly trusted private adapter checkout; never clones or publishes it |
 | `/wiki:adapter list\|show\|doctor` | Inspect registrations and verify manifest/executable handshakes |
-| `/wiki:adapter run <id> --request <json>` | Execute a scoped v1 request and verify returned artifact paths and hashes without automatic wiki import |
+| `/wiki:adapter run <id> --request <json>` | Execute a scoped v1 request and verify artifacts without automatic wiki import; remote writes additionally require an exact approved plan hash and private verified receipt |
 | `/wiki:adapter remove <id> --yes` | Remove only the machine-local registration, not adapter code or data |
 | `/wiki:collect "<things>"` | Find, dedupe, and catalog artifacts, examples, resources, media, memes, tools, entities, or source candidates |
 | `/wiki:collect "<things>" --scale tiny\|small\|medium\|large\|huge` | Control write behavior by operational scale, not just row count |

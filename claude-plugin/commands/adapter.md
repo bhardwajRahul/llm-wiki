@@ -28,8 +28,9 @@ adapter reference. Do not assume the command is globally installed.
 ## Management operations
 
 - `add <path>`: require an existing local checkout and explicit read/write
-  roots. Never clone a repo or request credentials. Use `--replace` only when
-  the user intends to trust a changed manifest.
+  roots. Add exact `--remote-resource` values only when the user authorized
+  them. Never clone a repo or request credentials. Use `--replace` only when the
+  user intends to trust a changed manifest.
 - `list`: show compact id, version, capability, network, and local-root data.
 - `show <id>`: show the machine-local registration; do not print environment
   variable values.
@@ -43,9 +44,13 @@ adapter reference. Do not assume the command is globally installed.
 2. Confirm the adapter id, operation, declared paths, and requested output
    directory match the user's intent.
 3. Run `doctor`; stop on any issue.
-4. Invoke `adapter run <id> --request <absolute-path> --json`.
-5. Report the run id, bounded summary, and artifact counts by class.
-6. Do not import anything automatically.
+4. For `remote-write`, confirm the user explicitly approved the exact plan,
+   expected revision, target resource, and idempotency key. Invoke with
+   `--approve-remote-write <plan-sha256>` and a private `--response` path inside
+   the registered write root. Never infer approval from a request file alone.
+5. Invoke `adapter run <id> --request <absolute-path> --json`.
+6. Report the run id, bounded summary, and artifact counts by class.
+7. Do not import anything automatically.
 
 If the user asks to update the wiki, inspect only `wiki-safe` artifacts. Review
 them as candidates, keep `private` and `bulk` artifacts external, write the

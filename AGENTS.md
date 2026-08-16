@@ -130,6 +130,10 @@ never in `wikis.json` or a topic wiki. Adapter repositories contain code,
 manifests, docs, tests, and synthetic fixtures only; real inputs and runtime
 outputs stay in separately controlled external data planes. Only reviewed
 `wiki-safe` candidates may be promoted through normal provenance workflows.
+14. **Remote writes fail closed.** Register exact remote resources, require
+declared remote effects, bind explicit approval to the exact plan hash and
+expected revision, use a caller-stable idempotency key, and require a private
+read-back-verified receipt. A request file alone is never approval.
 
 ## File Formats
 

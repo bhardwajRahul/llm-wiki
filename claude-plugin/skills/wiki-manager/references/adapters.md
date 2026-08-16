@@ -19,6 +19,13 @@ This is separate from `ingest-collection --adapter`. Collection adapters are
 agent instructions for known upstream formats. Private adapters are explicitly
 registered executables with a machine-local trust and path policy.
 
+The control plane can also govern remote side effects. Remote resources must be
+registered exactly, every operation declares `remote-read` and/or
+`remote-write`, and remote writes require an approved plan hash, expected
+revision, stable idempotency key, private response receipt, and adapter-supplied
+read-back verification. These controls authorize a bounded operation; they do
+not make the adapter process an operating-system sandbox.
+
 ## Registry
 
 Registrations live at:
@@ -30,7 +37,9 @@ Registrations live at:
 The registry is machine-local, mode `0600`, and never belongs in `wikis.json`,
 the hub, a topic wiki, session context, or a public repository. It stores local
 paths, argv arrays, declared capabilities, allowed environment-variable names,
-and read/write roots. It never stores environment-variable values.
+local read/write roots, and exact remote resource identifiers. It never stores
+environment-variable values. Normal `adapter list` output reports only the
+remote-resource count; `adapter show` exposes the exact machine-local policy.
 
 Registration is explicit and local. llm-wiki does not clone, install, update,
 publish, or mirror adapter repositories.
@@ -84,6 +93,13 @@ Every adapter root contains `.llm-wiki-adapter.json`:
     "analyze": {
       "read_arguments": ["case"],
       "requires_output_dir": true
+    },
+    "apply": {
+      "read_arguments": ["plan"],
+      "remote_resource_arguments": ["document_resource"],
+      "requires_output_dir": true,
+      "approved_plan_argument": "plan",
+      "effects": ["remote-read", "remote-write"]
     }
   },
   "output_classes": ["wiki-safe", "private", "bulk"]
@@ -144,16 +160,51 @@ must stay inside registered read roots. `output_dir` and every returned
 artifact must stay inside registered write roots. Artifact files and SHA-256
 values are verified after execution.
 
+### Remote-write request and receipt
+
+Remote resource arguments contain opaque, scheme-prefixed identifiers such as
+`google-docs:<document-id>`. Every value must exactly match one registered with
+`adapter add --remote-resource`; remote-resource identifiers are never inferred
+from local files or adapter output.
+
+A remote-write request adds:
+
+```json
+{
+  "arguments": {
+    "document_resource": "google-docs:<document-id>",
+    "plan": "/absolute/private/plan.json"
+  },
+  "remote_write": {
+    "plan_sha256": "64-lowercase-hex-characters",
+    "idempotency_key": "caller-stable-key-0001",
+    "expected_revision": "remote-revision-from-plan"
+  }
+}
+```
+
+The CLI hashes the declared `approved_plan_argument` itself. Execution requires
+`--approve-remote-write <same-plan-sha256>` and `--response` inside a registered
+write root. A successful response must include a matching `remote_receipt` with
+the exact resources, plan hash, idempotency key, before/after revisions, and
+`verification.status: verified`. The complete mode-0600 response stays private;
+terminal JSON is redacted and reports only status and counts.
+
 ## Commands
 
 ```bash
 $LLM_WIKI adapter add /private/adapter \
   --read-root /private/input \
-  --write-root /private/results
+  --write-root /private/results \
+  --remote-resource google-docs:<document-id>
 $LLM_WIKI adapter list
 $LLM_WIKI adapter show example-analysis
 $LLM_WIKI adapter doctor example-analysis
 $LLM_WIKI adapter run example-analysis --request /private/request.json --json
+$LLM_WIKI adapter run example-analysis \
+  --request /private/apply-request.json \
+  --response /private/results/apply-receipt.json \
+  --approve-remote-write <plan-sha256> --json
 $LLM_WIKI adapter remove example-analysis --yes
 ```
 
@@ -194,6 +245,9 @@ publication of corpus-derived individual data.
 - Only a small base environment plus explicitly allowlisted variable names is
   passed; secret values are not stored in the registry.
 - Manifest drift, path escape, missing artifacts, and hash mismatch fail closed.
+- Remote-resource escape, missing explicit approval, plan-hash mismatch, missing
+  idempotency/revision controls, unscoped receipt paths, and unverified remote
+  success responses fail closed.
 - Adapter code, installation, dependencies, authentication, and updates remain
   the adapter owner's responsibility.
 - The outer operating-system sandbox remains the actual enforcement boundary;
