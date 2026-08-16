@@ -119,8 +119,14 @@ Use this workflow:
 5. Inspect privately and create the smallest exact replacement plan that
    implements the user's instruction. The connector opens or focuses the exact
    approved Doc automatically; do not ask the user to prepare the active tab.
-   If the document has unresolved existing suggestions, stop and ask the user
-   to resolve them before planning.
+   Existing unresolved suggestions elsewhere in the document are not a global
+   blocker: preserve their IDs as the plan baseline and allow additional plans
+   whose exact target ranges do not overlap suggested text. If a requested
+   target overlaps an unresolved suggestion, stop only that conflicting plan
+   and ask the user to resolve or refine the conflicting suggestion; never
+   require unrelated suggestions to be accepted or rejected. Do not confuse a
+   new approved plan with retrying a pending or partial write: idempotency and
+   duplicate-write refusal remain mandatory.
 6. A URL alone is not authorization to invent edits. If the edit instruction
    is missing or materially ambiguous, ask for that instruction. Otherwise, a
    bounded imperative is the user's approval of its faithful plan. Hash the

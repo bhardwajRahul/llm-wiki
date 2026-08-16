@@ -19,6 +19,12 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
+**v0.21.2** — **Additive Google Docs suggestions.** Existing unresolved
+suggestions no longer block an entire document. The private adapter may create
+additional plans against non-overlapping text while preserving the existing
+suggestion set as its verified baseline; overlapping targets and duplicate or
+partial retries still fail closed.
+
 **v0.21.1** — **Exact-file authorization repair.** Separates llm-wiki's exact
 resource registration from Google's per-file `drive.file` grant. Registered
 Docs now get a content-free live access probe; only a missing grant opens pinned

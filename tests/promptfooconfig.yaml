@@ -107,6 +107,18 @@ tests:
       - type: cost
         threshold: 0.50
 
+  - description: "Router: unresolved Google Docs suggestions allow a non-overlapping additional plan"
+    vars:
+      prompt: "Add a tracked suggestion replacing 'body draft' with 'body revision' in this Google Doc. A separate unresolved title suggestion already exists. https://docs.google.com/document/d/synthetic-document-id/edit"
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent does not require the unrelated title suggestion to be accepted or rejected. It preserves existing suggestion IDs as the baseline, creates and applies a new revision-locked plan only when the requested body target does not overlap suggested text, retains idempotency and duplicate/partial-write safeguards, and independently verifies only the new tracked suggestions. If the target itself overlaps an unresolved suggestion, it fails closed for that conflicting plan."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
   - description: "Router: collection import routes to ingest-collection"
     vars:
       prompt: "Import the bitcoin BIPs repo into my bitcoin wiki: https://github.com/bitcoin/bips"
