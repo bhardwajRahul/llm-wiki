@@ -119,6 +119,18 @@ tests:
       - type: cost
         threshold: 0.50
 
+  - description: "Router: Google Docs UI activation failure is repaired rather than delegated"
+    vars:
+      prompt: "The Google Docs connector stopped before mutation because Find and replace did not open. Continue the approved edit."
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent treats the pre-mutation Find-and-replace activation failure as a connector defect, repairs or updates the connector, and safely retries the same governed operation with its revision lock and idempotency protections. It does not ask the user to open Edit > Find and replace, leave a dialog open, click the extension, repeat the plan hash, or manually prepare the document tab."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
   - description: "Router: collection import routes to ingest-collection"
     vars:
       prompt: "Import the bitcoin BIPs repo into my bitcoin wiki: https://github.com/bitcoin/bips"

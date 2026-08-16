@@ -445,10 +445,10 @@ Private adapters are explicitly trusted local executables implementing
 `llm-wiki-adapter/v1`. They are distinct from the fixed collection-ingestion
 adapter modes above.
 
-Google Docs edit URLs use `google-docs-editing`, not ingestion. Probe
-registration and file grant; repair missing grants with pinned Picker. Allow
-non-overlapping additional suggestions. Overlaps and duplicate/partial retries
-fail closed. Pass the plan hash internally and verify.
+Google Docs edit URLs use `google-docs-editing`, not ingestion. Probe registry
+and file grant; repair via pinned Picker. Allow non-overlapping additions;
+overlaps and unsafe retries fail. The connector owns Doc UI—never ask the user
+to prepare it. Pass the plan hash internally; verify.
 
 Use the bundled `bin/llm-wiki` from the installed plugin root, or
 `scripts/llm-wiki` in a source checkout:

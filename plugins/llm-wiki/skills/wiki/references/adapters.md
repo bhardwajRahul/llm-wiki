@@ -115,10 +115,11 @@ Use this workflow:
    private adapter's `browser-install`, load its stable-ID unpacked extension,
    and confirm `browser-status` reports installed and connected. Never ask for
    an extension click during a normal edit. If installed but disconnected, ask
-   only that normal Chrome remain running with the extension enabled.
+   only that normal Chrome remain running with the extension enabled. The
+   connector owns Doc focus, Suggesting, and Find/Replace. Never ask the user to
+   prepare UI; repair it after a pre-mutation activation failure.
 5. Inspect privately and create the smallest exact replacement plan that
-   implements the user's instruction. The connector opens or focuses the exact
-   approved Doc automatically; do not ask the user to prepare the active tab.
+   implements the user's instruction.
    Existing unresolved suggestions elsewhere in the document are not a global
    blocker: preserve their IDs as the plan baseline and allow additional plans
    whose exact target ranges do not overlap suggested text. If a requested

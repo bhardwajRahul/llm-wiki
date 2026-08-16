@@ -19,6 +19,11 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
+**v0.21.3** — **Automatic Google Docs UI preparation.** The private connector
+owns opening and focusing the exact Doc, entering Suggesting mode, and opening
+Find and replace. Agents must repair a pre-mutation activation failure rather
+than asking the user to prepare or leave browser UI open.
+
 **v0.21.2** — **Additive Google Docs suggestions.** Existing unresolved
 suggestions no longer block an entire document. The private adapter may create
 additional plans against non-overlapping text while preserving the existing

@@ -95,7 +95,8 @@ if grep -q '## Adapter Routing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
   && grep -q 'do not ask the user to copy, paste, or repeat the hash' "$ADAPTER_REFERENCE" \
   && grep -q 'Chrome Native Messaging' "$ADAPTER_REFERENCE" \
   && grep -q 'browser-install' "$ADAPTER_REFERENCE" \
-  && grep -q 'opens or focuses the exact' "$ADAPTER_REFERENCE" \
+  && grep -q 'connector owns Doc focus' "$ADAPTER_REFERENCE" \
+  && grep -q 'Never ask the user to' "$ADAPTER_REFERENCE" \
   && ! grep -q 'extension-pair' "$ADAPTER_REFERENCE" \
   && grep -q 'Google Docs Edit' "$PLUGIN_DIR/commands/wiki.md" \
   && grep -q '## Auto-routed Google Docs edits' "$PLUGIN_DIR/commands/adapter.md" \
