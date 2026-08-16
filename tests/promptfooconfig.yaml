@@ -71,62 +71,38 @@ tests:
       - type: cost
         threshold: 0.50
 
-  - description: "Router: Google Docs edit uses the private adapter before URL ingestion"
+  - description: "Router: external action uses registered manifest route before URL ingestion"
     vars:
-      prompt: "Edit this Google Doc: replace 'old wording' with 'new wording' https://docs.google.com/document/d/synthetic-document-id/edit"
+      prompt: "Revise this hosted document by replacing 'old wording' with 'new wording': https://editor.example.invalid/document/synthetic"
     assert:
       - type: skill-used
         value: wiki
       - type: llm-rubric
-        value: "Agent routes to the registered google-docs-editing private adapter, not URL ingestion, arbitrary browser automation, or a direct Docs API write. It checks exact registration and the separate live Google per-file grant before inspection, treats the bounded replacement instruction as approval for only the faithful revision-locked plan and for starting pinned Picker only if the live provider probe requires it, passes the plan hash internally, relies on the installed native Chrome connector to open or focus the exact Doc without an extension click or pairing prompt, applies tracked suggestions, and independently verifies the result."
+        value: "Agent normalizes the requested effect to an intent token and checks the machine-local adapter registry with adapter route before URL ingestion. On a healthy match it reads the returned adapter-owned guide, runs adapter doctor, follows that private workflow instead of inventing provider steps, and retains the generic exact-plan approval, revision, idempotency, private-receipt, and read-back controls."
         threshold: 0.75
       - type: cost
         threshold: 0.50
 
-  - description: "Router: Google Docs URL alone does not authorize a write"
+  - description: "Router: external document URL alone does not authorize invented edits"
     vars:
-      prompt: "Edit this Google Doc https://docs.google.com/document/d/synthetic-document-id/edit"
+      prompt: "Edit this external document https://editor.example.invalid/document/synthetic"
     assert:
       - type: skill-used
         value: wiki
       - type: llm-rubric
-        value: "Agent selects the google-docs-editing route but asks for the missing edit instruction and does not invent or execute document changes from the URL alone."
+        value: "Agent checks declarative adapter routing but asks for the missing concrete edit instruction and does not invent or execute document changes from the URL alone."
         threshold: 0.75
       - type: cost
         threshold: 0.50
 
-  - description: "Router: registered Google Doc with missing provider grant repairs without a second permission prompt"
+  - description: "Router: ambiguous adapter matches fail closed"
     vars:
-      prompt: "Edit this registered Google Doc by replacing 'old wording' with 'new wording'. The adapter's live auth-status probe returns picker_required true. https://docs.google.com/document/d/synthetic-document-id/edit"
+      prompt: "Analyze https://analysis.example.invalid/item/synthetic. The adapter route command reports two matches at the same priority."
     assert:
       - type: skill-used
         value: wiki
       - type: llm-rubric
-        value: "Agent distinguishes llm-wiki registration from Google's drive.file grant, automatically starts the adapter's pinned exact-document authorization flow because the bounded edit already authorizes it, asks only for completion of Google's unavoidable provider interaction, preserves prior grants, rechecks live access, and does not ask the user for another llm-wiki permission or approval hash."
-        threshold: 0.75
-      - type: cost
-        threshold: 0.50
-
-  - description: "Router: unresolved Google Docs suggestions allow a non-overlapping additional plan"
-    vars:
-      prompt: "Add a tracked suggestion replacing 'body draft' with 'body revision' in this Google Doc. A separate unresolved title suggestion already exists. https://docs.google.com/document/d/synthetic-document-id/edit"
-    assert:
-      - type: skill-used
-        value: wiki
-      - type: llm-rubric
-        value: "Agent does not require the unrelated title suggestion to be accepted or rejected. It preserves existing suggestion IDs as the baseline, creates and applies a new revision-locked plan only when the requested body target does not overlap suggested text, retains idempotency and duplicate/partial-write safeguards, and independently verifies only the new tracked suggestions. If the target itself overlaps an unresolved suggestion, it fails closed for that conflicting plan."
-        threshold: 0.75
-      - type: cost
-        threshold: 0.50
-
-  - description: "Router: Google Docs UI activation failure is repaired rather than delegated"
-    vars:
-      prompt: "The Google Docs connector stopped before mutation because Find and replace did not open. Continue the approved edit."
-    assert:
-      - type: skill-used
-        value: wiki
-      - type: llm-rubric
-        value: "Agent treats the pre-mutation Find-and-replace activation failure as a connector defect, repairs or updates the connector, and safely retries the same governed operation with its revision lock and idempotency protections. It does not ask the user to open Edit > Find and replace, leave a dialog open, click the extension, repeat the plan hash, or manually prepare the document tab."
+        value: "Agent fails closed on the ambiguous route, does not choose an adapter by name or registration order, and does not fall back to an ungoverned tool path. It reports that route priorities or registrations must be repaired."
         threshold: 0.75
       - type: cost
         threshold: 0.50

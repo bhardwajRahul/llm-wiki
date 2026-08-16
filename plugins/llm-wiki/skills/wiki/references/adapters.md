@@ -79,71 +79,24 @@ Do not assume a globally installed `llm-wiki` executable. In examples below,
 
 Route by the requested effect and target before applying normal wiki URL
 rules. A URL is not automatically an ingestion request when the user is asking
-an external tool to act on that resource. Use `adapter list`, `adapter show`,
-and `adapter doctor` to resolve registered capabilities; the registry is the
-runtime authority, not remembered repository paths or wiki content.
+an external tool to act on that resource. Normalize the requested effect to a
+lowercase intent token, then ask the registry before ingestion:
 
-### Google Docs edits
+```bash
+$LLM_WIKI adapter route --intent edit --resource '<external-url>' --json
+```
 
-The built-in route for an edit verb plus a URL matching
-`https://docs.google.com/document/d/...` is adapter id
-`google-docs-editing`. Edit verbs include edit, revise, update, proofread,
-replace, and suggest changes. This route takes precedence over generic URL
-ingestion. Never fall back to arbitrary browser automation or a direct Docs API
-write because neither path provides the adapter's revision lock,
-exact-resource policy, tracked-suggestion guarantee, idempotency journal, and
-independent read-back verification.
+A `matched` result identifies the trusted adapter and an adapter-owned workflow
+guide. Read that guide, run `adapter doctor <id>`, and follow only its bounded
+workflow. Provider authentication, browser setup, planning constraints,
+recovery, and verification belong in the private adapter guide, not in the
+public wiki plugin. A `no-match` result permits normal routing. `ambiguous` or
+`unavailable` fails closed until the registrations are repaired.
 
-Use this workflow:
-
-1. Resolve the bundled `LLM_WIKI`, then run `adapter list`, `adapter show
-   google-docs-editing`, and `adapter doctor google-docs-editing` without
-   printing private request or result files.
-2. Check the exact `google-docs:<document-id>` resource against the current
-   registry before starting authorization. Registration is llm-wiki authority;
-   it does not prove Google's per-file `drive.file` grant. If missing, run pinned
-   `auth --document <url>`, then add the resource without shrinking existing
-   roots, allowed environment names, or remote resources.
-3. Run content-free `auth-status --document <url>` before inspection. On
-   `authorized: true`, skip Picker. On `picker_required: true`, the bounded edit
-   already authorizes pinned `auth`; do not stop to ask for another llm-wiki
-   permission. The user completes Google's provider interaction. Preserve the
-   refresh token and prior file grants, re-run the probe, and never blind-retry
-   an unprobed 404.
-4. The v0.8 normal-Chrome connector uses Chrome Native Messaging rather than a
-   port, pairing code, token, or poller. During genuine one-time setup, run the
-   private adapter's `browser-install`, load its stable-ID unpacked extension,
-   and confirm `browser-status` reports installed and connected. Never ask for
-   an extension click during a normal edit. If installed but disconnected, ask
-   only that normal Chrome remain running with the extension enabled. The
-   connector owns Doc focus, Suggesting, and Find/Replace. Never ask the user to
-   prepare UI; repair it after a pre-mutation activation failure.
-5. Inspect privately and create the smallest exact replacement plan that
-   implements the user's instruction.
-   Existing unresolved suggestions elsewhere in the document are not a global
-   blocker: preserve their IDs as the plan baseline and allow additional plans
-   whose exact target ranges do not overlap suggested text. If a requested
-   target overlaps an unresolved suggestion, stop only that conflicting plan
-   and ask the user to resolve or refine the conflicting suggestion; never
-   require unrelated suggestions to be accepted or rejected. Do not confuse a
-   new approved plan with retrying a pending or partial write: idempotency and
-   duplicate-write refusal remain mandatory.
-6. A URL alone is not authorization to invent edits. If the edit instruction
-   is missing or materially ambiguous, ask for that instruction. Otherwise, a
-   bounded imperative is the user's approval of its faithful plan. Hash the
-   private plan and pass the same value to `--approve-remote-write` internally;
-   do not ask the user to copy, paste, or repeat the hash. Additional changes
-   outside the instruction require new approval.
-7. Apply through `google-docs-editing` as tracked suggestions, with the expected
-   revision and a caller-stable idempotency key. Then run the separate `verify`
-   operation against the private verified receipt. Report only content-free
-   status and counts unless the user explicitly asks to see document content.
-
-Keep OAuth material, document projections, edit specs, plans, hashes,
-idempotency journals, receipts, and verification artifacts in the adapter's
-registered external data plane. Do not put any of them in the adapter repo,
-wiki, session capture, shell history, or public logs. The adapter remains a
-tool; the document remains external content.
+Route lookup never echoes the resource. A URL without a concrete requested
+effect is not write authorization, and a bounded instruction authorizes only a
+faithful plan. All generic remote-write controls below still apply regardless
+of provider.
 
 ## Adapter manifest
 
@@ -157,6 +110,20 @@ Every adapter root contains `.llm-wiki-adapter.json`:
   "distribution": "private",
   "entrypoint": [".venv/bin/python", "-m", "example.adapter"],
   "capabilities": ["corpus-validation", "analysis"],
+  "routes": [
+    {
+      "id": "edit-hosted-document",
+      "intents": ["edit", "revise", "update"],
+      "resource": {
+        "kind": "url",
+        "schemes": ["https"],
+        "hosts": ["editor.example.invalid"],
+        "path_prefixes": ["/document/"]
+      },
+      "guide": "AGENT_WORKFLOW.md",
+      "priority": 50
+    }
+  ],
   "network": "none",
   "writes_wiki": false,
   "operations": {
@@ -186,6 +153,13 @@ The entrypoint must implement:
 `describe` prints one JSON object matching the manifest identity, version, and
 capabilities. `execute` writes exactly one response document. Diagnostic output
 may go to stderr, but llm-wiki does not persist or echo it by default.
+
+`routes` is optional. Each route declares one or more lowercase intent tokens,
+an exact URL matcher, a relative adapter-owned Markdown guide, and an integer
+priority from 0 to 1000. URL matching supports exact schemes and hosts plus
+path prefixes; manifests do not get arbitrary regular expressions. The guide
+must exist inside the adapter root. Registrations at the same highest priority
+are ambiguous and fail closed rather than choosing by accident.
 
 ## Request and response
 
@@ -233,7 +207,7 @@ values are verified after execution.
 ### Remote-write request and receipt
 
 Remote resource arguments contain opaque, scheme-prefixed identifiers such as
-`google-docs:<document-id>`. Every value must exactly match one registered with
+`hosted-document:<resource-id>`. Every value must exactly match one registered with
 `adapter add --remote-resource`; remote-resource identifiers are never inferred
 from local files or adapter output.
 
@@ -242,7 +216,7 @@ A remote-write request adds:
 ```json
 {
   "arguments": {
-    "document_resource": "google-docs:<document-id>",
+    "document_resource": "hosted-document:<resource-id>",
     "plan": "/absolute/private/plan.json"
   },
   "remote_write": {
@@ -266,9 +240,10 @@ terminal JSON is redacted and reports only status and counts.
 $LLM_WIKI adapter add /private/adapter \
   --read-root /private/input \
   --write-root /private/results \
-  --remote-resource google-docs:<document-id>
+  --remote-resource hosted-document:<resource-id>
 $LLM_WIKI adapter list
 $LLM_WIKI adapter show example-analysis
+$LLM_WIKI adapter route --intent edit --resource '<external-url>' --json
 $LLM_WIKI adapter doctor example-analysis
 $LLM_WIKI adapter run example-analysis --request /private/request.json --json
 $LLM_WIKI adapter run example-analysis \

@@ -134,9 +134,9 @@ outputs stay in separately controlled external data planes. Only reviewed
 declared remote effects, bind explicit approval to the exact plan hash and
 expected revision, use a caller-stable idempotency key, and require a private
 read-back-verified receipt. A request file alone is never approval.
-15. **Route edits before ingestion.** A Google Docs edit URL routes to
-registered `google-docs-editing`; check registry and live file grant, repair
-only via pinned Picker, then have native Chrome suggest and verify.
+15. **Route external actions before ingestion.** For an action plus URL, run
+`adapter route` first. A healthy match hands off to the adapter-owned guide;
+provider steps stay private.
 
 ## File Formats
 
@@ -445,10 +445,10 @@ Private adapters are explicitly trusted local executables implementing
 `llm-wiki-adapter/v1`. They are distinct from the fixed collection-ingestion
 adapter modes above.
 
-Google Docs edit URLs use `google-docs-editing`, not ingestion. Probe registry
-and file grant; repair via pinned Picker. Allow non-overlapping additions;
-overlaps and unsafe retries fail. The connector owns Doc UI—never ask the user
-to prepare it. Pass the plan hash internally; verify.
+For an action plus URL, run `llm-wiki adapter route --intent <effect>
+--resource <url> --json` before ingestion. A match returns the adapter guide;
+read it and run `adapter doctor`. No-match resumes normal routing; ambiguity or
+drift fails closed.
 
 Use the bundled `bin/llm-wiki` from the installed plugin root, or
 `scripts/llm-wiki` in a source checkout:
@@ -458,6 +458,7 @@ llm-wiki adapter add /private/adapter \
   --read-root /private/input \
   --write-root /private/results
 llm-wiki adapter list
+llm-wiki adapter route --intent edit --resource '<external-url>' --json
 llm-wiki adapter doctor <id>
 llm-wiki adapter run <id> --request /absolute/request.json --json
 llm-wiki adapter remove <id> --yes

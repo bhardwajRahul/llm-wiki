@@ -82,28 +82,23 @@ else
   log_fail "SKILL.md not found" "missing file"
 fi
 
-# External edit intents must route before generic URL ingestion on every
-# maintained instruction surface.
+# External action intents must use provider-neutral manifest routing before
+# generic URL ingestion on every maintained instruction surface.
 ADAPTER_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/adapters.md"
 if grep -q '## Adapter Routing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
-  && grep -q 'docs.google.com/document/d/' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
-  && grep -q 'google-docs-editing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'adapter route --intent' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
   && grep -q '## Intent routing' "$ADAPTER_REFERENCE" \
-  && grep -q 'Registration is llm-wiki authority' "$ADAPTER_REFERENCE" \
-  && grep -q 'auth-status --document' "$ADAPTER_REFERENCE" \
-  && grep -q 'do not stop to ask for another llm-wiki' "$ADAPTER_REFERENCE" \
-  && grep -q 'do not ask the user to copy, paste, or repeat the hash' "$ADAPTER_REFERENCE" \
-  && grep -q 'Chrome Native Messaging' "$ADAPTER_REFERENCE" \
-  && grep -q 'browser-install' "$ADAPTER_REFERENCE" \
-  && grep -q 'connector owns Doc focus' "$ADAPTER_REFERENCE" \
-  && grep -q 'Never ask the user to' "$ADAPTER_REFERENCE" \
-  && ! grep -q 'extension-pair' "$ADAPTER_REFERENCE" \
-  && grep -q 'Google Docs Edit' "$PLUGIN_DIR/commands/wiki.md" \
-  && grep -q '## Auto-routed Google Docs edits' "$PLUGIN_DIR/commands/adapter.md" \
-  && grep -q 'google-docs-editing' "$PROJECT_ROOT/AGENTS.md"; then
-  log_pass "Google Docs edit intent routes through the governed private adapter"
+  && grep -q 'adapter-owned workflow' "$ADAPTER_REFERENCE" \
+  && grep -q '"routes"' "$ADAPTER_REFERENCE" \
+  && grep -q 'External Adapter Route' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q '## Declarative intent routing' "$PLUGIN_DIR/commands/adapter.md" \
+  && grep -q 'Route external actions before ingestion' "$PROJECT_ROOT/AGENTS.md" \
+  && ! grep -Eqi 'google docs|google-docs|docs\.google\.com|google picker|native messaging|find.and.replace' \
+    "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" "$ADAPTER_REFERENCE" \
+    "$PLUGIN_DIR/commands/wiki.md" "$PLUGIN_DIR/commands/adapter.md" "$PROJECT_ROOT/AGENTS.md"; then
+  log_pass "external action intent routes through provider-neutral adapter metadata"
 else
-  log_fail "Google Docs adapter routing drift" "expected edit-before-ingest routing, separate registration/provider checks, pinned grant repair, native connector auto-open, internal hash approval, and portable protocol coverage"
+  log_fail "private adapter routing drift" "expected manifest route discovery and no provider-specific workflow in public instruction surfaces"
 fi
 
 # Reference files exist
@@ -227,10 +222,10 @@ if [ -f "$CODEX_SKILL/SKILL.md" ]; then
   else
     log_fail "Codex SKILL.md uses the wrong skill name" "expected 'name: wiki'"
   fi
-  if sed -n '2,/^---$/p' "$CODEX_SKILL/SKILL.md" | grep -q 'edit Google Doc'; then
-    log_pass "Codex implicit skill metadata advertises Google Docs editing"
+  if sed -n '2,/^---$/p' "$CODEX_SKILL/SKILL.md" | grep -q 'external resource'; then
+    log_pass "Codex implicit skill metadata advertises external adapter routing"
   else
-    log_fail "Codex Google Docs invocation metadata missing" "expected edit Google Doc in frontmatter"
+    log_fail "Codex adapter invocation metadata missing" "expected external resource in frontmatter"
   fi
 else
   log_fail "Codex SKILL.md not found" "missing file"
@@ -330,10 +325,10 @@ if [ -f "$OPENCODE_SKILL/SKILL.md" ]; then
   else
     log_fail "OpenCode SKILL.md contains 'Claude Code'" "sync script missed a replacement"
   fi
-  if sed -n '2,/^---$/p' "$OPENCODE_SKILL/SKILL.md" | grep -q 'edit Google Doc'; then
-    log_pass "OpenCode skill metadata advertises Google Docs editing"
+  if sed -n '2,/^---$/p' "$OPENCODE_SKILL/SKILL.md" | grep -q 'external resource'; then
+    log_pass "OpenCode skill metadata advertises external adapter routing"
   else
-    log_fail "OpenCode Google Docs invocation metadata missing" "expected edit Google Doc in frontmatter"
+    log_fail "OpenCode adapter invocation metadata missing" "expected external resource in frontmatter"
   fi
 else
   log_fail "OpenCode SKILL.md not found" "missing file"

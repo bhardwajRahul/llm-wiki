@@ -63,6 +63,7 @@ ADAPTER_REGISTRY_SCHEMA = 1
 ADAPTER_MANIFEST_NAME = ".llm-wiki-adapter.json"
 ADAPTER_ARTIFACT_CLASSES = {"wiki-safe", "private", "bulk"}
 ADAPTER_REMOTE_EFFECTS = {"remote-read", "remote-write"}
+ADAPTER_ROUTE_RESOURCE_KINDS = {"url"}
 
 ROOT_ALLOWED = {
     "_index.md",
@@ -2649,6 +2650,95 @@ def load_json_object(path: Path, label: str) -> dict[str, Any]:
     return data
 
 
+def validate_adapter_routes(
+    data: dict[str, Any], path: Path, errors: list[str]
+) -> None:
+    """Validate optional, provider-neutral intent/resource routing metadata."""
+    routes = data.get("routes", [])
+    if not isinstance(routes, list):
+        errors.append("routes must be an array")
+        return
+    route_ids: set[str] = set()
+    for index, route in enumerate(routes):
+        label = f"route {index + 1}"
+        if not isinstance(route, dict):
+            errors.append(f"{label} must be an object")
+            continue
+        route_id = route.get("id")
+        if not isinstance(route_id, str) or not re.fullmatch(
+            r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", route_id
+        ):
+            errors.append(f"{label} id must be a lowercase hyphenated identifier")
+        elif route_id in route_ids:
+            errors.append(f"route id {route_id!r} is duplicated")
+        else:
+            route_ids.add(route_id)
+        intents = route.get("intents")
+        if not isinstance(intents, list) or not intents or not all(
+            isinstance(item, str) and re.fullmatch(r"[a-z][a-z0-9-]*", item)
+            for item in intents
+        ):
+            errors.append(f"{label} intents must be a non-empty lowercase token array")
+        elif len(intents) != len(set(intents)):
+            errors.append(f"{label} intents must not contain duplicates")
+        resource = route.get("resource")
+        if not isinstance(resource, dict):
+            errors.append(f"{label} resource must be an object")
+        else:
+            kind = resource.get("kind")
+            if kind not in ADAPTER_ROUTE_RESOURCE_KINDS:
+                errors.append(f"{label} resource kind must be url")
+            schemes = resource.get("schemes")
+            if not isinstance(schemes, list) or not schemes or not all(
+                isinstance(item, str)
+                and item == item.lower()
+                and re.fullmatch(r"[a-z][a-z0-9+.-]*", item)
+                for item in schemes
+            ):
+                errors.append(f"{label} URL schemes must be a non-empty lowercase array")
+            elif len(schemes) != len(set(schemes)):
+                errors.append(f"{label} URL schemes must not contain duplicates")
+            hosts = resource.get("hosts")
+            if not isinstance(hosts, list) or not hosts or not all(
+                isinstance(item, str)
+                and item == item.lower()
+                and re.fullmatch(r"[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?", item)
+                for item in hosts
+            ):
+                errors.append(f"{label} URL hosts must be a non-empty exact-host array")
+            elif len(hosts) != len(set(hosts)):
+                errors.append(f"{label} URL hosts must not contain duplicates")
+            prefixes = resource.get("path_prefixes")
+            if not isinstance(prefixes, list) or not prefixes or not all(
+                isinstance(item, str)
+                and item.startswith("/")
+                and "?" not in item
+                and "#" not in item
+                for item in prefixes
+            ):
+                errors.append(
+                    f"{label} URL path_prefixes must be a non-empty absolute-path array"
+                )
+            elif len(prefixes) != len(set(prefixes)):
+                errors.append(f"{label} URL path_prefixes must not contain duplicates")
+        priority = route.get("priority", 0)
+        if isinstance(priority, bool) or not isinstance(priority, int) or not 0 <= priority <= 1000:
+            errors.append(f"{label} priority must be an integer from 0 to 1000")
+        guide = route.get("guide")
+        if not isinstance(guide, str) or not guide:
+            errors.append(f"{label} guide must be a relative file path")
+        else:
+            guide_path = Path(guide)
+            if guide_path.is_absolute() or ".." in guide_path.parts:
+                errors.append(f"{label} guide must stay inside the adapter root")
+            else:
+                resolved_guide = (path.parent / guide_path).resolve(strict=False)
+                if not path_within(resolved_guide, [path.parent.resolve(strict=False)]):
+                    errors.append(f"{label} guide must stay inside the adapter root")
+                elif not resolved_guide.is_file():
+                    errors.append(f"{label} guide does not exist: {guide}")
+
+
 def validate_adapter_manifest(data: dict[str, Any], path: Path) -> None:
     errors: list[str] = []
     adapter_id = data.get("id")
@@ -2744,6 +2834,7 @@ def validate_adapter_manifest(data: dict[str, Any], path: Path) -> None:
         errors.append(
             "output_classes must contain only wiki-safe, private, and/or bulk"
         )
+    validate_adapter_routes(data, path, errors)
     if errors:
         raise SystemExit(
             f"invalid adapter manifest {path}: " + "; ".join(sorted(set(errors)))
@@ -2843,6 +2934,7 @@ def adapter_public_entry(adapter_id: str, entry: dict[str, Any]) -> dict[str, An
         "capabilities": entry.get("capabilities", []),
         "distribution": entry.get("distribution", "private"),
         "network": entry.get("network", "none"),
+        "route_count": len(entry.get("routes", [])),
         "remote_resource_count": len(entry.get("remote_resources", [])),
         "root": entry.get("root"),
         "registered_at": entry.get("registered_at"),
@@ -2881,6 +2973,7 @@ def adapter_add(args: argparse.Namespace) -> int:
         "capabilities": manifest["capabilities"],
         "distribution": manifest.get("distribution", "private"),
         "network": manifest.get("network", "none"),
+        "routes": manifest.get("routes", []),
         "read_roots": sorted(str(path) for path in read_roots),
         "write_roots": sorted(str(path) for path in write_roots),
         "remote_resources": remote_resources,
@@ -2937,6 +3030,149 @@ def adapter_show(args: argparse.Namespace) -> int:
     report["id"] = args.adapter_id
     report["registry"] = str(adapter_registry_path())
     print(json.dumps(report, indent=2, sort_keys=True))
+    return 0
+
+
+def adapter_route_matches(route: dict[str, Any], intent: str, resource: str) -> bool:
+    if intent not in route.get("intents", []):
+        return False
+    resource_spec = route.get("resource")
+    if not isinstance(resource_spec, dict):
+        return False
+    if resource_spec.get("kind") != "url":
+        return False
+    try:
+        parsed = urllib.parse.urlsplit(resource)
+        port = parsed.port
+    except ValueError:
+        return False
+    if not parsed.scheme or not parsed.hostname or parsed.username or parsed.password:
+        return False
+    if port is not None:
+        return False
+    path = parsed.path or "/"
+    schemes = resource_spec.get("schemes")
+    hosts = resource_spec.get("hosts")
+    prefixes = resource_spec.get("path_prefixes")
+    if not all(isinstance(items, list) for items in (schemes, hosts, prefixes)):
+        return False
+    return (
+        parsed.scheme.lower() in schemes
+        and parsed.hostname.lower() in hosts
+        and any(isinstance(prefix, str) and path.startswith(prefix) for prefix in prefixes)
+    )
+
+
+def adapter_route(args: argparse.Namespace) -> int:
+    """Resolve an effect and resource through registered manifest routes."""
+    intent = args.intent.strip().lower()
+    if not re.fullmatch(r"[a-z][a-z0-9-]*", intent):
+        raise SystemExit("route intent must be one lowercase token")
+    registry = read_adapter_registry()
+    candidates: list[dict[str, Any]] = []
+    unavailable: list[dict[str, Any]] = []
+    for adapter_id, entry in sorted(registry["adapters"].items()):
+        if not isinstance(entry, dict):
+            continue
+        for route in entry.get("routes", []):
+            if not isinstance(route, dict) or not adapter_route_matches(
+                route, intent, args.resource
+            ):
+                continue
+            root = Path(str(entry.get("root", ""))).resolve(strict=False)
+            manifest_path = root / ADAPTER_MANIFEST_NAME
+            if not manifest_path.is_file():
+                unavailable.append({
+                    "adapter_id": adapter_id,
+                    "route_id": route.get("id"),
+                    "priority": route.get("priority", 0),
+                    "issue": "manifest missing",
+                })
+                continue
+            if file_sha256(manifest_path) != entry.get("manifest_sha256"):
+                unavailable.append({
+                    "adapter_id": adapter_id,
+                    "route_id": route.get("id"),
+                    "priority": route.get("priority", 0),
+                    "issue": "manifest changed",
+                })
+                continue
+            guide = (root / str(route["guide"])).resolve(strict=False)
+            if not guide.is_file() or not path_within(guide, [root]):
+                unavailable.append({
+                    "adapter_id": adapter_id,
+                    "route_id": route.get("id"),
+                    "priority": route.get("priority", 0),
+                    "issue": "route guide missing",
+                })
+                continue
+            candidates.append(
+                {
+                    "adapter_id": adapter_id,
+                    "route_id": route["id"],
+                    "priority": route.get("priority", 0),
+                    "guide": str(guide),
+                }
+            )
+    all_matches = candidates + unavailable
+    if all_matches:
+        highest_priority = max(int(item["priority"]) for item in all_matches)
+    else:
+        highest_priority = -1
+    blocking_unavailable = [
+        item for item in unavailable if int(item["priority"]) == highest_priority
+    ]
+    if blocking_unavailable:
+        report = {
+            "status": "unavailable",
+            "intent": intent,
+            "resource_kind": "url",
+            "issues": blocking_unavailable,
+        }
+        if args.json:
+            print(json.dumps(report, indent=2, sort_keys=True))
+        else:
+            print("A matching adapter route is unavailable; run adapter doctor.")
+        return 2
+    if not candidates:
+        report = {
+            "status": "no-match",
+            "intent": intent,
+            "resource_kind": "url",
+        }
+        if args.json:
+            print(json.dumps(report, indent=2, sort_keys=True))
+        else:
+            print("No registered adapter route matched.")
+        return 1
+    winners = [
+        candidate for candidate in candidates
+        if int(candidate["priority"]) == highest_priority
+    ]
+    if len(winners) != 1:
+        report = {
+            "status": "ambiguous",
+            "intent": intent,
+            "resource_kind": "url",
+            "matches": winners,
+        }
+        if args.json:
+            print(json.dumps(report, indent=2, sort_keys=True))
+        else:
+            print("Multiple registered adapter routes matched at the same priority.")
+        return 2
+    report = {
+        "status": "matched",
+        "intent": intent,
+        "resource_kind": "url",
+        **winners[0],
+    }
+    if args.json:
+        print(json.dumps(report, indent=2, sort_keys=True))
+    else:
+        print(
+            f"{report['adapter_id']}\t{report['route_id']}\t{report['guide']}"
+        )
     return 0
 
 
@@ -3287,6 +3523,7 @@ def run_adapter(args: argparse.Namespace) -> int:
         "add": adapter_add,
         "list": adapter_list,
         "show": adapter_show,
+        "route": adapter_route,
         "doctor": adapter_doctor,
         "run": adapter_run,
         "remove": adapter_remove,
@@ -3506,6 +3743,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     adapter_show_parser = adapter_sub.add_parser("show", help="Show one registration.")
     adapter_show_parser.add_argument("adapter_id", help="Registered adapter id.")
+
+    adapter_route_parser = adapter_sub.add_parser(
+        "route", help="Match an intent and resource against registered adapter routes."
+    )
+    adapter_route_parser.add_argument(
+        "--intent", required=True, help="Lowercase requested-effect token."
+    )
+    adapter_route_parser.add_argument(
+        "--resource", required=True, help="External resource URL to classify."
+    )
+    adapter_route_parser.add_argument("--json", action="store_true", help="Print JSON.")
 
     adapter_doctor_parser = adapter_sub.add_parser(
         "doctor", help="Validate a registration and perform the describe handshake."

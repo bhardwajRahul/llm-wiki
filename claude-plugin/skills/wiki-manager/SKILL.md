@@ -7,8 +7,7 @@ description: >
   outputs. Activates for /wiki commands; wiki or knowledge-base work; ingest,
   collect, catalog, compile, query, audit, librarian, inventory, idea,
   portfolio, business ideas, projects, datasets, archives, sessions, feedback,
-  private adapters, adapter registries, provenance, edit Google Doc, revise
-  Google Doc, suggest changes in a Google Doc URL, or questions in a directory
+  private adapters, adapter routing, provenance, external resource actions, or questions in a directory
   with .wiki/ or a configured hub.
 tools:
   - Read
@@ -105,9 +104,9 @@ compilation workflows. See
 
 ## Adapter Routing
 
-A `docs.google.com/document/d/` edit URL uses `google-docs-editing` before ingestion. Check registry
-and live access; pinned Picker repairs a missing grant. Missing edit: ask. A bounded imperative approves its plan. Pass the hash
-internally; native Chrome suggests, then verify. See
+For an action plus URL, run `adapter route --intent <effect> --resource <url>
+--json` before ingestion. On a match, read its adapter-owned guide; provider
+steps live there. A URL alone is not write authorization. See
 [references/adapters.md](references/adapters.md).
 
 ## Ambient Behavior

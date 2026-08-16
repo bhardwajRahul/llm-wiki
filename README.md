@@ -19,15 +19,16 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
-**v0.21.3** — **Consolidated Google Docs editing.** The v0.21 line adds the
-stable Native Messaging connector, separates exact registration from Google's
-per-file grant, permits additional non-overlapping suggestion plans, and makes
-the connector own exact-Doc focus, Suggesting mode, and Find-and-replace
-activation. Approved edits require no port, pairing code, side-panel click,
-active-tab preparation, repeated approval hash, or manual dialog setup; overlap,
-duplicate, partial-write, revision, idempotency, and read-back safeguards remain
-fail closed. Codex session hooks also survive replacement of their loaded
-versioned plugin cache.
+**Unreleased** — **Declarative private-adapter routing.** Registered adapters
+may declare provider-neutral intent and exact-URL routes plus an adapter-owned
+workflow guide. The public plugin discovers the route before ingestion but no
+longer embeds any provider's authentication, browser, recovery, or editing
+workflow. No distribution version or release has been authorized for this work.
+
+**v0.21.3** — **Adapter-boundary transition.** Consolidates the v0.21 line and
+keeps the session-hook compatibility fix. Provider-specific workflow material
+from that line is superseded in current source by manifest-driven routing and
+lives only in the corresponding private adapter.
 
 **v0.20.0** — **Governed remote writes.** Extends private adapters with exact
 remote-resource allowlists, declared read/write effects, explicit approval

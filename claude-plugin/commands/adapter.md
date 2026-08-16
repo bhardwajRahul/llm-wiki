@@ -1,6 +1,6 @@
 ---
-description: "Register, inspect, validate, and run explicitly trusted local private adapters without putting their code or bulk data in the wiki."
-argument-hint: "add <path>|list|show <id>|doctor <id>|run <id> --request <json>|remove <id> --yes"
+description: "Route to, register, inspect, validate, and run explicitly trusted local private adapters without putting their code or bulk data in the wiki."
+argument-hint: "route --intent <effect> --resource <url>|add <path>|list|show <id>|doctor <id>|run <id> --request <json>|remove <id> --yes"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(date:*), Bash(python3:*), Bash(scripts/llm-wiki:*), Bash(${CLAUDE_PLUGIN_ROOT}/bin/llm-wiki:*)
 ---
 
@@ -13,34 +13,27 @@ Private-adapter management is wiki-neutral. Do not put executable registrations
 or absolute machine paths in `wikis.json` or a topic wiki. Resolve a topic wiki
 only when the user asks to promote a reviewed result after execution.
 
-## Auto-routed Google Docs edits
+## Declarative intent routing
 
-When the router passes an edit verb plus a
-`https://docs.google.com/document/d/...` URL, select registered adapter id
-`google-docs-editing`; do not send the URL to ingestion. Run `list`, `show`, and
-`doctor`, then check the exact target against the registered remote resources
-before doing anything with OAuth. Registration is llm-wiki authority, not proof
-of Google's per-file grant. If the resource is absent, use the adapter's pinned
-Google Picker flow once and preserve all existing roots, environment names, and
-remote resources when adding it. Whether newly or already registered, run the
-adapter's content-free `auth-status --document <url>` live probe. Skip OAuth
-only when it confirms access. If it returns `picker_required: true`, the bounded
-edit instruction already authorizes starting pinned `auth --document <url>`;
-do not ask the user for another llm-wiki permission. The user completes Google's
-one-time provider interaction, prior grants and the refresh token are preserved,
-and the agent rechecks live access before inspection.
+Before treating an external URL as an ingestion source, normalize the requested
+effect to a lowercase intent token and run:
 
-Inspect and plan privately, create only exact replacements that faithfully
-implement the user's bounded instruction. The installed normal-Chrome native
-connector opens or focuses the exact document automatically. The imperative is
-explicit approval for that plan; compute and pass its hash to
-`--approve-remote-write` internally
-instead of asking the user to paste a hash. Apply as tracked suggestions and
-run the separate `verify` operation before reporting success. A URL without a
-clear edit instruction requires clarification, not an invented write. Normal
-edits require no extension click, port, pairing code, or active-tab preparation.
-Use the private adapter's `browser-install` and `browser-status` only for
-genuine connector setup or diagnosis.
+```bash
+${CLAUDE_PLUGIN_ROOT}/bin/llm-wiki adapter route \
+  --intent <effect> --resource '<external-url>' --json
+```
+
+On `matched`, read the returned adapter-owned guide, then run `show` and
+`doctor` for the returned adapter id before following that workflow. The private
+adapter owns all provider-specific authentication, transport, planning,
+recovery, and verification instructions. On `no-match`, continue with normal
+wiki routing. On `ambiguous` or `unavailable`, fail closed and repair the
+registration instead of guessing an adapter or falling back to an ungoverned
+write path. Route output does not echo the resource.
+
+A URL by itself never authorizes invented edits. A bounded imperative approves
+only a faithful plan; generic remote-write plan hashes, revision locks,
+idempotency keys, private receipts, and read-back verification remain required.
 
 ## Locate the CLI
 
@@ -63,6 +56,8 @@ adapter reference. Do not assume the command is globally installed.
 - `list`: show compact id, version, capability, network, and local-root data.
 - `show <id>`: show the machine-local registration; do not print environment
   variable values.
+- `route --intent <effect> --resource <url>`: match only registered declarative
+  routes and return the adapter-owned guide without echoing the resource.
 - `doctor <id>`: verify manifest hash, executable, and handshake before a run.
 - `remove <id> --yes`: remove only the registration. Never delete adapter code,
   inputs, or outputs.

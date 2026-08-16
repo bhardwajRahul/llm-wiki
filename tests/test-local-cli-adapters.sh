@@ -31,6 +31,20 @@ cat > "$adapter/.llm-wiki-adapter.json" <<'JSON'
   "distribution": "private",
   "entrypoint": ["./bin/adapter"],
   "capabilities": ["fixture-analysis"],
+  "routes": [
+    {
+      "id": "edit-fixture-document",
+      "intents": ["edit", "revise"],
+      "resource": {
+        "kind": "url",
+        "schemes": ["https"],
+        "hosts": ["editor.fixture.invalid"],
+        "path_prefixes": ["/document/"]
+      },
+      "guide": "AGENT_WORKFLOW.md",
+      "priority": 50
+    }
+  ],
   "network": "none",
   "writes_wiki": false,
   "operations": {
@@ -49,6 +63,12 @@ cat > "$adapter/.llm-wiki-adapter.json" <<'JSON'
   "output_classes": ["wiki-safe", "private"]
 }
 JSON
+
+cat > "$adapter/AGENT_WORKFLOW.md" <<'MARKDOWN'
+# Fixture adapter workflow
+
+Follow this registered adapter's private workflow.
+MARKDOWN
 
 cat > "$adapter/adapter.py" <<'PY'
 #!/usr/bin/env python3
@@ -121,7 +141,7 @@ echo "=== Local llm-wiki CLI Adapters ==="
 
 set +e
 add_output="$("$CLI" adapter add "$adapter" --read-root "$inputs" --write-root "$outputs" \
-  --remote-resource 'google-docs:fixture-document' --json 2>&1)"
+  --remote-resource 'fixture-document:synthetic' --json 2>&1)"
 add_rc=$?
 set -e
 registry="$LLM_WIKI_CONFIG_DIR/adapters.json"
@@ -147,13 +167,66 @@ fi
 
 list_output="$("$CLI" adapter list --json)"
 show_output="$("$CLI" adapter show fixture-private)"
-if python3 -c 'import json,sys; d=json.load(sys.stdin); assert len(d["adapters"]) == 1; assert d["adapters"][0]["id"] == "fixture-private"; assert d["adapters"][0]["remote_resource_count"] == 1' <<<"$list_output" \
+if python3 -c 'import json,sys; d=json.load(sys.stdin); assert len(d["adapters"]) == 1; assert d["adapters"][0]["id"] == "fixture-private"; assert d["adapters"][0]["route_count"] == 1; assert d["adapters"][0]["remote_resource_count"] == 1' <<<"$list_output" \
   && ! grep -q 'fixture-document' <<<"$list_output" \
-  && python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["id"] == "fixture-private"; assert d["env_allow"] == []; assert d["command"][0].endswith("/bin/adapter"); assert d["remote_resources"] == ["google-docs:fixture-document"]' <<<"$show_output"; then
+  && python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["id"] == "fixture-private"; assert d["env_allow"] == []; assert d["command"][0].endswith("/bin/adapter"); assert d["remote_resources"] == ["fixture-document:synthetic"]; assert d["routes"][0]["id"] == "edit-fixture-document"' <<<"$show_output"; then
   log_pass "list redacts remote identifiers while show preserves machine-local policy"
 else
   log_fail "list redacts remote identifiers while show preserves machine-local policy" "$list_output $show_output"
 fi
+
+set +e
+route_output="$("$CLI" adapter route --intent edit \
+  --resource 'https://editor.fixture.invalid/document/synthetic?tab=one' --json 2>&1)"
+route_rc=$?
+set -e
+if [ "$route_rc" -eq 0 ] \
+  && python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["status"] == "matched"; assert d["adapter_id"] == "fixture-private"; assert d["route_id"] == "edit-fixture-document"; assert d["guide"].endswith("/AGENT_WORKFLOW.md"); assert "resource" not in d' <<<"$route_output"; then
+  log_pass "route resolves provider-neutral manifest metadata without echoing the resource"
+else
+  log_fail "route resolves provider-neutral manifest metadata without echoing the resource" "$route_output"
+fi
+
+set +e
+no_route_output="$("$CLI" adapter route --intent edit \
+  --resource 'https://unmatched.fixture.invalid/document/synthetic' --json 2>&1)"
+no_route_rc=$?
+set -e
+if [ "$no_route_rc" -eq 1 ] \
+  && python3 -c 'import json,sys; d=json.load(sys.stdin); assert d == {"intent": "edit", "resource_kind": "url", "status": "no-match"}' <<<"$no_route_output" \
+  && ! grep -q 'synthetic' <<<"$no_route_output"; then
+  log_pass "route returns a content-free no-match for normal fallback handling"
+else
+  log_fail "route returns a content-free no-match for normal fallback handling" "$no_route_output"
+fi
+
+python3 - "$registry" <<'PY'
+import json, sys
+from pathlib import Path
+path = Path(sys.argv[1])
+data = json.loads(path.read_text())
+data["adapters"]["fixture-second"] = dict(data["adapters"]["fixture-private"])
+path.write_text(json.dumps(data))
+PY
+set +e
+ambiguous_output="$("$CLI" adapter route --intent edit \
+  --resource 'https://editor.fixture.invalid/document/synthetic' --json 2>&1)"
+ambiguous_rc=$?
+set -e
+if [ "$ambiguous_rc" -eq 2 ] \
+  && python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["status"] == "ambiguous"; assert len(d["matches"]) == 2' <<<"$ambiguous_output"; then
+  log_pass "route fails closed when highest-priority registrations are ambiguous"
+else
+  log_fail "route fails closed when highest-priority registrations are ambiguous" "$ambiguous_output"
+fi
+python3 - "$registry" <<'PY'
+import json, sys
+from pathlib import Path
+path = Path(sys.argv[1])
+data = json.loads(path.read_text())
+del data["adapters"]["fixture-second"]
+path.write_text(json.dumps(data))
+PY
 
 request="$tmpdir/request.json"
 receipt="$tmpdir/receipt.json"
@@ -189,7 +262,7 @@ cat > "$remote_request" <<JSON
   "adapter_id": "fixture-private",
   "operation": "suggest",
   "arguments": {
-    "document_resource": "google-docs:fixture-document",
+    "document_resource": "fixture-document:synthetic",
     "plan": "$inputs/plan.json"
   },
   "output_dir": "$outputs/remote-run",
@@ -289,6 +362,17 @@ else
 fi
 
 printf '\n' >> "$adapter/.llm-wiki-adapter.json"
+set +e
+unavailable_route_output="$("$CLI" adapter route --intent edit \
+  --resource 'https://editor.fixture.invalid/document/synthetic' --json 2>&1)"
+unavailable_route_rc=$?
+set -e
+if [ "$unavailable_route_rc" -eq 2 ] \
+  && python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["status"] == "unavailable"; assert d["issues"][0]["issue"] == "manifest changed"' <<<"$unavailable_route_output"; then
+  log_pass "route blocks a matching registration after manifest drift"
+else
+  log_fail "route blocks a matching registration after manifest drift" "$unavailable_route_output"
+fi
 set +e
 drift_output="$("$CLI" adapter doctor fixture-private --json 2>&1)"
 drift_rc=$?
