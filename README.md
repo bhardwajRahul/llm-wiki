@@ -19,11 +19,11 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
-**Unreleased** — **Declarative private-adapter routing.** Registered adapters
+**v0.22.0** — **Declarative private-adapter routing.** Registered adapters
 may declare provider-neutral intent and exact-URL routes plus an adapter-owned
 workflow guide. The public plugin discovers the route before ingestion but no
 longer embeds any provider's authentication, browser, recovery, or editing
-workflow. No distribution version or release has been authorized for this work.
+workflow.
 
 **v0.21.3** — **Adapter-boundary transition.** Consolidates the v0.21 line and
 keeps the session-hook compatibility fix. Provider-specific workflow material
