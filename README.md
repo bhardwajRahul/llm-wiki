@@ -19,6 +19,13 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
+**v0.23.0** — **Private specialist framework.** Adds optional user-owned,
+instruction-only `SKILL.md` review methods under the wiki hub, explicit
+per-topic allowlists, deterministic validation and management, and research
+selection with version/hash provenance. The public release contains the
+framework only; private specialist packages and wiki-derived candidate reports
+are not bundled or published.
+
 **v0.22.0** — **Declarative private-adapter routing.** Registered adapters
 may declare provider-neutral intent and exact-URL routes plus an adapter-owned
 workflow guide. The public plugin discovers the route before ingestion but no
@@ -42,14 +49,6 @@ artifacts, bundled management CLI, and an explicit workflow boundary that never
 passes a wiki destination or auto-promotes adapter output.
 
 **v0.18.0** — **Hub-wide portfolio.** Adds `/wiki:portfolio`, a live read-only view across active topic wikis that lists canonical Ideas and active Projects separately, distinguishes explicitly promoted Projects from direct ones, preserves Concepts as supporting knowledge, and avoids catch-all topics, duplicated records, inferred lineage, and stale portfolio caches.
-
-**v0.17.1** — **Accidental sensitive-data cleanup.** Adds a dry-run-first local command for removing accidentally saved passwords, tokens, and other sensitive values from registered wikis, archives, and session context. It accepts hidden or stdin input, detects common encoded forms, keeps the selected value out of command arguments and reports, and verifies the selected local scope after explicit application.
-
-**v0.17.0** — **Ideas workflow.** Adds a fuzzy Concept → Idea → Project path: capture and catalog rough proposals under `inventory/ideas/`, research and shape them over time, then explicitly approve and promote a frozen `BRIEF.md` into a linked Project whose workspace owns delivery truth.
-
-**v0.16.0** — **Query Lite and token benchmarks.** Adds a compact read-only query protocol across Claude Code, Codex, Pi, DS4, OpenCode, and portable agents; reduces Claude `/wiki:query` instructions by 72.54%; adds explicit `$wiki-query`, read-only Pi launchers, static context budgets, corpus-identity gates, and reproducible Codex/Claude/DS4 benchmark lanes. OpenCode live-model behavior remains best effort.
-
-**v0.14.0** — **Default topic guides.** Adds advisory `schema.md` by default, safe adoption helpers for older wikis, proposal-only librarian convention updates, deterministic docs/lint checks, and clarifies the optional index/server layer as a rebuildable non-authoritative cache.
 
 ## Install
 
