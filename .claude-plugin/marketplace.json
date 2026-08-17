@@ -1,16 +1,16 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "llm-wiki",
-  "version": "0.22.0",
-  "description": "LLM-compiled knowledge base plugin with private adapters, a fuzzy Concept-to-Idea-to-Project workflow, compact queries, inventory, datasets, audits, sessions, research, and outputs.",
+  "version": "0.23.0",
+  "description": "LLM-compiled knowledge base plugin with private specialist skills, trusted adapters, a fuzzy Concept-to-Idea-to-Project workflow, compact queries, inventory, datasets, audits, sessions, research, and outputs.",
   "owner": {
     "name": "nvk"
   },
   "plugins": [
     {
       "name": "wiki",
-      "description": "LLM-compiled knowledge base with explicitly trusted private adapters, fuzzy Idea shaping and Project promotion, compact queries, ingestion, inventory, datasets, audits, sessions, and outputs.",
-      "version": "0.22.0",
+      "description": "LLM-compiled knowledge base with user-private specialist skills, explicitly trusted private adapters, fuzzy Idea shaping and Project promotion, compact queries, ingestion, inventory, datasets, audits, sessions, and outputs.",
+      "version": "0.23.0",
       "author": {
         "name": "nvk"
       },
