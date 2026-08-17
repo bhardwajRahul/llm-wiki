@@ -19,11 +19,11 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
-**v0.23.0** — **Private specialist framework.** Adds optional user-owned,
-instruction-only `SKILL.md` review methods under the wiki hub, explicit
-per-topic allowlists, deterministic validation and management, and research
+**v0.23.0** — **Personal specialist framework.** Adds optional user-owned,
+instruction-only `SKILL.md` review methods under the user's local wiki hub,
+explicit per-topic allowlists, deterministic validation and management, and research
 selection with version/hash provenance. The public release contains the
-framework only; private specialist packages and wiki-derived candidate reports
+framework only; personal specialist packages and wiki-derived candidate reports
 are not bundled or published.
 
 **v0.22.0** — **Declarative private-adapter routing.** Registered adapters
@@ -399,7 +399,7 @@ Check your installed version:
 /wiki:research "gut-brain axis" --wiki nutrition   # Add more research to existing wiki
 /wiki:research "fasting" --deep --min-time 2h     # 8 agents, keep going for 2 hours
 /wiki:research "keto" --retardmax                 # 10 agents, max speed, ingest everything
-/wiki:specialist suggest --wiki all                # Rank reusable private expert methods from current topic indexes
+/wiki:specialist suggest --wiki all                # Rank reusable personal expert methods from current topic indexes
 /wiki:research "causal evidence" --specialist research-methodologist  # Apply one enabled bounded review method
 /wiki:research "What makes long form articles go viral?" --new-topic  # Question → decompose → playbook
 /wiki:thesis "fiber reduces neuroinflammation via SCFAs"  # Thesis-driven: evidence for + against → verdict
@@ -474,7 +474,7 @@ for established wikis before adopting topic-specific vocabulary. The local archi
 performs the deterministic folder move plus `wikis.json`, hub index, and log
 updates.
 
-## Private Specialist Skills
+## Personal Specialist Skills
 
 An optional user-owned library under `HUB/.skills/` stores reusable
 Agent Skills-compatible `SKILL.md` methods. Specialists encode bounded evidence
@@ -487,8 +487,8 @@ the same bounded evidence packet, and record its version and content hash in
 provenance. `/wiki:specialist suggest` examines current topic indexes and ranks
 candidate methods without creating them; `/wiki:specialist apply` performs a
 bounded review. See the [specialist reference](claude-plugin/skills/wiki-manager/references/specialists.md)
-for storage, validation, privacy, selection, high-stakes escalation, and eval
-rules.
+for local storage, sharing boundaries, validation, selection, high-stakes
+escalation, and eval rules.
 
 ## Session Memory
 
@@ -540,7 +540,7 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:adapter list\|show\|doctor` | Inspect registrations and verify manifest/executable handshakes |
 | `/wiki:adapter run <id> --request <json>` | Execute a scoped v1 request and verify artifacts without automatic wiki import; remote writes additionally require an exact approved plan hash and private verified receipt |
 | `/wiki:adapter remove <id> --yes` | Remove only the machine-local registration, not adapter code or data |
-| `/wiki:specialist init\|create\|refresh\|list\|show\|validate` | Manage user-private, instruction-only specialist `SKILL.md` methods under `HUB/.skills/` |
+| `/wiki:specialist init\|create\|refresh\|list\|show\|validate` | Manage personal, instruction-only specialist `SKILL.md` methods under the local hub at `HUB/.skills/` |
 | `/wiki:specialist enable\|disable <name> --wiki <topic>` | Change the explicit per-active-topic specialist allowlist |
 | `/wiki:specialist suggest [--wiki <topic\|all>]` | Rank bounded specialist methods justified by current wiki indexes without creating them |
 | `/wiki:specialist apply <name> <question> --wiki <topic>` | Apply one enabled, validated specialist and report its version/hash |
@@ -594,7 +594,7 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:research <topic> --new-topic` | Create a topic wiki and start researching — works from any directory |
 | `/wiki:research <topic> --min-time 1h` | Keep researching in rounds until time budget is spent |
 | `/wiki:research <topic> --plan` | Decompose into 3-5 parallel paths, confirm, then dispatch all at once |
-| `/wiki:research <topic> --specialist <name>` | Apply an enabled private specialist method; repeat at most three times |
+| `/wiki:research <topic> --specialist <name>` | Apply an enabled personal specialist method; repeat at most three times |
 | `/wiki:research <topic> --no-specialists` | Run the baseline workflow without loading specialist bodies |
 | `/wiki:research <topic> --deep` | 8 agents: adds historical, adjacent, data/stats |
 | `/wiki:research <topic> --retardmax` | 10 agents: skip planning, max speed, ingest aggressively |
@@ -638,7 +638,7 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
 ├── _index.md                           # Lists topic wikis with stats
 ├── log.md                              # Global activity log
 ├── .sessions/                          # Optional session capture + feedback candidates
-├── .skills/                            # Optional private specialist methods + topic allowlists
+├── .skills/                            # Optional personal specialist methods + topic allowlists
 └── topics/                             # Each topic is an isolated wiki
     ├── nutrition/                      # Example topic wiki
     │   ├── .obsidian/                  # Optional Obsidian vault config
@@ -693,7 +693,7 @@ focused. The multi-wiki peek finds overlap across topics when relevant.
   names such as `memes-bitcoin`, `memes-ethereum`, or `tools-bitcoin` so
   related catalogs group naturally as the hub grows.
 - **Parallel research agents** — 5 standard, 8 deep, 10 retardmax. Each agent searches from a different angle.
-- **Private specialist methods** — user-owned, instruction-only `SKILL.md`
+- **Personal specialist methods** — user-owned, instruction-only `SKILL.md`
   protocols selected by task features and enabled per topic; methods, not
   credential costumes.
 - **Collector workflow** — search-driven catalogs for objects, media, and

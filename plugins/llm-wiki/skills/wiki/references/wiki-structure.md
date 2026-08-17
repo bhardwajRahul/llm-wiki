@@ -5,7 +5,7 @@
 ## Hub (HUB/)
 
 The hub is lightweight — it has NO content directories. It tracks topic wikis
-and may hold user-private operational configuration.
+and may hold user-owned local operational configuration.
 
 ```
 HUB/                               # resolved from ~/.config/llm-wiki/config.json
@@ -13,7 +13,7 @@ HUB/                               # resolved from ~/.config/llm-wiki/config.jso
 ├── _index.md                      # Lists topic wikis with stats
 ├── log.md                         # Global activity log
 ├── .sessions/                     # Optional harness-session operational memory
-├── .skills/                       # Optional private specialist method library
+├── .skills/                       # Optional personal specialist method library
 │   ├── _index.md                  # Derived specialist catalog
 │   ├── registry.json              # Per-active-topic specialist allowlists
 │   └── <name>/

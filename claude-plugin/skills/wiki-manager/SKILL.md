@@ -7,7 +7,7 @@ description: >
   outputs. Activates for /wiki commands; wiki or knowledge-base work; ingest,
   collect, catalog, compile, query, audit, librarian, inventory, idea,
   portfolio, business ideas, projects, datasets, archives, sessions, feedback,
-  private adapters, adapter routing, private specialist skills, expert review,
+  private adapters, adapter routing, personal specialist skills, expert review,
   specialist selection, provenance, external resource actions, or questions in a directory
   with .wiki/ or a configured hub.
 tools:
@@ -103,9 +103,9 @@ outputs remain in separately controlled external data planes. Only reviewed
 compilation workflows. See
 [references/adapters.md](references/adapters.md).
 
-14. **Specialists are bounded methods, not credentials.** User-private,
-instruction-only specialist packages live under `HUB/.skills/` and are enabled
-per active topic. Loading one never grants tools, write access, professional
+14. **Specialists are bounded methods, not credentials.** Personal,
+instruction-only specialist packages live locally under `HUB/.skills/` and are
+enabled per active topic. Loading one never grants tools, write access, professional
 authority, or permission to spawn agents. Select the minimum useful method,
 preserve disagreement, and record its version/hash. See
 [references/specialists.md](references/specialists.md).
@@ -156,7 +156,7 @@ hashes → leave all outputs external → optionally review only `wiki-safe`
 candidates and promote the smallest useful evidence through normal wiki writes.
 Never clone, install, update, publish, or auto-promote an adapter.
 
-### Private Specialist Skills
+### Personal Specialist Skills
 See [references/specialists.md](references/specialists.md).
 Flow: maintain user-owned instruction-only `SKILL.md` methods under
 `HUB/.skills/` → validate structure and safety boundaries → explicitly enable

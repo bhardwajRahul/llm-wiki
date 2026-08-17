@@ -2724,7 +2724,7 @@ def write_specialist_index(hub: Path, registry: dict[str, Any] | None = None) ->
         [
             "# Specialist Skills Index",
             "",
-            "> User-private, instruction-only specialist methods shared across topic wikis.",
+            "> Personal, instruction-only specialist methods shared across topic wikis.",
             "",
             f"Last updated: {today_date().isoformat()}",
             "",
@@ -3013,7 +3013,7 @@ def specialist_init(args: argparse.Namespace) -> int:
     hub = resolve_hub(args)
     created = initialize_specialist_library(hub)
     if created:
-        append_log(hub, "specialist", "initialized private specialist skill library")
+        append_log(hub, "specialist", "initialized personal specialist skill library")
     report = {
         "status": "created" if created else "already-initialized",
         "hub": str(hub),
@@ -3043,7 +3043,7 @@ def specialist_create(args: argparse.Namespace) -> int:
     skill.write_text(specialist_scaffold(name, description, args.risk_tier), encoding="utf-8")
     registry = read_specialist_registry(hub)
     write_specialist_index(hub, registry)
-    append_log(hub, "specialist", f"created private specialist {name} v0.1.0")
+    append_log(hub, "specialist", f"created personal specialist {name} v0.1.0")
     report = {
         "status": "created",
         "name": name,
@@ -3064,7 +3064,7 @@ def specialist_refresh(args: argparse.Namespace) -> int:
     initialize_specialist_library(hub)
     registry = read_specialist_registry(hub)
     write_specialist_index(hub, registry)
-    append_log(hub, "specialist", "refreshed private specialist skill index")
+    append_log(hub, "specialist", "refreshed personal specialist skill index")
     report = {
         "status": "refreshed",
         "index": str(specialist_library_path(hub) / "_index.md"),
@@ -4404,7 +4404,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     specialist = subparsers.add_parser(
         "specialist",
-        help="Manage private, instruction-only specialist skills at hub scope.",
+        help="Manage personal, instruction-only specialist skills in the local hub.",
         description=(
             "Create and validate Agent Skills-compatible specialist methods under "
             "HUB/.skills, then explicitly enable them per active topic. Specialists "

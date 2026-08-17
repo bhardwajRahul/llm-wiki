@@ -1,4 +1,4 @@
-# Private Specialist Skills
+# Personal Specialist Skills
 
 Specialists are user-owned, Agent Skills-compatible instruction packages that
 apply a bounded evidence or review method during wiki research and analysis.
@@ -6,9 +6,9 @@ They are not simulated credentials. Prefer names such as
 `research-methodologist` or `financial-stewardship-reviewer` over `phd`, `cfo`,
 or `doctor`.
 
-## Storage and privacy boundary
+## Local storage and sharing boundary
 
-The reusable library lives at hub scope:
+The personal reusable library lives under the locally resolved hub:
 
 ```text
 HUB/.skills/
@@ -35,11 +35,11 @@ active topic. Definitions stay at hub scope and are never copied into a topic
 wiki. Local `.wiki/` projects can consume a hub specialist only through an
 explicit user request; v1 does not persist local-project allowlists.
 
-"Private" means user-owned and absent from the public plugin. It does not mean
-encrypted or local-only: a synced hub is still synced, and instructions enter
-the selected model's context when loaded. Store methods, source hierarchies,
-templates, and preferences here—not credentials, case facts, health records,
-customer data, or source corpora.
+"Personal" means user-owned, stored in the selected hub, and absent from the
+public plugin. It does not mean encrypted or strictly local: a synced hub is
+still synced, and instructions enter the selected model's context when loaded.
+Store methods, source hierarchies, templates, and preferences here—not
+credentials, case facts, health records, customer data, or source corpora.
 
 ## Instruction-only package contract
 

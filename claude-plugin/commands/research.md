@@ -23,7 +23,7 @@ Conduct deep research on the topic in $ARGUMENTS. This is an automated pipeline:
 - **--project <slug>**: Tag all new outputs with this project. The research playbook/summary artifact is saved inside `output/projects/<slug>/` instead of flat `output/`. Compiled wiki articles get `project: <slug>` frontmatter. If the project doesn't exist, fail early with a helpful error. See `references/projects.md` for the projects architecture.
 - **--include-archived**: Explicitly allow researching into an archived target
   wiki. Keep the target archived and label the session accordingly.
-- **--specialist <name>**: Explicitly apply an enabled private specialist;
+- **--specialist <name>**: Explicitly apply an enabled personal specialist;
   repeat up to three times. For project-local `.wiki/`, explicit selection is
   required because v1 has no persisted local-project allowlist.
 - **--no-specialists**: Run the baseline research workflow without reading

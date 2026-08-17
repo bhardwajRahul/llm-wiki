@@ -1,12 +1,12 @@
 ---
-description: "Manage private specialist SKILL.md methods, topic allowlists, candidate discovery, and bounded specialist reviews."
+description: "Manage personal specialist SKILL.md methods, topic allowlists, candidate discovery, and bounded specialist reviews."
 argument-hint: "init|create <name> --description <text>|list [--wiki <topic>]|show <name>|validate [<name>]|refresh|enable|disable <name> --wiki <topic>|suggest [--wiki <topic|all>]|apply <name> <question> --wiki <topic>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:*), Bash(python3:*), Bash(scripts/llm-wiki:*), Bash(${CLAUDE_PLUGIN_ROOT}/bin/llm-wiki:*), WebFetch, WebSearch, Agent
 ---
 
 ## Your task
 
-Manage or apply user-private specialist methods. Read
+Manage or apply personal specialist methods. Read
 `skills/wiki-manager/references/specialists.md` before acting. A specialist is
 a bounded evidence/review protocol, not a human credential or new authority.
 

@@ -3,7 +3,7 @@ name: wiki
 description: >
   Manage LLM-compiled wikis in Codex: ingest/import, shape/promote Ideas,
   review portfolios, track inventory/datasets, archive, compile/query/lint/audit,
-  research/plan, manage sessions/private adapters/specialists, and generate outputs.
+  research/plan, manage sessions, private adapters, personal specialists, and outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
   find all, idea, turn idea into project, portfolio, business ideas, projects, inventory, source queue,
@@ -11,7 +11,7 @@ description: >
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
   archive wiki, archive topic, restore wiki, private adapter, adapter registry,
-  private specialist, specialist skill, specialist reviewer, expert lens,
+  personal specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, implementation plan, or uses
   /wiki-style shorthand in a repo with .wiki/, ~/wiki/, or a configured hub path.
@@ -103,9 +103,9 @@ outputs remain in separately controlled external data planes. Only reviewed
 compilation workflows. See
 [references/adapters.md](references/adapters.md).
 
-14. **Specialists are bounded methods, not credentials.** User-private,
-instruction-only specialist packages live under `HUB/.skills/` and are enabled
-per active topic. Loading one never grants tools, write access, professional
+14. **Specialists are bounded methods, not credentials.** Personal,
+instruction-only specialist packages live locally under `HUB/.skills/` and are
+enabled per active topic. Loading one never grants tools, write access, professional
 authority, or permission to spawn agents. Select the minimum useful method,
 preserve disagreement, and record its version/hash. See
 [references/specialists.md](references/specialists.md).

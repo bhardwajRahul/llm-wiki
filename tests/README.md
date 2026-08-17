@@ -50,7 +50,7 @@ No LLM calls. Validates wiki file structure, default `schema.md`, frontmatter sc
 - C6: No orphan sources (via defect fixture)
 - C11: File placement matches frontmatter type/category
 - C12: No unknown file types in raw/wiki directories
-- Private specialists: hub-scoped instruction-only packages, active-topic
+- Personal specialists: hub-scoped instruction-only packages, active-topic
   allowlists, provenance metadata, and no specialist-owned tool grants
 - Docs consistency: README command table, plugin/marketplace versions, and
   reference-file allowlists stay synchronized

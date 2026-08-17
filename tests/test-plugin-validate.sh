@@ -101,22 +101,22 @@ else
   log_fail "private adapter routing drift" "expected manifest route discovery and no provider-specific workflow in public instruction surfaces"
 fi
 
-# Private specialists are bounded instruction packages, not simulated
+# Personal specialists are bounded instruction packages, not simulated
 # credentials or a tool-authority mechanism.
 SPECIALIST_COMMAND="$PLUGIN_DIR/commands/specialist.md"
 SPECIALIST_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/specialists.md"
-if grep -q '## Storage and privacy boundary' "$SPECIALIST_REFERENCE" \
+if grep -q '## Local storage and sharing boundary' "$SPECIALIST_REFERENCE" \
   && grep -q 'Instruction-only package contract' "$SPECIALIST_REFERENCE" \
   && grep -q 'There is no global default' "$SPECIALIST_REFERENCE" \
   && grep -q 'never grants tools' "$SPECIALIST_REFERENCE" \
   && grep -q '## `suggest`' "$SPECIALIST_COMMAND" \
   && grep -q '## `apply`' "$SPECIALIST_COMMAND" \
   && grep -q 'Specialists are bounded methods, not credentials' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
-  && grep -q 'Private Specialist' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q 'Personal Specialist' "$PLUGIN_DIR/commands/wiki.md" \
   && grep -q 'optional `.sessions/` and `.skills/`' "$PROJECT_ROOT/AGENTS.md"; then
-  log_pass "private specialists preserve allowlists, instruction-only safety, and non-credential boundaries"
+  log_pass "personal specialists preserve allowlists, instruction-only safety, and non-credential boundaries"
 else
-  log_fail "private specialist invariant drift" "expected hub library, topic allowlists, bounded methods, and no tool grants"
+  log_fail "personal specialist invariant drift" "expected hub library, topic allowlists, bounded methods, and no tool grants"
 fi
 
 # Reference files exist

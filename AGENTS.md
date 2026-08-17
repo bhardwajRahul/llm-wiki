@@ -40,7 +40,7 @@ The hub is lightweight — NO content, just a registry.
 ├── _index.md           # Lists topic wikis with stats
 ├── log.md              # Global activity log
 ├── .sessions/          # Optional automated agent-session capture + feedback candidates
-├── .skills/            # Optional user-private specialist SKILL.md methods + topic allowlists
+├── .skills/            # Optional personal specialist SKILL.md methods + topic allowlists
 └── topics/
     ├── nutrition/      # Each topic is a full, isolated wiki
     ├── robotics/
@@ -497,7 +497,7 @@ count first. If the user only wants to remember the corpus for later, create one
 inventory record; if the corpus is row-like data, create a dataset manifest plus
 one linked inventory record.
 
-### Private Specialist Skills
+### Personal Specialist Skills
 
 Reusable specialist methods live under `HUB/.skills/<name>/SKILL.md`; optional
 references are Markdown-only. `HUB/.skills/registry.json` holds explicit
