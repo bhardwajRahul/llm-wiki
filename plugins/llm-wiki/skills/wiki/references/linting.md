@@ -63,6 +63,11 @@ There is no `/wiki:migrate` command and there should never be one. Lint rules **
 - [ ] Hub `topics/.archive/`, when present, contains only archived topic
   directories. Archived topic roots still have their own `_index.md`, but
   normal topic lint skips them unless explicitly included.
+- [ ] Optional hub `.skills/`, when present, has `_index.md`, schema-v1
+  `registry.json`, and valid instruction-only specialist packages. Package
+  names/frontmatter match; required method sections exist; allowlists reference
+  valid specialists and active topics; symlinks, executable files, scripts,
+  binaries, and undeclared package paths fail validation.
 
 ### C2: Frontmatter (Critical/Warning)
 
@@ -222,7 +227,9 @@ Any file that is not in the canonical allowlist for its location is either a use
 
 | Location | Allowed items |
 |----------|--------------|
-| HUB | `wikis.json`, `_index.md`, `log.md`, `topics/` |
+| HUB | `wikis.json`, `_index.md`, `log.md`, `topics/`, optional `.sessions/`, optional `.skills/` |
+| `HUB/.skills/` | `_index.md`, `registry.json`, and lowercase specialist package directories |
+| `HUB/.skills/<name>/` | `SKILL.md` and optional `references/` containing Markdown only |
 | `HUB/topics/` | active topic directories plus `.archive/` |
 | `HUB/topics/.archive/` | archived topic directories |
 | Topic wiki root | `_index.md`, `config.md`, `schema.md`, `log.md`, `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, `.obsidian/`, `.librarian/`, `.audit/`, `.research-session.json`, `.thesis-session.json`, `.session-events.jsonl`, `.session-checkpoint.json` |

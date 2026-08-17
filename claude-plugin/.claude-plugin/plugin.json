@@ -1,6 +1,6 @@
 {
   "name": "wiki",
-  "description": "LLM-compiled knowledge base with explicitly trusted private adapters, fuzzy Concept-to-Idea-to-Project workflows, compact queries, inventory, datasets, ingestion, audits, sessions, research, and outputs.",
+  "description": "LLM-compiled knowledge base with private specialist skills, trusted adapters, fuzzy Concept-to-Idea-to-Project workflows, compact queries, inventory, datasets, ingestion, audits, sessions, research, and outputs.",
   "version": "0.22.0",
   "author": {
     "name": "nvk"
@@ -25,6 +25,8 @@
     "projects",
     "adapters",
     "private-adapters",
+    "specialists",
+    "private-skills",
     "datasets",
     "archive",
     "sessions",

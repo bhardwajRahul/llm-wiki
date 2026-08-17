@@ -40,6 +40,7 @@ The hub is lightweight — NO content, just a registry.
 ├── _index.md           # Lists topic wikis with stats
 ├── log.md              # Global activity log
 ├── .sessions/          # Optional automated agent-session capture + feedback candidates
+├── .skills/            # Optional user-private specialist SKILL.md methods + topic allowlists
 └── topics/
     ├── nutrition/      # Each topic is a full, isolated wiki
     ├── robotics/
@@ -137,6 +138,10 @@ read-back-verified receipt. A request file alone is never approval.
 15. **Route external actions before ingestion.** For an action plus URL, run
 `adapter route` first. A healthy match hands off to the adapter-owned guide;
 provider steps stay private.
+16. **Specialists are methods, not credentials.** Optional instruction-only
+packages live under `HUB/.skills/`, are explicitly enabled per active topic,
+and never grant tools, write authority, professional status, or permission to
+spawn agents. Select the minimum useful method and record its version/hash.
 
 ## File Formats
 
@@ -354,7 +359,7 @@ asks for archived content or structural maintenance.
 ## [YYYY-MM-DD] operation | Description
 ```
 
-Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `thesis`, `collect`, `output`, `assess`, `refresh`, `librarian`, `audit`, `plan`, `idea`, `project`, `inventory`, `dataset`, `schema`, `archive`, `ll`
+Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `thesis`, `collect`, `output`, `assess`, `refresh`, `librarian`, `audit`, `plan`, `idea`, `project`, `inventory`, `dataset`, `schema`, `archive`, `specialist`, `ll`
 
 ## Operations
 
@@ -491,6 +496,27 @@ For large imports, preview the collection manifest shape and estimated child
 count first. If the user only wants to remember the corpus for later, create one
 inventory record; if the corpus is row-like data, create a dataset manifest plus
 one linked inventory record.
+
+### Private Specialist Skills
+
+Reusable specialist methods live under `HUB/.skills/<name>/SKILL.md`; optional
+references are Markdown-only. `HUB/.skills/registry.json` holds explicit
+per-active-topic allowlists and has no global defaults. A synced or hidden
+directory is not encrypted, and loaded instructions enter the model context.
+Keep secrets, case facts, health/customer data, and source corpora out.
+
+Use `llm-wiki specialist init|create|refresh|list|show|validate|enable|disable`
+for deterministic management. Hub lint recognizes `.skills/` and rejects
+symlinks, executables, scripts, binary references, missing contract sections,
+or allowlists that name missing specialists or inactive topics.
+
+For research or analysis, read the specialist index and the selected topic's
+allowlist, choose zero to three methods (normally one), load only selected
+packages, and provide the same bounded evidence packet to each. Synthesize by
+claim and evidence strength rather than majority vote. Record name, version,
+and content hash in durable provenance. Medical, legal, tax, accounting, and
+financial methods require current authoritative sources, jurisdiction/date,
+explicit stop rules, and named qualified-human review.
 
 ### Compile
 
@@ -943,7 +969,11 @@ Flags: `--dry-run` (preview without writing), `--rules` (also propose CLAUDE.md/
 
 Auto-run lightweight checks after write operations:
 
-1. Hub should only have wikis.json, _index.md, log.md, topics/. `topics/.archive/` is allowed for archived topic wikis. Warn on anything else; never delete hub-level content automatically.
+1. Hub should only have `wikis.json`, `_index.md`, `log.md`, `topics/`, and
+   optional `.sessions/` and `.skills/`. `topics/.archive/` is allowed for
+   archived topic wikis. Validate `.skills/` with the instruction-only package
+   and active-topic allowlist rules. Warn on anything else; never delete
+   hub-level content automatically.
 2. Index freshness: file counts match index rows, including inventory and dataset indexes. Ignore maintenance/report directories such as `.librarian/` and `.audit/`. Auto-fix mismatches by regenerating the affected directory index.
 3. Orphan detection: files not in any index → add them.
 4. Missing core topic directories → create with empty _index.md. Inventory and dataset layers are lazy: repair indexes when they already exist, but do not create absent optional trees unless the current inventory or dataset workflow needs them. For older compiled articles, infer safe schema fields from the directory/body and rewrite fuzzy raw-source refs only when they resolve unambiguously.

@@ -248,6 +248,13 @@ Persistent state for multi-round research and thesis sessions, enabling crash re
   "topic": "research topic",
   "start_time": "2026-04-06T14:30:22Z",
   "min_time_budget": "2h",
+  "specialists": [
+    {
+      "name": "research-methodologist",
+      "version": "0.1.0",
+      "sha256": "<content-sha256>"
+    }
+  ],
   "current_round": 2,
   "rounds_completed": [
     {
@@ -273,6 +280,7 @@ Persistent state for multi-round research and thesis sessions, enabling crash re
 {
   "session_id": "2026-04-06-143022",
   "thesis": "claim statement",
+  "specialists": [],
   "current_round": 2,
   "rounds_completed": [
     {
@@ -307,7 +315,7 @@ to classify provenance as `replayable` instead of merely `partial`.
 Each line is one JSON object. Append only; never rewrite prior entries.
 
 ```json
-{"ts":"2026-04-29T12:00:00Z","command":"research","phase":"start","event":"research_started","session_id":"2026-04-29-120000","topic":"cerebral amyloid angiopathy","mode":"single","min_time_budget":"2h"}
+{"ts":"2026-04-29T12:00:00Z","command":"research","phase":"start","event":"research_started","session_id":"2026-04-29-120000","topic":"cerebral amyloid angiopathy","mode":"single","min_time_budget":"2h","specialists":[{"name":"research-methodologist","version":"0.1.0","sha256":"abc123..."}]}
 {"ts":"2026-04-29T12:38:00Z","command":"research","phase":"round","event":"research_round_completed","session_id":"2026-04-29-120000","round":1,"sources_ingested":5,"articles_compiled":3,"progress_score":65}
 {"ts":"2026-04-29T12:42:00Z","command":"research","phase":"reflection","event":"research_reflection_completed","session_id":"2026-04-29-120000","round":1,"top_gaps":["gap1","gap2","gap3"]}
 {"ts":"2026-04-29T14:05:00Z","command":"research","phase":"finish","event":"research_completed","session_id":"2026-04-29-120000","rounds_completed":3,"cumulative_sources":14,"cumulative_articles":9}
@@ -328,6 +336,7 @@ Recommended fields:
 | `articles_compiled` | number | Per-round or cumulative count when relevant |
 | `progress_score` | number | Round quality signal when relevant |
 | `artifacts` | array | Paths written in that step |
+| `specialists` | array | Selected specialist name, version, and content hash; empty when none |
 | `notes` | string | Short freeform summary, optional |
 
 ### Checkpoint Schema (.session-checkpoint.json)
@@ -343,6 +352,13 @@ Rewrite atomically after each meaningful milestone.
   "status": "completed",
   "topic": "cerebral amyloid angiopathy",
   "current_round": 3,
+  "specialists": [
+    {
+      "name": "research-methodologist",
+      "version": "0.1.0",
+      "sha256": "abc123..."
+    }
+  ],
   "summary": {
     "cumulative_sources": 14,
     "cumulative_articles": 9,
@@ -368,6 +384,7 @@ Recommended fields:
 | `status` | string | `in_progress`, `completed`, `interrupted`, `failed` |
 | `topic` / `thesis` / `scope` | string | Human-readable target |
 | `current_round` | number | Most recent completed round, when applicable |
+| `specialists` | array | Selected specialist name, version, and content hash; empty when none |
 | `summary` | object | Compact state for resume briefings |
 | `artifacts` | array | Written artifact paths and hashes, when available |
 

@@ -180,9 +180,9 @@ PY
 cat > "$TARGET_SKILL/agents/openai.yaml" <<'EOF'
 interface:
   display_name: "Wiki Manager"
-  short_description: "Research, run private adapters, shape Ideas, and maintain llm-wiki knowledge bases."
+  short_description: "Research with private specialists, shape Ideas, and maintain llm-wiki knowledge bases."
   brand_color: "#2F855A"
-  default_prompt: "Use a registered private adapter, shape an Idea, research a topic, or compile knowledge into a structured wiki."
+  default_prompt: "Use a private specialist, shape an Idea, research a topic, or compile knowledge into a structured wiki."
 
 policy:
   allow_implicit_invocation: true
@@ -229,7 +229,7 @@ name: wiki
 description: >
   Manage LLM-compiled wikis in Codex: ingest/import, shape/promote Ideas,
   review portfolios, track inventory/datasets, archive, compile/query/lint/audit,
-  research/plan, manage sessions/private adapters, and generate outputs.
+  research/plan, manage sessions/private adapters/specialists, and generate outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
   find all, idea, turn idea into project, portfolio, business ideas, projects, inventory, source queue,
@@ -237,6 +237,7 @@ description: >
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
   archive wiki, archive topic, restore wiki, private adapter, adapter registry,
+  private specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, implementation plan, or uses
   /wiki-style shorthand in a repo with .wiki/, ~/wiki/, or a configured hub path.
@@ -410,21 +411,21 @@ codex["author"] = {
     "url": "https://github.com/nvk",
 }
 codex["description"] = (
-    "LLM-compiled knowledge bases for Codex with fuzzy Idea capture, research, "
+    "LLM-compiled knowledge bases for Codex with private specialist skills, fuzzy Idea capture, research, "
     "shaping, and explicit Project promotion, plus inventory, datasets, source "
     "ingestion, compilation, audits, sessions, and artifact generation."
 )
 keywords = list(codex.get("keywords", []))
-for keyword in ["ideas", "projects"]:
+for keyword in ["ideas", "projects", "specialists", "private-skills"]:
     if keyword not in keywords:
         keywords.append(keyword)
 codex["keywords"] = keywords
 interface = codex.setdefault("interface", {})
 interface["shortDescription"] = (
-    "Capture and shape Ideas, promote Projects, and maintain research wikis"
+    "Use private specialists, shape Ideas, and maintain research wikis"
 )
 interface["longDescription"] = (
-    "Bundle the llm-wiki workflow for Codex: capture rough Ideas, research and "
+    "Bundle the llm-wiki workflow for Codex: apply private specialist methods, capture rough Ideas, research and "
     "shape them, explicitly promote approved briefs into Projects, and maintain "
     "topic-scoped sources, compiled knowledge, inventory, datasets, sessions, "
     "audits, plans, and generated artifacts."

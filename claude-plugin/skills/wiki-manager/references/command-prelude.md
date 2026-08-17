@@ -60,6 +60,13 @@ moving topic roots between `HUB/topics/<slug>/` and
 `HUB/topics/.archive/<slug>/`, then updating `wikis.json`. It does not operate
 on project-local `.wiki/` directories in v1.
 
+### Variant E: hub specialist library (specialist)
+
+Specialist management resolves HUB and reads its `_index.md`, `wikis.json`,
+and optional `.skills/_index.md`. Resolve one active topic only for
+enable/disable, applying a method, or a targeted candidate scan. Specialist
+definitions remain at hub scope and are never copied into topic content.
+
 ## Archive visibility
 
 Archived topic wikis are quiet by default. Normal query, compile, ingest,

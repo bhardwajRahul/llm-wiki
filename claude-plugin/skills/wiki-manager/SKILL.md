@@ -7,7 +7,8 @@ description: >
   outputs. Activates for /wiki commands; wiki or knowledge-base work; ingest,
   collect, catalog, compile, query, audit, librarian, inventory, idea,
   portfolio, business ideas, projects, datasets, archives, sessions, feedback,
-  private adapters, adapter routing, provenance, external resource actions, or questions in a directory
+  private adapters, adapter routing, private specialist skills, expert review,
+  specialist selection, provenance, external resource actions, or questions in a directory
   with .wiki/ or a configured hub.
 tools:
   - Read
@@ -102,6 +103,13 @@ outputs remain in separately controlled external data planes. Only reviewed
 compilation workflows. See
 [references/adapters.md](references/adapters.md).
 
+14. **Specialists are bounded methods, not credentials.** User-private,
+instruction-only specialist packages live under `HUB/.skills/` and are enabled
+per active topic. Loading one never grants tools, write access, professional
+authority, or permission to spawn agents. Select the minimum useful method,
+preserve disagreement, and record its version/hash. See
+[references/specialists.md](references/specialists.md).
+
 ## Adapter Routing
 
 For an action plus URL, run `adapter route --intent <effect> --resource <url>
@@ -147,6 +155,17 @@ JSON request through the bundled deterministic CLI → verify artifact paths and
 hashes → leave all outputs external → optionally review only `wiki-safe`
 candidates and promote the smallest useful evidence through normal wiki writes.
 Never clone, install, update, publish, or auto-promote an adapter.
+
+### Private Specialist Skills
+See [references/specialists.md](references/specialists.md).
+Flow: maintain user-owned instruction-only `SKILL.md` methods under
+`HUB/.skills/` → validate structure and safety boundaries → explicitly enable
+stable names per active topic → select zero to three by task features, normally
+one → give selected methods the same bounded evidence packet → verify and
+synthesize by evidence strength → record name, version, and content hash. Use
+`/wiki:specialist suggest` for an index-first candidate scan and
+`/wiki:specialist apply` for a bounded review. Do not treat titles such as CFO,
+doctor, MBA, or PhD as credentials or capability upgrades.
 
 ### Inventory
 See [references/inventory.md](references/inventory.md).
@@ -310,7 +329,7 @@ Automatically run a quick structural check when any of these triggers occur:
 
 ### Quick Structure Check (lightweight, runs inline — not a full lint)
 
-1. **Hub integrity**: The hub (HUB) should ONLY contain `wikis.json`, `_index.md`, `log.md`, `topics/`, and optional `.sessions/`. If `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, or `config.md` exist at the hub level → **warn, do not delete**. These may hold user data from an older wiki layout. Suggest `/wiki:lint --fix`, which will move contents to the appropriate topic wiki, repair archive registry drift, or quarantine to `inbox/.unknown/` per C11/C12/C16/C17/C19 in `references/linting.md`.
+1. **Hub integrity**: The hub (HUB) should ONLY contain `wikis.json`, `_index.md`, `log.md`, `topics/`, and optional `.sessions/` and `.skills/`. Validate `.skills/` against the instruction-only package and active-topic allowlist contract. If `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, or `config.md` exist at the hub level → **warn, do not delete**. These may hold user data from an older wiki layout. Suggest `/wiki:lint --fix`, which will move contents to the appropriate topic wiki, repair archive registry drift, or quarantine to `inbox/.unknown/` per C11/C12/C16/C17/C19 in `references/linting.md`.
 
 2. **Index freshness**: For the active topic wiki, compare actual file counts in `raw/`, `wiki/`, `inventory/`, and `datasets/` subdirectories against the rows in their `_index.md`. Ignore maintenance/report areas such as `.librarian/` and `.audit/`. If mismatched → auto-fix by regenerating the affected directory index from frontmatter and removing dead entries.
 

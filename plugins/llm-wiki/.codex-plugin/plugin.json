@@ -1,7 +1,7 @@
 {
   "name": "wiki",
   "version": "0.22.0",
-  "description": "LLM-compiled knowledge bases for Codex with fuzzy Idea capture, research, shaping, and explicit Project promotion, plus inventory, datasets, source ingestion, compilation, audits, sessions, and artifact generation.",
+  "description": "LLM-compiled knowledge bases for Codex with private specialist skills, fuzzy Idea capture, research, shaping, and explicit Project promotion, plus inventory, datasets, source ingestion, compilation, audits, sessions, and artifact generation.",
   "author": {
     "name": "nvk",
     "url": "https://github.com/nvk"
@@ -31,13 +31,15 @@
     "ideas",
     "projects",
     "adapters",
-    "private-adapters"
+    "private-adapters",
+    "specialists",
+    "private-skills"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "LLM Wiki",
-    "shortDescription": "Capture and shape Ideas, promote Projects, and maintain research wikis",
-    "longDescription": "Bundle the llm-wiki workflow for Codex: capture rough Ideas, research and shape them, explicitly promote approved briefs into Projects, and maintain topic-scoped sources, compiled knowledge, inventory, datasets, sessions, audits, plans, and generated artifacts.",
+    "shortDescription": "Use private specialists, shape Ideas, and maintain research wikis",
+    "longDescription": "Bundle the llm-wiki workflow for Codex: apply private specialist methods, capture rough Ideas, research and shape them, explicitly promote approved briefs into Projects, and maintain topic-scoped sources, compiled knowledge, inventory, datasets, sessions, audits, plans, and generated artifacts.",
     "developerName": "nvk",
     "category": "Productivity",
     "capabilities": [

@@ -77,7 +77,7 @@ name: wiki-manager
 description: >
   Manage LLM-compiled wikis in OpenCode: ingest/import, shape/promote Ideas,
   review portfolios, track inventory/datasets, archive, compile/query/lint/audit,
-  research/plan, manage sessions/private adapters, and generate outputs.
+  research/plan, manage sessions/private adapters/specialists, and generate outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
   find all, idea, turn idea into project, portfolio, business ideas, projects, inventory, source queue,
@@ -85,6 +85,7 @@ description: >
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
   archive wiki, archive topic, restore wiki, private adapter, adapter registry,
+  private specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, lessons learned, implementation plan, or uses
   wiki-related shorthand in a repo with .wiki/, ~/wiki/, or a

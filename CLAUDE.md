@@ -40,6 +40,7 @@ git -C ~/.claude/plugins/marketplaces/llm-wiki remote set-url origin https://git
 ./tests/test-local-cli-lint.sh     # local scripts/llm-wiki lint helper
 ./tests/test-local-cli-retract.sh  # local secret-safe retract + verification helper
 ./tests/test-local-cli-adapters.sh # private-adapter registry + v1 execution boundary
+./tests/test-local-cli-specialists.sh # private specialist library + topic allowlists
 ./tests/test-session-capture.sh    # deterministic session capture helper
 ./tests/test-session-concurrency.sh # concurrent session-state regression
 ./tests/test-codex-sync.sh         # Codex plugin mirror matches Claude source

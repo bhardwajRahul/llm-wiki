@@ -4,13 +4,21 @@
 
 ## Hub (HUB/)
 
-The hub is lightweight — it has NO content directories. It only tracks topic wikis.
+The hub is lightweight — it has NO content directories. It tracks topic wikis
+and may hold user-private operational configuration.
 
 ```
 HUB/                               # resolved from ~/.config/llm-wiki/config.json
 ├── wikis.json                     # Registry of all topic wikis
 ├── _index.md                      # Lists topic wikis with stats
 ├── log.md                         # Global activity log
+├── .sessions/                     # Optional harness-session operational memory
+├── .skills/                       # Optional private specialist method library
+│   ├── _index.md                  # Derived specialist catalog
+│   ├── registry.json              # Per-active-topic specialist allowlists
+│   └── <name>/
+│       ├── SKILL.md               # Agent Skills-compatible review method
+│       └── references/            # Optional Markdown references only
 └── topics/                        # Each topic is a full wiki
     ├── dementia/
     ├── quantum-computing/
@@ -18,6 +26,12 @@ HUB/                               # resolved from ~/.config/llm-wiki/config.jso
     │   └── old-topic/
     └── ...
 ```
+
+The hub still has no `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`,
+`inbox/`, `config.md`, `schema.md`, or `.obsidian/`. `.skills/` contains
+reusable instructions and allowlists, not evidence or topic content. Its
+packages are instruction-only: `SKILL.md` plus optional Markdown under
+`references/`. See [specialists.md](specialists.md).
 
 ## Topic Sub-Wiki (HUB/topics/<name>/)
 

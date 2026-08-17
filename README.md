@@ -400,6 +400,8 @@ Check your installed version:
 /wiki:research "gut-brain axis" --wiki nutrition   # Add more research to existing wiki
 /wiki:research "fasting" --deep --min-time 2h     # 8 agents, keep going for 2 hours
 /wiki:research "keto" --retardmax                 # 10 agents, max speed, ingest everything
+/wiki:specialist suggest --wiki all                # Rank reusable private expert methods from current topic indexes
+/wiki:research "causal evidence" --specialist research-methodologist  # Apply one enabled bounded review method
 /wiki:research "What makes long form articles go viral?" --new-topic  # Question → decompose → playbook
 /wiki:thesis "fiber reduces neuroinflammation via SCFAs"  # Thesis-driven: evidence for + against → verdict
 /wiki:thesis "cold exposure upregulates BDNF" --min-time 1h  # Deep thesis investigation
@@ -457,6 +459,12 @@ checks without an agent:
 ./scripts/llm-wiki adapter run <id> --request /absolute/apply.json \
   --response /private/results/receipt.json \
   --approve-remote-write <plan-sha256> --json
+./scripts/llm-wiki specialist init
+./scripts/llm-wiki specialist create research-methodologist \
+  --description "Reviews study design, causal claims, evidence quality, and reproducibility."
+./scripts/llm-wiki specialist validate
+./scripts/llm-wiki specialist enable research-methodologist --wiki nutrition
+./scripts/llm-wiki specialist list --wiki nutrition --json
 ```
 
 This local helper covers structural checks and safe migrations that do not
@@ -466,6 +474,22 @@ starter advisory topic guide (`schema.md`); run librarian conventions advice
 for established wikis before adopting topic-specific vocabulary. The local archive helper
 performs the deterministic folder move plus `wikis.json`, hub index, and log
 updates.
+
+## Private Specialist Skills
+
+An optional user-owned library under `HUB/.skills/` stores reusable
+Agent Skills-compatible `SKILL.md` methods. Specialists encode bounded evidence
+and review protocols—not simulated CFO, physician, MBA, or PhD credentials.
+They are explicitly enabled per active topic, instruction-only in v1, and
+cannot grant tools, writes, subagents, or professional authority.
+
+Research can select zero to three enabled specialists (normally one), give each
+the same bounded evidence packet, and record its version and content hash in
+provenance. `/wiki:specialist suggest` examines current topic indexes and ranks
+candidate methods without creating them; `/wiki:specialist apply` performs a
+bounded review. See the [specialist reference](claude-plugin/skills/wiki-manager/references/specialists.md)
+for storage, validation, privacy, selection, high-stakes escalation, and eval
+rules.
 
 ## Session Memory
 
@@ -517,6 +541,10 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:adapter list\|show\|doctor` | Inspect registrations and verify manifest/executable handshakes |
 | `/wiki:adapter run <id> --request <json>` | Execute a scoped v1 request and verify artifacts without automatic wiki import; remote writes additionally require an exact approved plan hash and private verified receipt |
 | `/wiki:adapter remove <id> --yes` | Remove only the machine-local registration, not adapter code or data |
+| `/wiki:specialist init\|create\|refresh\|list\|show\|validate` | Manage user-private, instruction-only specialist `SKILL.md` methods under `HUB/.skills/` |
+| `/wiki:specialist enable\|disable <name> --wiki <topic>` | Change the explicit per-active-topic specialist allowlist |
+| `/wiki:specialist suggest [--wiki <topic\|all>]` | Rank bounded specialist methods justified by current wiki indexes without creating them |
+| `/wiki:specialist apply <name> <question> --wiki <topic>` | Apply one enabled, validated specialist and report its version/hash |
 | `/wiki:collect "<things>"` | Find, dedupe, and catalog artifacts, examples, resources, media, memes, tools, entities, or source candidates |
 | `/wiki:collect "<things>" --scale tiny\|small\|medium\|large\|huge` | Control write behavior by operational scale, not just row count |
 | `/wiki:collect "<things>" --media archive\|thumbnail\|reference` | Download/cache bounded originals by default; use thumbnail for previews or reference to opt out |
@@ -567,6 +595,8 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:research <topic> --new-topic` | Create a topic wiki and start researching — works from any directory |
 | `/wiki:research <topic> --min-time 1h` | Keep researching in rounds until time budget is spent |
 | `/wiki:research <topic> --plan` | Decompose into 3-5 parallel paths, confirm, then dispatch all at once |
+| `/wiki:research <topic> --specialist <name>` | Apply an enabled private specialist method; repeat at most three times |
+| `/wiki:research <topic> --no-specialists` | Run the baseline workflow without loading specialist bodies |
 | `/wiki:research <topic> --deep` | 8 agents: adds historical, adjacent, data/stats |
 | `/wiki:research <topic> --retardmax` | 10 agents: skip planning, max speed, ingest aggressively |
 | `/wiki:thesis <claim>` | Thesis-driven research: evidence for + against → verdict |
@@ -609,6 +639,7 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
 ├── _index.md                           # Lists topic wikis with stats
 ├── log.md                              # Global activity log
 ├── .sessions/                          # Optional session capture + feedback candidates
+├── .skills/                            # Optional private specialist methods + topic allowlists
 └── topics/                             # Each topic is an isolated wiki
     ├── nutrition/                      # Example topic wiki
     │   ├── .obsidian/                  # Optional Obsidian vault config
@@ -630,25 +661,31 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
     └── ...
 ```
 
-The hub is just a registry — no content directories, no `.obsidian/`. All content lives in topic sub-wikis with isolated indexes, articles, and a human-owned advisory topic guide (`schema.md`). Init creates the core wiki skeleton first; optional inventory and dataset layers are created when you use them. Queries stay focused. The multi-wiki peek finds overlap across topics when relevant.
+The hub has no content directories or `.obsidian/`; optional `.sessions/` and
+`.skills/` are operational configuration/memory layers. All content lives in
+topic sub-wikis with isolated indexes, articles, and a human-owned advisory
+topic guide (`schema.md`). Init creates the core wiki skeleton first; optional
+inventory and dataset layers are created when you use them. Queries stay
+focused. The multi-wiki peek finds overlap across topics when relevant.
 
 ### The Flow
 
 1. **Research** a topic — parallel agents search the web, ingest sources, and compile articles in one command
-2. **Ingest** additional sources — URLs, files, text, tweets (via Grok MCP), or bulk via inbox
-3. **Collect** catalogs of discoverable things — examples, media, memes, tools, projects, entities, or source candidates — then optionally inventory them
-4. **Inventory** items, candidates, entities, corpora, watch lists, and next actions that should persist; the agent tells you when inventory is the wrong layer
-5. **Develop Ideas** from rough seed to researched, challenged, approved shape, then explicitly promote them into delivery Projects
-6. **Index datasets** that are too large for markdown — manifests, profiles, samples, and query recipes
-7. **Archive** whole topic wikis that should stay preserved but quiet
-8. **Compile** raw sources into synthesized wiki articles with cross-references and confidence scores
-9. **Query** the wiki — quick (indexes), standard (articles), or deep (everything active, archived indexes separated)
-10. **Session capture** — automatically preserve redacted Codex/Claude/OpenCode/Gemini checkpoints under `.sessions/` and rehydrate future turns
-11. **Feedback curator** — capture reviewable correction/preference/approval candidates under `.sessions/feedback/` and promote only what matters
-12. **Lessons learned** — extract knowledge from the current session (errors, fixes, gotchas) into the wiki
-13. **Assess** a repo against the wiki — gap analysis: what aligns, what's missing, what the market offers
-14. **Lint** for consistency — broken links, missing indexes, orphan articles, archive registry drift
-15. **Output** artifacts — summaries, reports, slides — filed back into the wiki
+2. **Apply specialist methods** — select a topic-allowlisted evidence/review protocol without pretending the model holds a credential
+3. **Ingest** additional sources — URLs, files, text, tweets (via Grok MCP), or bulk via inbox
+4. **Collect** catalogs of discoverable things — examples, media, memes, tools, projects, entities, or source candidates — then optionally inventory them
+5. **Inventory** items, candidates, entities, corpora, watch lists, and next actions that should persist; the agent tells you when inventory is the wrong layer
+6. **Develop Ideas** from rough seed to researched, challenged, approved shape, then explicitly promote them into delivery Projects
+7. **Index datasets** that are too large for markdown — manifests, profiles, samples, and query recipes
+8. **Archive** whole topic wikis that should stay preserved but quiet
+9. **Compile** raw sources into synthesized wiki articles with cross-references and confidence scores
+10. **Query** the wiki — quick (indexes), standard (articles), or deep (everything active, archived indexes separated)
+11. **Session capture** — automatically preserve redacted Codex/Claude/OpenCode/Gemini checkpoints under `.sessions/` and rehydrate future turns
+12. **Feedback curator** — capture reviewable correction/preference/approval candidates under `.sessions/feedback/` and promote only what matters
+13. **Lessons learned** — extract knowledge from the current session (errors, fixes, gotchas) into the wiki
+14. **Assess** a repo against the wiki — gap analysis: what aligns, what's missing, what the market offers
+15. **Lint** for consistency — broken links, missing indexes, orphan articles, archive registry drift
+16. **Output** artifacts — summaries, reports, slides — filed back into the wiki
 
 ### Key Design
 
@@ -657,6 +694,9 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
   names such as `memes-bitcoin`, `memes-ethereum`, or `tools-bitcoin` so
   related catalogs group naturally as the hub grows.
 - **Parallel research agents** — 5 standard, 8 deep, 10 retardmax. Each agent searches from a different angle.
+- **Private specialist methods** — user-owned, instruction-only `SKILL.md`
+  protocols selected by task features and enabled per topic; methods, not
+  credential costumes.
 - **Collector workflow** — search-driven catalogs for objects, media, and
   examples; saves a provenance map first, then inventories only the durable
   subset.

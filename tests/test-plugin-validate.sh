@@ -9,7 +9,7 @@ PLUGIN_JSON="$PLUGIN_DIR/.claude-plugin/plugin.json"
 PASS=0
 FAIL=0
 TOTAL=0
-REFERENCE_NAMES="adapters archive audit command-prelude compilation datasets feedback hub-resolution ideas indexing ingestion inventory librarian linting portfolio projects query-lite research-infrastructure sessions wiki-structure"
+REFERENCE_NAMES="adapters archive audit command-prelude compilation datasets feedback hub-resolution ideas indexing ingestion inventory librarian linting portfolio projects query-lite research-infrastructure sessions specialists wiki-structure"
 
 log_pass() { PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[32mPASS\033[0m: %s\n" "$1"; }
 log_fail() { FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[31mFAIL\033[0m: %s — %s\n" "$1" "$2"; }
@@ -99,6 +99,24 @@ if grep -q '## Adapter Routing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
   log_pass "external action intent routes through provider-neutral adapter metadata"
 else
   log_fail "private adapter routing drift" "expected manifest route discovery and no provider-specific workflow in public instruction surfaces"
+fi
+
+# Private specialists are bounded instruction packages, not simulated
+# credentials or a tool-authority mechanism.
+SPECIALIST_COMMAND="$PLUGIN_DIR/commands/specialist.md"
+SPECIALIST_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/specialists.md"
+if grep -q '## Storage and privacy boundary' "$SPECIALIST_REFERENCE" \
+  && grep -q 'Instruction-only package contract' "$SPECIALIST_REFERENCE" \
+  && grep -q 'There is no global default' "$SPECIALIST_REFERENCE" \
+  && grep -q 'never grants tools' "$SPECIALIST_REFERENCE" \
+  && grep -q '## `suggest`' "$SPECIALIST_COMMAND" \
+  && grep -q '## `apply`' "$SPECIALIST_COMMAND" \
+  && grep -q 'Specialists are bounded methods, not credentials' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'Private Specialist' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q 'optional `.sessions/` and `.skills/`' "$PROJECT_ROOT/AGENTS.md"; then
+  log_pass "private specialists preserve allowlists, instruction-only safety, and non-credential boundaries"
+else
+  log_fail "private specialist invariant drift" "expected hub library, topic allowlists, bounded methods, and no tool grants"
 fi
 
 # Reference files exist
