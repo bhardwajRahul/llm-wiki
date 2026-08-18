@@ -30,6 +30,11 @@ if [ ! -f "$LOCAL_HELPER" ]; then
   exit 1
 fi
 
+if ! command -v rsync >/dev/null 2>&1; then
+  echo "Missing required tool: rsync" >&2
+  exit 1
+fi
+
 mkdir -p "$ROOT/claude-plugin/bin" "$TARGET_PLUGIN/bin"
 cp "$LOCAL_HELPER" "$ROOT/claude-plugin/bin/llm-wiki"
 cp "$LOCAL_HELPER" "$TARGET_PLUGIN/bin/llm-wiki"
