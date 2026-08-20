@@ -236,7 +236,7 @@ description: >
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
-  archive wiki, archive topic, restore wiki, private adapter, adapter registry,
+  archive wiki, archive topic, restore wiki, private adapter, adapter registry, skill-factory,
   personal specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, implementation plan, or uses
@@ -420,7 +420,7 @@ keywords = [
     for keyword in codex.get("keywords", [])
     if not (keyword.startswith("private") and keyword.endswith("-skills"))
 ]
-for keyword in ["ideas", "projects", "specialists", "personal-skills"]:
+for keyword in ["ideas", "projects", "specialists", "personal-skills", "skill-factory"]:
     if keyword not in keywords:
         keywords.append(keyword)
 codex["keywords"] = keywords

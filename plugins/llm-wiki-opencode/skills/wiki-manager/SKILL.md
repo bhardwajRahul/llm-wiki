@@ -10,7 +10,7 @@ description: >
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
-  archive wiki, archive topic, restore wiki, private adapter, adapter registry,
+  archive wiki, archive topic, restore wiki, private adapter, adapter registry, skill-factory,
   personal specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, lessons learned, implementation plan, or uses
@@ -121,6 +121,11 @@ For an action plus URL, run `adapter route --intent <effect> --resource <url>
 --json` before ingestion. On a match, read its adapter-owned guide; provider
 steps live there. A URL alone is not write authorization. See
 [references/adapters.md](references/adapters.md).
+
+Explicit `wiki skill-factory <request>` selects the registered named adapter;
+do not invent a URL route. Run show/doctor and read its guide. It never
+activates ambiently, and its external candidates remain disabled; installation,
+topic enablement, commit, and publication are separate actions.
 
 ## Ambient Behavior
 
