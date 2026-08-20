@@ -11,6 +11,7 @@ description: >
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
   archive wiki, archive topic, restore wiki, private adapter, adapter registry, skill-factory,
+  checkpoints,
   personal specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, implementation plan, or uses
@@ -110,6 +111,10 @@ authority, or permission to spawn agents. Select the minimum useful method,
 preserve disagreement, and record its version/hash. See
 [references/specialists.md](references/specialists.md).
 
+15. **Project checkpoints are privacy-sealed.** Never dump raw/sessions; seal
+and exact overrides are required. See
+[references/checkpoints.md](references/checkpoints.md).
+
 ## Adapter Routing
 
 For an action plus URL, run `adapter route --intent <effect> --resource <url>
@@ -161,6 +166,7 @@ reference material you need for that workflow:
 - `audit` → `references/audit.md`
 - `research`, `plan`, `output`, `assess` → `references/research-infrastructure.md`
 - `project` → `references/projects.md`
+- `checkpoint` → `references/checkpoints.md`
 - `librarian` → `references/librarian.md`
 - wiki structure, indexes, log format, file placement, init → `references/wiki-structure.md`
 - hub lookup and path handling → `references/hub-resolution.md`

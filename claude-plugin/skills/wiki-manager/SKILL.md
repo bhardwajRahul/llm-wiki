@@ -7,6 +7,7 @@ description: >
   outputs. Activates for /wiki commands; wiki or knowledge-base work; ingest,
   collect, catalog, compile, query, audit, librarian, inventory, idea,
   portfolio, business ideas, projects, datasets, archives, sessions, feedback,
+  checkpoints,
   private adapters, adapter routing, explicit wiki skill-factory requests,
   personal specialist skills, expert review,
   specialist selection, provenance, external resource actions, or questions in a directory
@@ -110,6 +111,10 @@ enabled per active topic. Loading one never grants tools, write access, professi
 authority, or permission to spawn agents. Select the minimum useful method,
 preserve disagreement, and record its version/hash. See
 [references/specialists.md](references/specialists.md).
+
+15. **Project checkpoints are privacy-sealed.** Never dump raw/sessions; seal
+and exact overrides are required. See
+[references/checkpoints.md](references/checkpoints.md).
 
 ## Adapter Routing
 

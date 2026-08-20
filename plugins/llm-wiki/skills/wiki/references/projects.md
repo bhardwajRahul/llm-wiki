@@ -7,6 +7,12 @@ shaped Idea in `inventory/ideas/`. See [ideas.md](ideas.md). Direct Projects
 remain appropriate for maintenance, migrations, incident response, and other
 work that does not benefit from an incubation step.
 
+A Project folder is not a portable knowledge export. When teammates need the
+relevant knowledge from multiple topic wikis inside a working repository, use
+the privacy-sealed [Project Knowledge Checkpoint](checkpoints.md) workflow. The
+Project keeps delivery truth; the checkpoint is a reviewable snapshot for
+handoff/import and never becomes a second live Project state store.
+
 The read-only [Portfolio workflow](portfolio.md) lists Projects across active
 topic wikis and distinguishes explicitly promoted Projects from direct ones.
 

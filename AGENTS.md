@@ -146,6 +146,9 @@ spawn agents. Select the minimum useful method and record its version/hash.
 selects the registered `skill-factory` adapter by name, runs doctor, and follows
 its adapter-owned guide. It has no ambient route; every generated candidate is
 disabled, and install/enable/commit/publication remain separate actions.
+18. **Project checkpoints are privacy-sealed handoffs.** Curate across topics,
+never dump raw/sessions. Create/refresh are dry-run first; minimization,
+seal/verify, and exact override attestation are mandatory.
 
 ## File Formats
 
@@ -960,6 +963,18 @@ lineage while the Project owns delivery truth.
 Projects are a lightweight overlay — they don't move or copy wiki content.
 Project archive is separate from topic archive: it moves one folder under
 `output/projects/.archive/` inside the selected topic wiki.
+
+### Project Knowledge Checkpoint
+
+Bundle `index.md`, `project-knowledge.md`, `sources.md`, `checkpoint.json`, and
+generated `privacy-report.json` under `docs/knowledge/<slug>/`. Preview
+scope/privacy/diffs before `--apply`; verify hashes/attestation; import only
+pinned evidence.
+
+Audience is `private|team|public`; unknown access fails. Exclude raw/session/
+prompt data, secrets, identities, and private/personal/confidential records.
+Stage, seal, copy only passed/overridden output, then reverify. Scans cannot be
+disabled; exact overrides stay attested and permissions remain separate.
 
 ### Feedback
 
