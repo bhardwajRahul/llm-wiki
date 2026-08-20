@@ -126,6 +126,7 @@ The user typed something that isn't a known keyword. Detect their intent and rou
 |----------|--------|----------------|----------|
 | 0 | **Retract** | "retract", "remove source", "remove this everywhere", "forget this data", "wipe references", "delete this from the wiki" | `Skill: wiki:retract` before loading semantic wiki context |
 | 0a | **External Adapter Route** | An action verb plus an external URL, especially edit, revise, update, proofread, replace, suggest, sync, publish, validate, transcribe, or analyze | `Skill: wiki:adapter`; normalize the effect, run `adapter route`, and on a match read the returned adapter-owned guide before acting; a no-match returns to normal routing |
+| 0a.0b | **Skill Factory Adapter** | Starts with `wiki skill-factory`, `skill-factory`, or explicitly says "use the skill-factory adapter" | `Skill: wiki:adapter` with explicit named adapter `skill-factory`; run show/doctor, read its guide, and keep every generated candidate disabled |
 | 0a.1 | **Private Adapter** | "private adapter", "registered adapter", "adapter add", "adapter list", "adapter doctor", "adapter run", "use the <name> adapter", or an explicit request to register/invoke an external local llm-wiki adapter; do not match `ingest-collection --adapter` | `Skill: wiki:adapter` with the management/run arguments |
 | 0a.1b | **Personal Specialist** | "specialist skill", "specialist agent", "expert reviewer", "expert lens", "personal skill", "local skill", "specialist create/list/show/validate/enable/disable/suggest/apply", or a request to use a named specialist method | `Skill: wiki:specialist` with the management, suggestion, or apply arguments |
 | 0a.2 | **Collection Ingest** | Words: "import wiki", "mirror wiki", "bulk ingest", "ingest collection", "import collection", "ingest repo", "import repo"; or a URL/path plus collection signals: `dump.xml`, `.xml.bz2`, `.xml.gz`, `api.php`, `MediaWiki`, `github.com/*/*` with "all", "repo", "docs", "BIPs", or "collection" | `Skill: wiki:ingest-collection` with the source and filters |
@@ -191,6 +192,11 @@ The user typed something that isn't a known keyword. Detect their intent and rou
   closed. A URL without a concrete action is not authorization to invent a
   write, and every remote write still uses the generic approved-plan,
   revision-lock, idempotency, private-receipt, and read-back controls.
+- `wiki skill-factory` is an explicit named-adapter call, not a reason to make
+  skill generation ambient. Resolve the registered `skill-factory` adapter,
+  run doctor, and follow its own guide without inventing a URL route. Its output
+  is a disabled external candidate. Never install, enable, commit, or publish a
+  generated package as part of the factory run.
 - Collect signals outrank plain inventory and research when the user asks to
   discover many objects before tracking them. For example, "collect and
   inventory all bitcoin memes" routes to collect, which writes a bounded

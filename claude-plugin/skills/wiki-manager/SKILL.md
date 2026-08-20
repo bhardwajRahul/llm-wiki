@@ -7,7 +7,8 @@ description: >
   outputs. Activates for /wiki commands; wiki or knowledge-base work; ingest,
   collect, catalog, compile, query, audit, librarian, inventory, idea,
   portfolio, business ideas, projects, datasets, archives, sessions, feedback,
-  private adapters, adapter routing, personal specialist skills, expert review,
+  private adapters, adapter routing, explicit wiki skill-factory requests,
+  personal specialist skills, expert review,
   specialist selection, provenance, external resource actions, or questions in a directory
   with .wiki/ or a configured hub.
 tools:
@@ -116,6 +117,11 @@ For an action plus URL, run `adapter route --intent <effect> --resource <url>
 --json` before ingestion. On a match, read its adapter-owned guide; provider
 steps live there. A URL alone is not write authorization. See
 [references/adapters.md](references/adapters.md).
+
+Explicit `wiki skill-factory <request>` selects the registered named adapter;
+do not invent a URL route. Run show/doctor and read its guide. It never
+activates ambiently, and its external candidates remain disabled; installation,
+topic enablement, commit, and publication are separate actions.
 
 ## Ambient Behavior
 

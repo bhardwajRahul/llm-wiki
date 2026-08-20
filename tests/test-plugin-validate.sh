@@ -90,6 +90,10 @@ if grep -q '## Adapter Routing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
   && grep -q '## Intent routing' "$ADAPTER_REFERENCE" \
   && grep -q 'adapter-owned workflow' "$ADAPTER_REFERENCE" \
   && grep -q '"routes"' "$ADAPTER_REFERENCE" \
+  && grep -q '## Explicit named adapter invocation' "$ADAPTER_REFERENCE" \
+  && grep -q 'wiki skill-factory' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'Skill Factory Adapter' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q 'wiki skill-factory' "$PROJECT_ROOT/AGENTS.md" \
   && grep -q 'External Adapter Route' "$PLUGIN_DIR/commands/wiki.md" \
   && grep -q '## Declarative intent routing' "$PLUGIN_DIR/commands/adapter.md" \
   && grep -q 'Route external actions before ingestion' "$PROJECT_ROOT/AGENTS.md" \
@@ -244,6 +248,11 @@ if [ -f "$CODEX_SKILL/SKILL.md" ]; then
     log_pass "Codex implicit skill metadata advertises external adapter routing"
   else
     log_fail "Codex adapter invocation metadata missing" "expected external resource in frontmatter"
+  fi
+  if sed -n '2,/^---$/p' "$CODEX_SKILL/SKILL.md" | grep -q 'skill-factory'; then
+    log_pass "Codex implicit skill metadata advertises declarative skill factory"
+  else
+    log_fail "Codex skill factory metadata missing" "expected skill factory in frontmatter"
   fi
 else
   log_fail "Codex SKILL.md not found" "missing file"

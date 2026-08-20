@@ -33,7 +33,8 @@
     "adapters",
     "private-adapters",
     "specialists",
-    "personal-skills"
+    "personal-skills",
+    "skill-factory"
   ],
   "skills": "./skills/",
   "interface": {

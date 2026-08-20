@@ -131,6 +131,30 @@ tests:
       - type: cost
         threshold: 0.50
 
+  - description: "Router: declarative skill-factory call is explicit-only and disabled-by-default"
+    vars:
+      prompt: "wiki skill-factory create a UniFi network operations reviewer"
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent treats this as an explicit named skill-factory adapter invocation, resolves the machine-local registration without fabricating a URL route, runs adapter doctor, reads the adapter-owned guide, uses wiki research to prepare the external factory input, and keeps the generated candidate disabled. It does not install, enable, commit, publish, or make live UniFi changes."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  - description: "Router: ordinary skill discussion does not ambiently invoke skill-factory"
+    vars:
+      prompt: "What makes a good SKILL.md description?"
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent answers from relevant wiki knowledge or normal skill guidance and does not invoke the skill-factory adapter because the user did not use the declarative name or explicitly ask to use that adapter."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
   - description: "Router: collect intent routes to collect before inventory or research"
     vars:
       prompt: "Find, collect, and inventory all the memes you can find for bitcoin"
