@@ -161,8 +161,8 @@ categories, inventory kinds, or required frontmatter.
 |-------|---------|----------|
 | `missing` | Older wiki has no `schema.md` | Valid; report a non-blocking adoption action |
 | `proposed` | Librarian wrote a proposal output | Human reviews before adoption |
-| `advisory` | `schema.md` exists | Report mismatches as suggestions |
-| `strict` | Explicit opt-in in `schema.md` | Warn on violations; never auto-rewrite content |
+| `advisory` | `schema.md` exists | Report mismatches as suggestions; explain deliberate compile deviations |
+| `strict` | Explicit opt-in in `schema.md` | Confirm planned compile deviations before writing; never auto-rewrite content |
 
 ### Proposal Trigger
 

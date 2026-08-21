@@ -53,6 +53,23 @@ else
   log_fail "commands/ll.md raw-note template schema drift" "expected type: notes, ingested, and lesson_kind"
 fi
 
+# Topic guides must influence every runtime through the shared compilation
+# protocol without becoming a second schema or hiding raw-source coverage.
+COMPILE_COMMAND="$PLUGIN_DIR/commands/compile.md"
+COMPILATION_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/compilation.md"
+WIKI_STRUCTURE_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/wiki-structure.md"
+if grep -q 'references/compilation.md.*Topic-guide preflight' "$COMPILE_COMMAND" \
+  && grep -q '^### Step 0: Topic-guide preflight$' "$COMPILATION_REFERENCE" \
+  && grep -q 'cannot mark' "$COMPILATION_REFERENCE" \
+  && grep -q 'For `schema_state: strict`, stop' "$COMPILATION_REFERENCE" \
+  && grep -q 'Every runtime.*compilation workflow reads' "$WIKI_STRUCTURE_REFERENCE" \
+  && grep -q 'does not satisfy C6' "$WIKI_STRUCTURE_REFERENCE" \
+  && grep -q 'Topic-guide preflight' "$PROJECT_ROOT/AGENTS.md"; then
+  log_pass "topic-guide compilation is runtime-neutral and preserves coverage"
+else
+  log_fail "topic-guide compilation contract drift" "expected shared planning guidance, strict confirmation, and C6 coverage"
+fi
+
 # Portfolio must remain a derived, read-only cross-topic view rather than a new
 # hub content layer or an inferred Idea/Project relationship store.
 PORTFOLIO_COMMAND="$PLUGIN_DIR/commands/portfolio.md"

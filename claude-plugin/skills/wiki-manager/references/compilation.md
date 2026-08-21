@@ -21,6 +21,36 @@ must not use archived sources to update active articles.
 
 ## The Compilation Loop
 
+### Step 0: Topic-guide preflight
+
+If `<wiki-root>/schema.md` exists, read it in full before surveying or planning.
+Treat its `## Compile Guidance` section, and any equally explicit rules
+elsewhere in the guide, as topic-local planning input for:
+
+- **cardinality** — whether several sources about the same bounded mechanism
+  should consolidate into one article instead of producing one article per
+  source;
+- **article boundaries** — concepts that should remain separate rather than be
+  folded together, or minor concepts that should remain mentions;
+- **scope** — which claims belong in this topic's articles and which should be
+  referred to a more appropriate topic wiki.
+
+This guidance cannot redefine the global `concept`/`topic`/`reference`
+categories, physical directories, or required frontmatter. It also cannot mark
+a raw source as compiled merely by saying to exclude or ignore it. Every raw
+source must remain traceable from a compiled article or the C6 uncompiled-source
+coverage backlog. If the source belongs elsewhere, keep it visible in that
+backlog and recommend an explicit re-ingest into the correct topic; do not hide
+it from coverage or mutate the raw file.
+
+For `schema_state: advisory`, follow the guide by default but use evidence and
+the user's requested output over a low-quality or obsolete rule. Record any
+deliberate deviation in the compile report. For `schema_state: strict`, stop
+before writing a planned deviation, show the rule and affected article(s), and
+request explicit confirmation. Strict mode still never permits automatic
+rewrites of untouched articles. If no `schema.md` exists, continue with the
+global compilation rules.
+
 ### Step 1: Survey
 
 1. Read `raw/_index.md` to see all sources
@@ -42,6 +72,7 @@ Read `wiki/_index.md` and category indexes. For each key concept:
 - Already has an article? → plan to UPDATE it with new information
 - Major concept worthy of its own article? → plan to CREATE one
 - Minor mention? → will be referenced within another article
+- Apply the topic guide's cardinality and keep-separate rules when present
 
 ### Step 4: Classify New Articles
 
@@ -106,3 +137,6 @@ After all articles are written/updated:
 - **Clear**: Direct language. Knowledge base, not blog post.
 - **Honest disagreement**: When sources disagree, note the disagreement rather than picking a side
 - **Connected**: Every article should link to at least one other article via "See Also"
+- **Topic-shaped**: Article boundaries follow the human-owned topic guide when
+  present; deviations are reported, and strict-mode deviations are confirmed
+  before writing

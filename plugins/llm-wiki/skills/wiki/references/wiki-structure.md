@@ -293,22 +293,19 @@ guide, not a database schema: it captures the local vocabulary that helps
 agents avoid taxonomy drift, including entity types, relationship verbs, article
 subtypes, source conventions, inventory/dataset boundaries, and adoption notes.
 
-`/wiki:compile` reads a topic's `schema.md` in full before planning new
-articles (`commands/compile.md` step 0.5) and applies any structural guidance
-it declares — cardinality rules (when several raw sources describing the same
-mechanism should consolidate into one article instead of one-per-file),
-include/exclude scoping, and specific concept pairs the topic guide says to
-keep as separate articles rather than folding one into the other. This is the
-one place a topic guide has real, mechanical effect rather than being purely
-advisory prose. It still must not redefine deeper global primitives: the `category`
-vocabulary stays `concept`/`topic`/`reference`, the physical directory layout
-stays `raw/` → `wiki/concepts|topics|references/`, and the required-frontmatter
-*set* (title/category/created/updated/tags/summary/sources-or-compiled-from)
-stays fixed — a topic guide can document additional optional fields a topic
-wants its articles to carry (e.g. a `parent` topic slug, or a reader-`audience`
-tag), but can't remove a globally-required field or introduce a new category
-value, and those additional fields stay optional/advisory unless the topic
-guide's own text makes them load-bearing for that topic.
+Every runtime's compilation workflow reads a topic's `schema.md` in full before
+planning new or updated articles. Its structural guidance can shape cardinality
+(for example, consolidate several sources about one mechanism), article
+boundaries, topic scope, and named concepts that should remain separate. This
+is an operational planning input, not a second lint schema.
+
+The guide cannot redefine deeper global primitives: the `category` vocabulary
+stays `concept`/`topic`/`reference`, the physical layout stays `raw/` →
+`wiki/concepts|topics|references/`, and the required-frontmatter set stays
+fixed. Additional topic fields remain optional to deterministic tooling.
+Likewise, prose telling compilation to exclude a raw source does not satisfy C6
+coverage: the source remains visible in the uncompiled-source backlog until an
+article cites it or the user explicitly re-ingests it into the correct topic.
 
 ```markdown
 ---
@@ -348,10 +345,9 @@ summary: "Human-owned topic guide for local vocabulary and conventions."
 
 ## Compile Guidance (optional)
 
-[Cardinality rules — e.g. "one article per mechanism, not per raw file";
-include/exclude scoping — e.g. sources to skip entirely; specific concept
-pairs to keep as separate articles rather than folding one into the other.
-`/wiki:compile` step 0.5 reads this section when present.]
+[Topic-specific cardinality, article-boundary, scope, and keep-separate rules.
+These rules shape compilation planning but do not redefine global categories,
+frontmatter, or raw-source coverage.]
 ```
 
 Adoption states:
@@ -360,8 +356,8 @@ Adoption states:
 |-------|---------|----------|
 | `missing` | Older wiki without `schema.md` | Valid; show non-blocking adoption nudge |
 | `proposed` | Librarian wrote `output/schema-proposal-*.md` | Human reviews and edits before adoption |
-| `advisory` | `schema.md` exists | Report mismatches as suggestions |
-| `strict` | Explicit opt-in in `schema.md` | Warn on violations; never auto-rewrite content |
+| `advisory` | `schema.md` exists | Follow by default; explain deliberate compile deviations |
+| `strict` | Explicit opt-in in `schema.md` | Confirm planned deviations before writing; never auto-rewrite content |
 
 Topic-guide helpers:
 
