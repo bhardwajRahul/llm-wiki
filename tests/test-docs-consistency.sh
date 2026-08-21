@@ -24,14 +24,13 @@ def fail(message: str) -> None:
 
 
 def tracked_files(pattern: str) -> list[Path]:
+    discovered = set(root.glob(pattern))
     try:
         output = subprocess.check_output(["git", "ls-files", pattern], text=True)
-        files = [root / line for line in output.splitlines() if line.strip()]
-        if files:
-            return files
+        discovered.update(root / line for line in output.splitlines() if line.strip())
     except Exception:
         pass
-    return sorted(root.glob(pattern))
+    return sorted(discovered)
 
 
 # README active command table should mention every command file. Parse only the

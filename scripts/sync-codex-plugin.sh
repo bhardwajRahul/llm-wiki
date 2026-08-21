@@ -236,7 +236,8 @@ description: >
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
-  archive wiki, archive topic, restore wiki, private adapter, adapter registry,
+  archive wiki, archive topic, restore wiki, private adapter, adapter registry, skill-factory,
+  checkpoints,
   personal specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, implementation plan, or uses
@@ -327,6 +328,7 @@ reference material you need for that workflow:
 - `audit` → `references/audit.md`
 - `research`, `plan`, `output`, `assess` → `references/research-infrastructure.md`
 - `project` → `references/projects.md`
+- `checkpoint` → `references/checkpoints.md`
 - `librarian` → `references/librarian.md`
 - wiki structure, indexes, log format, file placement, init → `references/wiki-structure.md`
 - hub lookup and path handling → `references/hub-resolution.md`
@@ -413,28 +415,33 @@ codex["author"] = {
 codex["description"] = (
     "LLM-compiled knowledge bases for Codex with personal specialist skills, fuzzy Idea capture, research, "
     "shaping, and explicit Project promotion, plus inventory, datasets, source "
-    "ingestion, compilation, audits, sessions, and artifact generation."
+    "ingestion, compilation, audits, sessions, Project Knowledge Checkpoints Export, and artifact generation."
 )
 keywords = [
     keyword
     for keyword in codex.get("keywords", [])
     if not (keyword.startswith("private") and keyword.endswith("-skills"))
 ]
-for keyword in ["ideas", "projects", "specialists", "personal-skills"]:
+for keyword in ["ideas", "projects", "specialists", "personal-skills", "skill-factory", "checkpoints", "knowledge-handoff"]:
     if keyword not in keywords:
         keywords.append(keyword)
 codex["keywords"] = keywords
 interface = codex.setdefault("interface", {})
 interface["shortDescription"] = (
-    "Use personal specialists, shape Ideas, and maintain research wikis"
+    "Research, shape Ideas, and export project knowledge checkpoints"
 )
 interface["longDescription"] = (
     "Bundle the llm-wiki workflow for Codex: apply personal specialist methods, capture rough Ideas, research and "
     "shape them, explicitly promote approved briefs into Projects, and maintain "
     "topic-scoped sources, compiled knowledge, inventory, datasets, sessions, "
-    "audits, plans, and generated artifacts."
+    "audits, plans, Project Knowledge Checkpoints Export, and generated artifacts."
 )
 prompts = list(interface.get("defaultPrompt", []))
+old_checkpoint_prompt = "Create a privacy-sealed Project Knowledge Checkpoint from relevant research across my topic wikis."
+prompts = [prompt for prompt in prompts if prompt != old_checkpoint_prompt]
+checkpoint_prompt = "Export a Project Knowledge Checkpoint from relevant research across my topic wikis, with privacy checks."
+if checkpoint_prompt not in prompts:
+    prompts.insert(0, checkpoint_prompt)
 idea_prompt = "Capture this rough Idea, research it, shape alternatives, and wait for approval before creating a Project."
 if idea_prompt not in prompts:
     prompts.insert(0, idea_prompt)
