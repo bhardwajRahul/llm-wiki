@@ -97,6 +97,7 @@ CHECKPOINT_MIN_KNOWLEDGE_RETENTION_RATIO = 0.20
 
 ROOT_ALLOWED = {
     "_index.md",
+    "README.md",
     "config.md",
     "schema.md",
     "log.md",
@@ -115,7 +116,33 @@ ROOT_ALLOWED = {
     ".session-checkpoint.json",
     ".sessions",
 }
-HUB_ALLOWED = {"wikis.json", "_index.md", "log.md", "topics", ".sessions", ".skills"}
+HUB_ALLOWED = {
+    "wikis.json",
+    "_index.md",
+    "README.md",
+    "log.md",
+    "topics",
+    ".sessions",
+    ".skills",
+}
+# When a wiki or hub root is itself a git repository root, these conventional
+# VCS/project files legitimately coexist with the wiki schema and must never
+# be treated as unexpected content to quarantine into inbox/.unknown.
+GIT_ROOT_META_ALLOWED = {
+    ".git",
+    ".github",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "LICENSE.md",
+    "SECURITY.md",
+    ".gitignore",
+    ".gitattributes",
+    ".gitmodules",
+}
 RAW_ALLOWED = {"_index.md", "articles", "papers", "repos", "notes", "data"}
 WIKI_ALLOWED = {"_index.md", "concepts", "topics", "references", "theses"}
 INVENTORY_ALLOWED = {
@@ -924,6 +951,8 @@ def check_unknown_files(ctx: LintContext) -> None:
     if not ctx.root.exists():
         return
     root_allowed = HUB_ALLOWED if is_hub(ctx.root) else ROOT_ALLOWED
+    if (ctx.root / ".git").exists():
+        root_allowed = root_allowed | GIT_ROOT_META_ALLOWED
     for child in sorted(ctx.root.iterdir()):
         if child.name not in root_allowed:
             handle_unknown(ctx, child, "Unexpected file or directory at wiki root.")
