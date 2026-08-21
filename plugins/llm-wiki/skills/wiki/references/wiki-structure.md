@@ -292,8 +292,20 @@ freshness_threshold: 70
 guide, not a database schema: it captures the local vocabulary that helps
 agents avoid taxonomy drift, including entity types, relationship verbs, article
 subtypes, source conventions, inventory/dataset boundaries, and adoption notes.
-It must not redefine global llm-wiki primitives such as raw source folders,
-article categories, inventory kinds, or required frontmatter.
+
+Every runtime's compilation workflow reads a topic's `schema.md` in full before
+planning new or updated articles. Its structural guidance can shape cardinality
+(for example, consolidate several sources about one mechanism), article
+boundaries, topic scope, and named concepts that should remain separate. This
+is an operational planning input, not a second lint schema.
+
+The guide cannot redefine deeper global primitives: the `category` vocabulary
+stays `concept`/`topic`/`reference`, the physical layout stays `raw/` →
+`wiki/concepts|topics|references/`, and the required-frontmatter set stays
+fixed. Additional topic fields remain optional to deterministic tooling.
+Likewise, prose telling compilation to exclude a raw source does not satisfy C6
+coverage: the source remains visible in the uncompiled-source backlog until an
+article cites it or the user explicitly re-ingests it into the correct topic.
 
 ```markdown
 ---
@@ -330,6 +342,12 @@ summary: "Human-owned topic guide for local vocabulary and conventions."
 ## Source Conventions
 
 [Topic-specific evidence and boundary rules]
+
+## Compile Guidance (optional)
+
+[Topic-specific cardinality, article-boundary, scope, and keep-separate rules.
+These rules shape compilation planning but do not redefine global categories,
+frontmatter, or raw-source coverage.]
 ```
 
 Adoption states:
@@ -338,8 +356,8 @@ Adoption states:
 |-------|---------|----------|
 | `missing` | Older wiki without `schema.md` | Valid; show non-blocking adoption nudge |
 | `proposed` | Librarian wrote `output/schema-proposal-*.md` | Human reviews and edits before adoption |
-| `advisory` | `schema.md` exists | Report mismatches as suggestions |
-| `strict` | Explicit opt-in in `schema.md` | Warn on violations; never auto-rewrite content |
+| `advisory` | `schema.md` exists | Follow by default; explain deliberate compile deviations |
+| `strict` | Explicit opt-in in `schema.md` | Confirm planned deviations before writing; never auto-rewrite content |
 
 Topic-guide helpers:
 

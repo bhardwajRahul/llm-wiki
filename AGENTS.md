@@ -192,11 +192,15 @@ summary: "Human-owned topic guide for local vocabulary and conventions."
 
 `schema.md` is a **topic guide**, not a database schema. It is human-owned and
 default for topic wikis. It may define topic-local entity types, relationship
-verbs, article subtypes, source conventions, and inventory/dataset boundaries.
+verbs, article subtypes, source conventions, inventory/dataset boundaries, and
+compile guidance for article cardinality, boundaries, scope, and concepts that
+should remain separate.
 It must not redefine global llm-wiki primitives such as raw source folders,
 article categories, inventory kinds, or required frontmatter.
 `schema_state: advisory` means suggestions only. `strict` is advanced explicit
-opt-in and still never permits automatic article rewrites.
+opt-in: compilation confirms planned deviations before writing, but strict mode
+still never permits automatic rewrites of untouched articles. Topic-guide prose
+also never exempts a raw source from C6 coverage.
 
 Existing wikis without `schema.md` are valid. Adopt a starter guide with
 `llm-wiki schema adopt`, or run a librarian conventions pass first for
@@ -536,6 +540,11 @@ explicit stop rules, and named qualified-human review.
 
 Transform raw sources into wiki articles. Incremental by default (only new sources).
 
+0. Topic-guide preflight: read `schema.md` when present and apply its
+   cardinality, article-boundary, scope, and keep-separate guidance. Advisory
+   deviations are explained in the report; strict deviations require
+   confirmation before writing. Topic guidance never changes global
+   categories/frontmatter or exempts raw sources from C6 coverage.
 1. Survey: read indexes, identify uncompiled sources
 2. Extract: key concepts, facts, relationships from each source
 3. Map: which concepts need new articles vs updates to existing

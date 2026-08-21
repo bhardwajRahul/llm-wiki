@@ -280,6 +280,8 @@ if [ "$schema_apply_rc" -eq 0 ] \
   && grep -q "Created advisory topic guide" <<<"$schema_apply_output" \
   && [ -f "$schema_migrate/schema.md" ] \
   && grep -q "schema_state: advisory" "$schema_migrate/schema.md" \
+  && grep -q "^## Compile Guidance$" "$schema_migrate/schema.md" \
+  && grep -q "does not exempt raw sources from C6 coverage" "$schema_migrate/schema.md" \
   && "$CLI" schema status "$schema_migrate" | grep -q "State: advisory"; then
   log_pass "schema adopt creates advisory schema.md"
 else
