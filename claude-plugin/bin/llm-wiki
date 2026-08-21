@@ -1532,11 +1532,26 @@ def expand_leading_tilde(value: str) -> Path:
 
 
 def windows_absolute_path(value: str) -> Path | None:
-    if os.name != "nt" or not WINDOWS_ABSOLUTE_PATH_RE.match(value):
+    normalized = normalize_windows_absolute_path(value)
+    if normalized is None:
         return None
-    if value.startswith("/") and len(value) >= 4 and value[2] == ":":
+    return Path(normalized)
+
+
+def normalize_windows_absolute_path(
+    value: str, platform: str | None = None
+) -> str | None:
+    """Return a canonical drive path only when Windows semantics apply.
+
+    Keeping recognition separate from ``Path`` construction makes the three
+    accepted spellings testable on every development platform. POSIX must not
+    reinterpret a valid filename such as ``C:\\notes`` as an absolute path.
+    """
+    if (platform or os.name) != "nt" or not WINDOWS_ABSOLUTE_PATH_RE.match(value):
+        return None
+    if value.startswith("/"):
         value = value[1:]
-    return Path(value)
+    return value.replace("\\", "/")
 
 
 def initialized_wiki_root(path: Path) -> bool:
@@ -1611,19 +1626,17 @@ def check_hub_registry(ctx: LintContext) -> None:
     changed = False
     default_path = data.get("default")
     if isinstance(default_path, str) and default_path not in {"<HUB>", "HUB", "."}:
-        resolved_default = resolve_registry_path(default_path, ctx.root)
-        if resolved_default.is_absolute():
-            if ctx.fix:
-                data["default"] = "<HUB>"
-                ctx.fixed("Rewrote hub registry default to <HUB>.")
-                changed = True
-            else:
-                ctx.issue(
-                    "suggestion",
-                    "Hub registry default should be portable: use <HUB> instead of an absolute path.",
-                    registry,
-                    fixable=True,
-                )
+        if ctx.fix:
+            data["default"] = "<HUB>"
+            ctx.fixed("Rewrote hub registry default to <HUB>.")
+            changed = True
+        else:
+            ctx.issue(
+                "suggestion",
+                "Hub registry default should use the portable <HUB> token.",
+                registry,
+                fixable=True,
+            )
 
     wikis = data.get("wikis")
     if not isinstance(wikis, dict):
