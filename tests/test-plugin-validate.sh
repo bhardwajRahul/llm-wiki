@@ -9,7 +9,7 @@ PLUGIN_JSON="$PLUGIN_DIR/.claude-plugin/plugin.json"
 PASS=0
 FAIL=0
 TOTAL=0
-REFERENCE_NAMES="adapters archive audit command-prelude compilation datasets feedback hub-resolution ideas indexing ingestion inventory librarian linting portfolio projects query-lite research-infrastructure sessions specialists wiki-structure"
+REFERENCE_NAMES="adapters archive audit checkpoints command-prelude compilation datasets feedback hub-resolution ideas indexing ingestion inventory librarian linting portfolio projects query-lite research-infrastructure sessions specialists wiki-structure"
 
 log_pass() { PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[32mPASS\033[0m: %s\n" "$1"; }
 log_fail() { FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[31mFAIL\033[0m: %s — %s\n" "$1" "$2"; }
@@ -68,6 +68,27 @@ else
   log_fail "portfolio command invariant drift" "expected read-only index-first Ideas/Projects view"
 fi
 
+# Project Knowledge Checkpoints must remain comprehensive, cross-topic,
+# review-first, and privacy-sealed. A generic summary or optional scan is not
+# equivalent.
+CHECKPOINT_COMMAND="$PLUGIN_DIR/commands/checkpoint.md"
+CHECKPOINT_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/checkpoints.md"
+if grep -q 'dry-run by default' "$CHECKPOINT_COMMAND" \
+  && grep -q 'semantic privacy minimization' "$CHECKPOINT_COMMAND" \
+  && grep -q 'checkpoint seal' "$CHECKPOINT_COMMAND" \
+  && grep -q 'There is no option to disable privacy scanning' "$CHECKPOINT_COMMAND" \
+  && grep -q 'Mandatory comprehensive coverage' "$CHECKPOINT_COMMAND" \
+  && grep -q 'privacy-report.json' "$CHECKPOINT_REFERENCE" \
+  && grep -q 'Default to comprehensive' "$CHECKPOINT_REFERENCE" \
+  && grep -q 'There is no `--no-scan` or global bypass' "$CHECKPOINT_REFERENCE" \
+  && grep -q 'Project Knowledge Checkpoint' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q 'Project checkpoints need comprehensive coverage and a privacy seal' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'Project checkpoints are comprehensive and privacy-sealed' "$PROJECT_ROOT/AGENTS.md"; then
+  log_pass "checkpoint workflow preserves comprehensive coverage, privacy, and approval gates"
+else
+  log_fail "checkpoint workflow invariant drift" "expected comprehensive coverage plus mandatory staged seal/verify and exact overrides"
+fi
+
 # SKILL.md exists
 echo ""
 echo "--- Skill files ---"
@@ -90,6 +111,10 @@ if grep -q '## Adapter Routing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
   && grep -q '## Intent routing' "$ADAPTER_REFERENCE" \
   && grep -q 'adapter-owned workflow' "$ADAPTER_REFERENCE" \
   && grep -q '"routes"' "$ADAPTER_REFERENCE" \
+  && grep -q '## Explicit named adapter invocation' "$ADAPTER_REFERENCE" \
+  && grep -q 'wiki skill-factory' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'Skill Factory Adapter' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q 'wiki skill-factory' "$PROJECT_ROOT/AGENTS.md" \
   && grep -q 'External Adapter Route' "$PLUGIN_DIR/commands/wiki.md" \
   && grep -q '## Declarative intent routing' "$PLUGIN_DIR/commands/adapter.md" \
   && grep -q 'Route external actions before ingestion' "$PROJECT_ROOT/AGENTS.md" \
@@ -244,6 +269,11 @@ if [ -f "$CODEX_SKILL/SKILL.md" ]; then
     log_pass "Codex implicit skill metadata advertises external adapter routing"
   else
     log_fail "Codex adapter invocation metadata missing" "expected external resource in frontmatter"
+  fi
+  if sed -n '2,/^---$/p' "$CODEX_SKILL/SKILL.md" | grep -q 'skill-factory'; then
+    log_pass "Codex implicit skill metadata advertises declarative skill factory"
+  else
+    log_fail "Codex skill factory metadata missing" "expected skill factory in frontmatter"
   fi
 else
   log_fail "Codex SKILL.md not found" "missing file"

@@ -49,7 +49,122 @@ else
   log_fail "scripts/llm-wiki is executable" "missing executable bit"
 fi
 
+set +e
+portable_path_output="$(python3 - "$CLI" <<'PY' 2>&1
+import runpy
+import sys
+from pathlib import PureWindowsPath
+
+namespace = runpy.run_path(sys.argv[1])
+
+# Exercise the link helper with Windows-native relpath output even when this
+# test suite runs on POSIX. PureWindowsPath makes as_posix() behavior
+# deterministic without requiring a Windows runner.
+link_helper = namespace["markdown_relative_link"]
+original_path = link_helper.__globals__["Path"]
+original_relpath = link_helper.__globals__["os"].path.relpath
+try:
+    link_helper.__globals__["Path"] = PureWindowsPath
+    link_helper.__globals__["os"].path.relpath = (
+        lambda _target, _base: r"..\..\raw\articles\source.md"
+    )
+    assert link_helper(PureWindowsPath("base"), PureWindowsPath("target")) == (
+        "../../raw/articles/source.md"
+    )
+finally:
+    link_helper.__globals__["Path"] = original_path
+    link_helper.__globals__["os"].path.relpath = original_relpath
+
+
+class FakeResolvedPath:
+    def __init__(self, relative: str) -> None:
+        self.relative = relative
+
+    def resolve(self):
+        return self
+
+    def relative_to(self, _root):
+        return PureWindowsPath(self.relative)
+
+
+ctx = object.__new__(namespace["LintContext"])
+ctx.root = FakeResolvedPath("")
+assert ctx.rel(FakeResolvedPath(r"raw\articles\source.md")) == (
+    "raw/articles/source.md"
+)
+PY
+)"
+portable_path_rc=$?
+set -e
+if [ "$portable_path_rc" -eq 0 ]; then
+  log_pass "generated wiki paths use portable separators"
+else
+  log_fail "generated wiki paths use portable separators" "$portable_path_output"
+fi
+
 expect_success "golden wiki passes local lint" "$CLI" lint "$GOLDEN"
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+readme_root="$tmpdir/readme-root"
+mkdir "$readme_root"
+cp -R "$GOLDEN/." "$readme_root/"
+printf '# Wiki README\n' > "$readme_root/README.md"
+set +e
+readme_output="$("$CLI" lint --fix "$readme_root" 2>&1)"
+readme_rc=$?
+set -e
+if [ "$readme_rc" -eq 0 ] \
+  && [ -f "$readme_root/README.md" ] \
+  && [ ! -e "$readme_root/inbox/.unknown/README.md" ]; then
+  log_pass "--fix preserves README.md at any wiki root"
+else
+  log_fail "--fix preserves README.md at any wiki root" "$readme_output"
+fi
+
+git_root="$tmpdir/git-root"
+mkdir "$git_root"
+cp -R "$GOLDEN/." "$git_root/"
+mkdir "$git_root/.git" "$git_root/.github"
+for file in AGENTS.md CLAUDE.md CHANGELOG.md CODE_OF_CONDUCT.md \
+  CONTRIBUTING.md SECURITY.md LICENSE LICENSE.md .gitignore .gitattributes \
+  .gitmodules; do
+  printf '# project metadata\n' > "$git_root/$file"
+done
+set +e
+git_root_output="$("$CLI" lint --fix "$git_root" 2>&1)"
+git_root_rc=$?
+set -e
+if [ "$git_root_rc" -eq 0 ] \
+  && grep -q "Result: PASS" <<<"$git_root_output" \
+  && [ -d "$git_root/.git" ] \
+  && [ -d "$git_root/.github" ] \
+  && [ -f "$git_root/AGENTS.md" ] \
+  && [ -f "$git_root/.gitignore" ] \
+  && [ ! -d "$git_root/inbox/.unknown" ]; then
+  log_pass "--fix preserves conventional metadata at a Git-backed wiki root"
+else
+  log_fail "--fix preserves conventional metadata at a Git-backed wiki root" "$git_root_output"
+fi
+
+worktree_root="$tmpdir/worktree-root"
+mkdir "$worktree_root"
+cp -R "$GOLDEN/." "$worktree_root/"
+printf 'gitdir: ../repo/.git/worktrees/wiki\n' > "$worktree_root/.git"
+printf '# Agent instructions\n' > "$worktree_root/AGENTS.md"
+set +e
+worktree_output="$("$CLI" lint --fix "$worktree_root" 2>&1)"
+worktree_rc=$?
+set -e
+if [ "$worktree_rc" -eq 0 ] \
+  && [ -f "$worktree_root/.git" ] \
+  && [ -f "$worktree_root/AGENTS.md" ] \
+  && [ ! -d "$worktree_root/inbox/.unknown" ]; then
+  log_pass "--fix recognizes a worktree .git file as a Git root"
+else
+  log_fail "--fix recognizes a worktree .git file as a Git root" "$worktree_output"
+fi
 
 expect_failure_contains \
   "missing-index fixture fails local lint" \
@@ -60,9 +175,6 @@ expect_failure_contains \
   "bad-frontmatter fixture fails local lint" \
   "Invalid type" \
   "$CLI" lint "$SCRIPT_DIR/fixtures/defects/bad-frontmatter"
-
-tmpdir="$(mktemp -d)"
-trap 'rm -rf "$tmpdir"' EXIT
 
 ideas_wiki="$tmpdir/ideas-wiki"
 mkdir "$ideas_wiki"

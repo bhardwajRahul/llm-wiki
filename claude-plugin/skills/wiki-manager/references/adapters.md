@@ -98,6 +98,32 @@ effect is not write authorization, and a bounded instruction authorizes only a
 faithful plan. All generic remote-write controls below still apply regardless
 of provider.
 
+## Explicit named adapter invocation
+
+A registered adapter with no URL routes may be deliberately explicit-only.
+Use it only when the user names the adapter in declarative wiki syntax. The
+initial supported case is:
+
+```text
+wiki skill-factory <skill request>
+```
+
+For this syntax, do not call `adapter route` with a fabricated resource. Use
+`adapter show skill-factory` to resolve the machine-local registration,
+run `adapter doctor skill-factory`, and read the adapter-owned workflow guide
+from its registered root. Stop if the adapter is missing, its manifest has
+drifted, or the guide is missing. A normal request to create, review, or discuss
+a skill is not enough to select the adapter; the declarative name or an equally
+explicit “use the skill-factory adapter” instruction is required.
+
+Explicit-only availability is not ambient enablement. The adapter has no route,
+receives no automatic wiki context, and gains no tool or write authority. The
+`skill-factory` adapter must keep `writes_wiki: false`, use registered external
+input/output roots, and emit candidates in disabled state. A successful run may
+not install a package, edit `HUB/.skills/registry.json`, enable a topic, commit,
+or publish. Those remain separate authorized actions after evaluation and
+human acceptance.
+
 ## Adapter manifest
 
 Every adapter root contains `.llm-wiki-adapter.json`:

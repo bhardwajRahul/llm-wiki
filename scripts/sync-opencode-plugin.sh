@@ -30,6 +30,11 @@ if [ ! -f "$LOCAL_HELPER" ]; then
   exit 1
 fi
 
+if ! command -v rsync >/dev/null 2>&1; then
+  echo "Missing required tool: rsync" >&2
+  exit 1
+fi
+
 mkdir -p "$ROOT/claude-plugin/bin" "$TARGET_PLUGIN/bin"
 cp "$LOCAL_HELPER" "$ROOT/claude-plugin/bin/llm-wiki"
 cp "$LOCAL_HELPER" "$TARGET_PLUGIN/bin/llm-wiki"
@@ -84,7 +89,8 @@ description: >
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
-  archive wiki, archive topic, restore wiki, private adapter, adapter registry,
+  archive wiki, archive topic, restore wiki, private adapter, adapter registry, skill-factory,
+  checkpoints,
   personal specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, lessons learned, implementation plan, or uses

@@ -13,6 +13,38 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+scratch="$(mktemp -d)"
+trap 'rm -rf "$scratch"' EXIT
+mkdir -p \
+  "$scratch/scripts" \
+  "$scratch/claude-plugin/skills/wiki-manager/references" \
+  "$scratch/claude-plugin/.claude-plugin" \
+  "$scratch/plugins/llm-wiki/.codex-plugin" \
+  "$scratch/plugins/llm-wiki/skills/wiki-query" \
+  "$scratch/fake-bin"
+cp scripts/sync-codex-plugin.sh "$scratch/scripts/"
+touch \
+  "$scratch/claude-plugin/skills/wiki-manager/references/query-lite.md" \
+  "$scratch/claude-plugin/.claude-plugin/plugin.json" \
+  "$scratch/plugins/llm-wiki/.codex-plugin/plugin.json" \
+  "$scratch/scripts/llm-wiki-session" \
+  "$scratch/scripts/llm-wiki" \
+  "$scratch/plugins/llm-wiki/skills/wiki-query/must-survive"
+ln -s "$(command -v dirname)" "$scratch/fake-bin/dirname"
+set +e
+missing_rsync_output="$(
+  PATH="$scratch/fake-bin" /bin/bash "$scratch/scripts/sync-codex-plugin.sh" 2>&1
+)"
+missing_rsync_rc=$?
+set -e
+if [ "$missing_rsync_rc" -eq 0 ] \
+  || ! grep -q "Missing required tool: rsync" <<<"$missing_rsync_output" \
+  || [ ! -f "$scratch/plugins/llm-wiki/skills/wiki-query/must-survive" ]; then
+  echo "FAIL: Codex sync must reject a missing rsync before changing the target." >&2
+  echo "$missing_rsync_output" >&2
+  exit 1
+fi
+
 ./scripts/sync-codex-plugin.sh >/dev/null
 
 if ! git diff --quiet HEAD -- plugins/; then
@@ -30,4 +62,4 @@ MSG
   exit 1
 fi
 
-echo "OK: Codex plugin mirror is in sync."
+echo "OK: Codex sync prerequisites are non-destructive and the plugin mirror is in sync."
