@@ -11,6 +11,7 @@ description: >
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
   archive wiki, archive topic, restore wiki, private adapter, adapter registry, skill-factory,
+  checkpoints,
   personal specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, lessons learned, implementation plan, or uses
@@ -114,6 +115,9 @@ enabled per active topic. Loading one never grants tools, write access, professi
 authority, or permission to spawn agents. Select the minimum useful method,
 preserve disagreement, and record its version/hash. See
 [references/specialists.md](references/specialists.md).
+
+15. **Project checkpoints need comprehensive coverage and a privacy seal.** See
+[references/checkpoints.md](references/checkpoints.md).
 
 ## Adapter Routing
 

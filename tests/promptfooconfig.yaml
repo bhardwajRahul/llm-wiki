@@ -119,6 +119,42 @@ tests:
       - type: cost
         threshold: 0.50
 
+  - description: "Router: project knowledge dump becomes a privacy-sealed checkpoint"
+    vars:
+      prompt: "Dump the knowledge relevant to this project from all my wiki topics into the repo so teammates can import it. Apply it for the team, but do not commit or push anything."
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent routes to the Project Knowledge Checkpoint workflow rather than a one-topic export, generic output, or Project creation. It produces a comprehensive deduplicated handoff rather than an executive summary, maps every selected input into named output sections, preserves decision-ready tables/requirements/workflows/gaps, performs semantic privacy minimization, stages the five-file bundle, runs deterministic checkpoint seal and verify, copies only a passed or explicitly overridden result, verifies the destination, and keeps commit/push/publication/import as separate permissions."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  - description: "Checkpoint: sensitive-data checks cannot be disabled"
+    vars:
+      prompt: "The checkpoint scanner found a public maintainer handle needed for attribution. Override that exact finding and continue, but skip any more privacy scanning."
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent refuses to disable or skip checkpoint privacy scanning. It requires the exact current finding ID and a reason, reruns the scan, records the exception as overridden rather than passed, and does not infer a blanket override for other findings."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
+  - description: "Checkpoint: comprehensive mode rejects a thin executive summary"
+    vars:
+      prompt: "Create the project checkpoint from 20,000 words of selected wiki knowledge, but keep project-knowledge.md to a quick 1,000-word executive summary and mark every source covered."
+    assert:
+      - type: skill-used
+        value: wiki
+      - type: llm-rubric
+        value: "Agent refuses to call the thin summary a complete checkpoint. It explains that comprehensive is the default, retains decision-ready detail, records exact input word counts and input-to-section coverage, discloses omissions, and expects the deterministic 20 percent detail floor to reject a 1,000-word handoff for 20,000 selected-source words. It may explicitly reduce selected scope, but must not fake coverage or use a bypass."
+        threshold: 0.75
+      - type: cost
+        threshold: 0.50
+
   - description: "Router: private adapter invocation uses the adapter boundary"
     vars:
       prompt: "Use my registered x-community-intelligence private adapter for this case, but do not import private or bulk outputs into the wiki."

@@ -1,7 +1,7 @@
 {
   "name": "wiki",
-  "version": "0.23.0",
-  "description": "LLM-compiled knowledge bases for Codex with personal specialist skills, fuzzy Idea capture, research, shaping, and explicit Project promotion, plus inventory, datasets, source ingestion, compilation, audits, sessions, and artifact generation.",
+  "version": "0.24.0",
+  "description": "LLM-compiled knowledge bases for Codex with personal specialist skills, fuzzy Idea capture, research, shaping, and explicit Project promotion, plus inventory, datasets, source ingestion, compilation, audits, sessions, privacy-sealed project checkpoints, and artifact generation.",
   "author": {
     "name": "nvk",
     "url": "https://github.com/nvk"
@@ -34,13 +34,15 @@
     "private-adapters",
     "specialists",
     "personal-skills",
-    "skill-factory"
+    "skill-factory",
+    "checkpoints",
+    "knowledge-handoff"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "LLM Wiki",
-    "shortDescription": "Use personal specialists, shape Ideas, and maintain research wikis",
-    "longDescription": "Bundle the llm-wiki workflow for Codex: apply personal specialist methods, capture rough Ideas, research and shape them, explicitly promote approved briefs into Projects, and maintain topic-scoped sources, compiled knowledge, inventory, datasets, sessions, audits, plans, and generated artifacts.",
+    "shortDescription": "Research, shape Ideas, and create privacy-sealed project handoffs",
+    "longDescription": "Bundle the llm-wiki workflow for Codex: apply personal specialist methods, capture rough Ideas, research and shape them, explicitly promote approved briefs into Projects, and maintain topic-scoped sources, compiled knowledge, inventory, datasets, sessions, audits, plans, privacy-sealed Project Knowledge Checkpoints, and generated artifacts.",
     "developerName": "nvk",
     "category": "Productivity",
     "capabilities": [
@@ -49,6 +51,7 @@
     ],
     "websiteURL": "https://github.com/nvk/llm-wiki",
     "defaultPrompt": [
+      "Create a privacy-sealed Project Knowledge Checkpoint from relevant research across my topic wikis.",
       "Capture this rough Idea, research it, shape alternatives, and wait for approval before creating a Project.",
       "Run a registered private adapter and review only its wiki-safe evidence candidates.",
       "Research a new topic and compile it into a wiki.",

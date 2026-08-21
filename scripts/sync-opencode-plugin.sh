@@ -85,6 +85,7 @@ description: >
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
   archive wiki, archive topic, restore wiki, private adapter, adapter registry, skill-factory,
+  checkpoints,
   personal specialist, specialist skill, specialist reviewer, expert lens,
   adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
   resume from session, lessons learned, implementation plan, or uses
