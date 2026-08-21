@@ -120,6 +120,71 @@ expect_success "golden wiki passes local lint" "$CLI" lint "$GOLDEN"
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
+hybrid_rollup="$tmpdir/hybrid-rollup"
+mkdir "$hybrid_rollup"
+cp -R "$SCRIPT_DIR/fixtures/defects/stale-inventory-rollup/." "$hybrid_rollup/"
+expect_failure_contains \
+  "hybrid inventory root reports a missing nested record rollup" \
+  "Required inventory navigation or record rollup entry is missing" \
+  "$CLI" lint "$hybrid_rollup"
+set +e
+hybrid_fix_output="$("$CLI" lint --fix "$hybrid_rollup" 2>&1)"
+hybrid_fix_rc=$?
+set -e
+if [ "$hybrid_fix_rc" -eq 0 ] \
+  && grep -q 'items/unlisted-item.md' "$hybrid_rollup/inventory/_index.md" \
+  && grep -q '\[Items\](items/_index.md)' "$hybrid_rollup/inventory/_index.md" \
+  && grep -q '| File | Kind | Status | Priority | Next Action | Updated |' "$hybrid_rollup/inventory/_index.md"; then
+  log_pass "--fix restores inventory hybrid navigation and nested record rollup"
+else
+  log_fail "--fix restores inventory hybrid navigation and nested record rollup" "$hybrid_fix_output"
+fi
+
+pointer_index="$tmpdir/pointer-index"
+mkdir "$pointer_index"
+cp -R "$SCRIPT_DIR/fixtures/defects/empty-wiki-pointer-index/." "$pointer_index/"
+expect_failure_contains \
+  "empty wiki pointer index is reported as missing category navigation" \
+  "Required wiki category pointer entry is missing" \
+  "$CLI" lint "$pointer_index"
+set +e
+pointer_fix_output="$("$CLI" lint --fix "$pointer_index" 2>&1)"
+pointer_fix_rc=$?
+set -e
+if [ "$pointer_fix_rc" -eq 0 ] \
+  && grep -q '\[concepts/_index.md\](concepts/_index.md)' "$pointer_index/wiki/_index.md" \
+  && grep -q '\[theses/_index.md\](theses/_index.md)' "$pointer_index/wiki/_index.md" \
+  && ! grep -q 'sample-concept.md' "$pointer_index/wiki/_index.md"; then
+  log_pass "--fix restores wiki category pointers without flattening articles"
+else
+  log_fail "--fix restores wiki category pointers without flattening articles" "$pointer_fix_output"
+fi
+
+domain_renderers="$tmpdir/domain-renderers"
+mkdir "$domain_renderers"
+cp -R "$GOLDEN/." "$domain_renderers/"
+mkdir -p "$domain_renderers/output/projects/example-project"
+cat > "$domain_renderers/output/projects/example-project/WHY.md" <<'EOF'
+# Example Project
+
+Preserve project-aware output navigation while repairing the root index.
+EOF
+printf '# Dataset Registry Index\n' > "$domain_renderers/datasets/_index.md"
+printf '# Output Artifacts\n' > "$domain_renderers/output/_index.md"
+set +e
+domain_fix_output="$("$CLI" lint --fix "$domain_renderers" 2>&1)"
+domain_fix_rc=$?
+set -e
+if [ "$domain_fix_rc" -eq 0 ] \
+  && grep -q '| Dataset | Status | Storage | Formats | Size | Records | Updated |' "$domain_renderers/datasets/_index.md" \
+  && grep -q 'bitcointalk-temporal-graph/MANIFEST.md' "$domain_renderers/datasets/_index.md" \
+  && grep -q '| Output | Type | Date |' "$domain_renderers/output/_index.md" \
+  && grep -q 'projects/example-project/WHY.md' "$domain_renderers/output/_index.md"; then
+  log_pass "--fix uses dataset and project-aware output renderers"
+else
+  log_fail "--fix uses dataset and project-aware output renderers" "$domain_fix_output"
+fi
+
 readme_root="$tmpdir/readme-root"
 mkdir "$readme_root"
 cp -R "$GOLDEN/." "$readme_root/"
@@ -226,6 +291,12 @@ sources:
 ## Original Seed
 
 Build a private local search tool.
+EOF
+cat >> "$ideas_wiki/inventory/_index.md" <<'EOF'
+
+- [Ideas](ideas/_index.md)
+
+| [local-search.md](ideas/local-search.md) | idea | active | p1 | Approve or reject the shaped brief. | 2026-01-03 |
 EOF
 
 expect_success \

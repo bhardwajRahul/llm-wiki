@@ -515,6 +515,20 @@ if [ -d "$DEFECTS" ]; then
       && log_pass "missing-datasets: C17 defect present" \
       || log_fail "missing-datasets: dataset index still exists" "fixture broken"
   }
+
+  [ -d "$DEFECTS/stale-inventory-rollup" ] && {
+    [ -f "$DEFECTS/stale-inventory-rollup/inventory/items/unlisted-item.md" ] \
+      && grep -q 'unlisted-item.md' "$DEFECTS/stale-inventory-rollup/inventory/items/_index.md" \
+      && ! grep -q 'unlisted-item.md' "$DEFECTS/stale-inventory-rollup/inventory/_index.md" \
+      && log_pass "stale-inventory-rollup: hybrid root defect present" \
+      || log_fail "stale-inventory-rollup: defect not correct" "fixture broken"
+  }
+
+  [ -d "$DEFECTS/empty-wiki-pointer-index" ] && {
+    ! grep -q 'concepts/_index.md' "$DEFECTS/empty-wiki-pointer-index/wiki/_index.md" \
+      && log_pass "empty-wiki-pointer-index: category navigation defect present" \
+      || log_fail "empty-wiki-pointer-index: defect not correct" "fixture broken"
+  }
 else
   echo ""
   echo "--- No defect fixtures (run generate-defect-fixtures.sh first) ---"
