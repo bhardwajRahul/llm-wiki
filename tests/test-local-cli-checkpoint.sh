@@ -51,9 +51,21 @@ EOF
       "path": "wiki/concepts/project-architecture.md",
       "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "reason": "Defines the project architecture.",
-      "access": "$access"
+      "access": "$access",
+      "words": 20
     }
   ],
+  "coverage": {
+    "mode": "comprehensive",
+    "source_word_count": 20,
+    "section_map": [
+      {
+        "section": "Purpose",
+        "sources": ["example-topic:wiki/concepts/project-architecture.md"]
+      }
+    ],
+    "omissions": []
+  },
   "gaps": [],
   "files": []
 }
@@ -78,6 +90,45 @@ if [ "$clean_rc" -eq 0 ] \
   log_pass "seal and verify produce a clean five-file checkpoint"
 else
   log_fail "seal and verify produce a clean five-file checkpoint" "$clean_output $verify_output"
+fi
+
+thin="$tmpdir/thin"
+make_bundle "$thin" team
+python3 - "$thin/checkpoint.json" <<'PY'
+import json, sys
+path=sys.argv[1]
+data=json.load(open(path))
+data["inputs"][0]["words"]=500
+data["coverage"]["source_word_count"]=500
+open(path,"w").write(json.dumps(data,indent=2)+"\n")
+PY
+set +e
+thin_output="$("$CLI" checkpoint seal "$thin" --audience team --json 2>&1)"
+thin_rc=$?
+set -e
+if [ "$thin_rc" -ne 0 ] && grep -q 'too thin for comprehensive mode' <<<"$thin_output"; then
+  log_pass "seal rejects executive-summary-only comprehensive checkpoints"
+else
+  log_fail "seal rejects executive-summary-only comprehensive checkpoints" "$thin_output"
+fi
+
+unmapped="$tmpdir/unmapped"
+make_bundle "$unmapped" team
+python3 - "$unmapped/checkpoint.json" <<'PY'
+import json, sys
+path=sys.argv[1]
+data=json.load(open(path))
+data["coverage"]["section_map"][0]["sources"]=[]
+open(path,"w").write(json.dumps(data,indent=2)+"\n")
+PY
+set +e
+unmapped_output="$("$CLI" checkpoint seal "$unmapped" --audience team --json 2>&1)"
+unmapped_rc=$?
+set -e
+if [ "$unmapped_rc" -ne 0 ] && grep -q 'coverage section 1 requires sources' <<<"$unmapped_output"; then
+  log_pass "seal requires every selected input to map into the knowledge handoff"
+else
+  log_fail "seal requires every selected input to map into the knowledge handoff" "$unmapped_output"
 fi
 
 sensitive="$tmpdir/sensitive"

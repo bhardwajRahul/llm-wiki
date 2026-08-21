@@ -41,15 +41,23 @@ Read bounded repo context: README, supplied `WHY.md`/`BRIEF.md`, ADRs,
 architecture/operations/security docs, manifests, and explicit seeds. Exclude
 `.git`, dependencies, builds, caches, env files, and arbitrary user folders.
 
-Read every active topic root and compiled-wiki index. Shortlist by goal,
-aliases, tags, entities, project references, decisions, and constraints; then
-read only selected compiled articles. Follow one support hop when a material
-claim/conflict/risk/decision requires it. Archives require
-`--include-archived`; raw bodies are not export content.
+Read active topic roots/indexes; select compiled articles and material Ideas,
+Projects, plans, and outputs by goal, aliases, decisions, and constraints.
+Follow one needed support hop. Archives require `--include-archived`; raw is not
+export content.
 
 For each input record topic, wiki-relative path, SHA-256, inclusion reason,
 confidence, `public|team|private|unknown` access, and reuse note. Record
 material exclusions and gaps.
+
+### Mandatory comprehensive coverage
+
+Default to comprehensive, not executive-summary-only. After orientation retain
+tables, requirements, alternatives, phases, operations, risks, validation, and
+gaps. Record input words; comprehensive `coverage` needs their total, every
+input mapped to a section, and reasoned omissions. Seal rejects knowledge below
+20% of selected words. This catches thinness, not quality: deduplicate or reduce
+scope rather than over-compress.
 
 ### Mandatory semantic privacy minimization
 
@@ -67,8 +75,9 @@ source or scanner override from general approval.
 
 Show exact `docs/knowledge/<slug>/` destination, audience and repo visibility,
 project packet/question, selected articles with reasons, source access,
-exclusions, gaps, coverage matrix, planned five files, and overrides. Without
-`--apply`, stop. This is the complete workflow preview, not a reduced pilot.
+input/expected handoff word counts, exclusions, gaps, section coverage matrix,
+planned five files, and overrides. Without `--apply`, stop. This is the complete
+workflow preview, not a reduced sample.
 
 Public repos require explicit `public` audience. A local/untracked or
 authoritatively private target may default to `private`; unknown visibility
@@ -83,8 +92,9 @@ destination:
 - `project-knowledge.md`: coherent synthesis in the reference's stable order;
 - `sources.md`: stable IDs and portable provenance—never absolute producer paths;
 - `checkpoint.json`: schema `llm-wiki/project-knowledge-checkpoint/v1`,
-  `checkpoint_id: pending`, created time, audience, project, scope, inputs,
-  exclusions, empty source overrides/files, and gaps.
+  `checkpoint_id: pending`, created time, audience, project, scope, inputs with
+  exact word counts, comprehensive section coverage/omissions, exclusions,
+  empty source overrides/files, and gaps.
 
 Do not hand-write `privacy-report.json`. Resolve the bundled helper and run:
 
@@ -143,6 +153,7 @@ For a repo/path, pin the exact revision and isolate one
 ## Report
 
 Report operation, absolute destination, checkpoint ID, audience, privacy and
-verification status, override count, source-topic count, and whether files
-changed. State separately that no commit, push, publication, or import occurred
-unless that distinct action was explicitly requested.
+verification status, override count, source-topic count, source words, handoff
+words, retention ratio, and whether files changed. State separately that no
+commit, push, publication, or import occurred unless that distinct action was
+explicitly requested.

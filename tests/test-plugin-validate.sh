@@ -68,22 +68,25 @@ else
   log_fail "portfolio command invariant drift" "expected read-only index-first Ideas/Projects view"
 fi
 
-# Project Knowledge Checkpoints must remain cross-topic, review-first, and
-# privacy-sealed. A generic output command or optional scan is not equivalent.
+# Project Knowledge Checkpoints must remain comprehensive, cross-topic,
+# review-first, and privacy-sealed. A generic summary or optional scan is not
+# equivalent.
 CHECKPOINT_COMMAND="$PLUGIN_DIR/commands/checkpoint.md"
 CHECKPOINT_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/checkpoints.md"
 if grep -q 'dry-run by default' "$CHECKPOINT_COMMAND" \
   && grep -q 'semantic privacy minimization' "$CHECKPOINT_COMMAND" \
   && grep -q 'checkpoint seal' "$CHECKPOINT_COMMAND" \
   && grep -q 'There is no option to disable privacy scanning' "$CHECKPOINT_COMMAND" \
+  && grep -q 'Mandatory comprehensive coverage' "$CHECKPOINT_COMMAND" \
   && grep -q 'privacy-report.json' "$CHECKPOINT_REFERENCE" \
+  && grep -q 'Default to comprehensive' "$CHECKPOINT_REFERENCE" \
   && grep -q 'There is no `--no-scan` or global bypass' "$CHECKPOINT_REFERENCE" \
   && grep -q 'Project Knowledge Checkpoint' "$PLUGIN_DIR/commands/wiki.md" \
-  && grep -q 'Project checkpoints are privacy-sealed' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
-  && grep -q 'Project checkpoints are privacy-sealed handoffs' "$PROJECT_ROOT/AGENTS.md"; then
-  log_pass "checkpoint workflow preserves cross-topic privacy and approval gates"
+  && grep -q 'Project checkpoints need comprehensive coverage and a privacy seal' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'Project checkpoints are comprehensive and privacy-sealed' "$PROJECT_ROOT/AGENTS.md"; then
+  log_pass "checkpoint workflow preserves comprehensive coverage, privacy, and approval gates"
 else
-  log_fail "checkpoint workflow invariant drift" "expected mandatory staged seal/verify and exact overrides"
+  log_fail "checkpoint workflow invariant drift" "expected comprehensive coverage plus mandatory staged seal/verify and exact overrides"
 fi
 
 # SKILL.md exists

@@ -16,7 +16,7 @@ docs/knowledge/<project-slug>/
 ```
 
 - `index.md`: portable entry point and import/verification guidance.
-- `project-knowledge.md`: coherent new synthesis.
+- `project-knowledge.md`: full synthesis.
 - `sources.md`: readable evidence ledger with stable source IDs.
 - `checkpoint.json`: scope, project revision, selected inputs/reasons/hashes,
   exclusions, gaps, audience, generated hashes, and checkpoint identity.
@@ -36,15 +36,17 @@ question, aliases, README, supplied `WHY.md`/`BRIEF.md`, ADRs, architecture and
 operations/security docs, and explicit seeds. Do not scan `.git`, dependencies,
 builds, caches, env files, or arbitrary user directories.
 
-Read HUB index/registry, then every active topic root and `wiki/_index.md`.
-Shortlist by goal, titles, summaries, aliases, tags, entities, decisions,
-constraints, and project references. Read only selected compiled articles;
-follow one supporting hop when an important claim, conflict, risk, or decision
-needs it. Archives require explicit inclusion. Raw bodies are not export data.
+Read HUB/indexes and selected compiled/Idea/Project/plan/output material; one
+support hop is allowed. Archives are explicit; raw is excluded. Record
+topic/path/hash/words, reason, confidence, access/reuse, exclusions/gaps.
 
-Record for every input: origin topic, wiki-relative path, SHA-256, selection
-reason, confidence, `public|team|private|unknown` access, and reuse note. Record
-material exclusions and gaps so “most relevant” stays auditable.
+## Comprehensive coverage contract
+
+Default to comprehensive, not executive-summary-only. Retain tables,
+requirements, alternatives, phases, workflows, rights, risks, and gaps. Every
+input needs positive `words` and a mapped section; `coverage` stores the total
+and omissions. Seal rejects knowledge below 20% of selected
+words. The floor is not a quality score.
 
 `project-knowledge.md` keeps this order:
 
@@ -126,7 +128,7 @@ explicit `public`; unknown visibility stops before final copy.
 
 `checkpoint.json` uses `llm-wiki/project-knowledge-checkpoint/v1`: sealer ID,
 files/hashes, time/audience, project/revision, scope/policy, inputs with
-topic/path/hash/reason/access, exact overrides, exclusions, and gaps.
+topic/path/hash/words/reason/access, coverage, overrides, exclusions, and gaps.
 
 Paths are bundle-, repo-, or wiki-relative. Never serialize a hub/home root,
 transcript pointer, adapter root, or temporary path.

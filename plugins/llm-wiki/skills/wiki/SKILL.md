@@ -111,8 +111,7 @@ authority, or permission to spawn agents. Select the minimum useful method,
 preserve disagreement, and record its version/hash. See
 [references/specialists.md](references/specialists.md).
 
-15. **Project checkpoints are privacy-sealed.** Never dump raw/sessions; seal
-and exact overrides are required. See
+15. **Project checkpoints need comprehensive coverage and a privacy seal.** See
 [references/checkpoints.md](references/checkpoints.md).
 
 ## Adapter Routing

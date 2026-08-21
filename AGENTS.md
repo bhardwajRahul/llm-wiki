@@ -146,9 +146,9 @@ spawn agents. Select the minimum useful method and record its version/hash.
 selects the registered `skill-factory` adapter by name, runs doctor, and follows
 its adapter-owned guide. It has no ambient route; every generated candidate is
 disabled, and install/enable/commit/publication remain separate actions.
-18. **Project checkpoints are privacy-sealed handoffs.** Curate across topics,
-never dump raw/sessions. Create/refresh are dry-run first; minimization,
-seal/verify, and exact override attestation are mandatory.
+18. **Project checkpoints are comprehensive and privacy-sealed.** Never dump
+raw/sessions or summarize scope away; require coverage, a detail floor, seal,
+and exact overrides.
 
 ## File Formats
 
