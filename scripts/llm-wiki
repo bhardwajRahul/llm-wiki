@@ -188,7 +188,7 @@ class LintContext:
         if path is None:
             return ""
         try:
-            return str(path.resolve().relative_to(self.root))
+            return path.resolve().relative_to(self.root).as_posix()
         except ValueError:
             return str(path)
 
@@ -1404,7 +1404,7 @@ def create_or_update_coverage_reference(ctx: LintContext, unreferenced: list[Pat
 
 
 def markdown_relative_link(base_dir: Path, target: Path) -> str:
-    rel = os.path.relpath(target, base_dir)
+    rel = Path(os.path.relpath(target, base_dir)).as_posix()
     return markdown_link_destination(rel)
 
 
