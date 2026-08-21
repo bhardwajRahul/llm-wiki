@@ -1,4 +1,4 @@
-# Project Knowledge Checkpoints
+# Project Knowledge Checkpoints Export
 
 A checkpoint is a portable snapshot of what a teammate needs to understand,
 build, operate, or import one project. It is a curated materialized view across
