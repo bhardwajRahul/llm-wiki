@@ -59,6 +59,7 @@ SCHEMA_STATUSES = {"unknown", "inferred", "declared", "validated"}
 CONFIDENCE_VALUES = {"high", "medium", "low"}
 VOLATILITY_VALUES = {"hot", "warm", "cold"}
 PERMISSION_DENIED_ERRNOS = {1, 13}
+WINDOWS_ABSOLUTE_PATH_RE = re.compile(r"^/?[A-Za-z]:[\\/]")
 ADAPTER_PROTOCOL = "llm-wiki-adapter/v1"
 ADAPTER_REGISTRY_SCHEMA = 1
 ADAPTER_MANIFEST_NAME = ".llm-wiki-adapter.json"
@@ -1157,6 +1158,9 @@ def is_local_markdown_link(link: str) -> bool:
 
 def resolve_link_target(base_dir: Path, link: str) -> Path:
     target = link.split("#", 1)[0]
+    windows_target = windows_absolute_path(target)
+    if windows_target is not None:
+        return windows_target
     if target.startswith("/"):
         return Path(target)
     return (base_dir / target).resolve()
@@ -1269,8 +1273,9 @@ def resolve_source_ref(ctx: LintContext, owner: Path, ref: str, wiki_source: boo
     if ref.startswith(("http://", "https://")):
         return None if wiki_source else Path(ref)
     candidates: list[Path] = []
-    ref_path = Path(ref)
-    if ref_path.is_absolute():
+    windows_ref = windows_absolute_path(ref)
+    ref_path = windows_ref or Path(ref)
+    if windows_ref is not None or ref_path.is_absolute():
         candidates.append(ref_path)
     elif ref.startswith(("../", "./")):
         candidates.append((owner.parent / ref).resolve())
@@ -1516,11 +1521,37 @@ def append_lint_log(ctx: LintContext) -> None:
 
 
 def expand_leading_tilde(value: str) -> Path:
+    windows_path = windows_absolute_path(value)
+    if windows_path is not None:
+        return windows_path
     if value == "~":
         return Path.home()
     if value.startswith("~/"):
         return Path.home() / value[2:]
     return Path(value)
+
+
+def windows_absolute_path(value: str) -> Path | None:
+    normalized = normalize_windows_absolute_path(value)
+    if normalized is None:
+        return None
+    return Path(normalized)
+
+
+def normalize_windows_absolute_path(
+    value: str, platform: str | None = None
+) -> str | None:
+    """Return a canonical drive path only when Windows semantics apply.
+
+    Keeping recognition separate from ``Path`` construction makes the three
+    accepted spellings testable on every development platform. POSIX must not
+    reinterpret a valid filename such as ``C:\\notes`` as an absolute path.
+    """
+    if (platform or os.name) != "nt" or not WINDOWS_ABSOLUTE_PATH_RE.match(value):
+        return None
+    if value.startswith("/"):
+        value = value[1:]
+    return value.replace("\\", "/")
 
 
 def initialized_wiki_root(path: Path) -> bool:
@@ -1574,6 +1605,98 @@ def resolve_registry_path(raw_path: str, hub: Path) -> Path:
     if path.is_absolute():
         return path
     return hub / path
+
+
+def check_hub_registry(ctx: LintContext) -> None:
+    registry = ctx.root / "wikis.json"
+    if not registry.exists():
+        return
+    try:
+        data = json.loads(registry.read_text(encoding="utf-8"))
+    except OSError as exc:
+        if is_permission_denied(exc):
+            ctx.issue("critical", permission_denied_message(registry, "read wiki registry", exc), registry)
+            return
+        ctx.issue("critical", f"Could not read wiki registry: {exc}", registry)
+        return
+    except json.JSONDecodeError as exc:
+        ctx.issue("critical", f"Invalid wiki registry: {exc}", registry)
+        return
+
+    changed = False
+    default_path = data.get("default")
+    if isinstance(default_path, str) and default_path not in {"<HUB>", "HUB", "."}:
+        if ctx.fix:
+            data["default"] = "<HUB>"
+            ctx.fixed("Rewrote hub registry default to <HUB>.")
+            changed = True
+        else:
+            ctx.issue(
+                "suggestion",
+                "Hub registry default should use the portable <HUB> token.",
+                registry,
+                fixable=True,
+            )
+
+    wikis = data.get("wikis")
+    if not isinstance(wikis, dict):
+        return
+    for slug, entry in sorted(wikis.items()):
+        if not isinstance(entry, dict):
+            continue
+        raw_path = entry.get("path")
+        if not isinstance(raw_path, str) or not raw_path:
+            continue
+        if slug == "hub":
+            if raw_path not in {"<HUB>", "HUB", "."}:
+                if ctx.fix:
+                    entry["path"] = "<HUB>"
+                    ctx.fixed("Rewrote hub registry entry path to <HUB>.")
+                    changed = True
+                else:
+                    ctx.issue(
+                        "suggestion",
+                        "Hub registry entry should use portable path <HUB>.",
+                        registry,
+                        fixable=True,
+                    )
+            continue
+
+        relative_path = (
+            f"topics/.archive/{slug}" if is_archived_registry_entry(entry) else f"topics/{slug}"
+        )
+        hub_topic = ctx.root / relative_path
+        if initialized_wiki_root(hub_topic) and raw_path != relative_path:
+            if ctx.fix:
+                entry["path"] = relative_path
+                ctx.fixed(f"Rewrote hub-owned registry path for {slug} to {relative_path}.")
+                changed = True
+            else:
+                ctx.issue(
+                    "suggestion",
+                    f"Hub-owned wiki path should be portable: use {relative_path}.",
+                    registry,
+                    fixable=True,
+                )
+            continue
+
+        resolved = resolve_registry_path(raw_path, ctx.root)
+        if resolved.is_absolute() and not is_under(resolved, ctx.root):
+            if resolved.exists():
+                ctx.issue(
+                    "info",
+                    f"Registry path for {slug} is an external local absolute path that exists: {raw_path}.",
+                    registry,
+                )
+            else:
+                ctx.issue(
+                    "warning",
+                    f"Registry path for {slug} is an external local absolute path that does not exist: {raw_path}.",
+                    registry,
+                )
+
+    if changed:
+        write_registry(ctx.root, data)
 
 
 def is_archived_registry_entry(entry: dict[str, Any] | None) -> bool:
@@ -1710,6 +1833,7 @@ def run_lint(args: argparse.Namespace) -> int:
     check_unknown_files(ctx)
     if hub_root:
         check_specialist_library(ctx)
+        check_hub_registry(ctx)
         append_lint_log(ctx)
         if args.json:
             print_json_report(ctx)

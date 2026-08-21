@@ -57,6 +57,19 @@ from pathlib import PureWindowsPath
 
 namespace = runpy.run_path(sys.argv[1])
 
+normalize_windows = namespace["normalize_windows_absolute_path"]
+assert normalize_windows(r"C:\Users\person\wiki", platform="nt") == (
+    "C:/Users/person/wiki"
+)
+assert normalize_windows("C:/Users/person/wiki", platform="nt") == (
+    "C:/Users/person/wiki"
+)
+assert normalize_windows("/C:/Users/person/wiki", platform="nt") == (
+    "C:/Users/person/wiki"
+)
+assert normalize_windows("topics/example", platform="nt") is None
+assert normalize_windows(r"C:\Users\person\wiki", platform="posix") is None
+
 # Exercise the link helper with Windows-native relpath output even when this
 # test suite runs on POSIX. PureWindowsPath makes as_posix() behavior
 # deterministic without requiring a Windows runner.
@@ -519,6 +532,82 @@ echo '{}' > "$hub_scope/.sessions/state/codex/example.json"
 expect_success \
   "hub lint allows operational .sessions layer" \
   "$CLI" lint "$hub_scope"
+
+registry_portability="$tmpdir/registry-portability"
+external_registry_wiki="$tmpdir/external-registry-wiki"
+missing_registry_wiki="$tmpdir/missing-registry-wiki"
+mkdir -p "$registry_portability/topics/portable-topic" "$external_registry_wiki"
+cp -R "$GOLDEN/." "$registry_portability/topics/portable-topic/"
+cp -R "$GOLDEN/." "$external_registry_wiki/"
+cat > "$registry_portability/_index.md" <<'EOF'
+# Hub Index
+EOF
+cat > "$registry_portability/log.md" <<'EOF'
+# Hub Log
+EOF
+cat > "$registry_portability/wikis.json" <<JSON
+{
+  "default": "$registry_portability",
+  "wikis": {
+    "hub": { "path": "$registry_portability", "description": "Hub" },
+    "portable-topic": {
+      "path": "$registry_portability/topics/portable-topic",
+      "description": "Portable topic"
+    },
+    "external-existing": {
+      "path": "$external_registry_wiki",
+      "description": "External existing wiki"
+    },
+    "external-missing": {
+      "path": "$missing_registry_wiki",
+      "description": "External missing wiki"
+    }
+  },
+  "local_wikis": []
+}
+JSON
+set +e
+registry_report="$("$CLI" lint "$registry_portability" --json 2>&1)"
+registry_report_rc=$?
+set -e
+if [ "$registry_report_rc" -ne 0 ] \
+  && python3 -c '
+import json, sys
+report = json.load(sys.stdin)
+messages = "\n".join(item["message"] for item in report["issues"])
+assert report["counts"] == {"critical": 0, "info": 1, "suggestion": 3, "warning": 1}
+assert "default should use the portable <HUB> token" in messages
+assert "Hub registry entry should use portable path <HUB>" in messages
+assert "Hub-owned wiki path should be portable: use topics/portable-topic" in messages
+assert "external local absolute path that exists" in messages
+assert "external local absolute path that does not exist" in messages
+' <<<"$registry_report"; then
+  log_pass "hub lint reports portable and external registry paths distinctly"
+else
+  log_fail "hub lint reports portable and external registry paths distinctly" "$registry_report"
+fi
+
+set +e
+registry_fix_report="$("$CLI" lint "$registry_portability" --fix --json 2>&1)"
+registry_fix_rc=$?
+set -e
+if [ "$registry_fix_rc" -ne 0 ] \
+  && python3 - "$registry_portability/wikis.json" "$external_registry_wiki" "$missing_registry_wiki" <<'PY'
+import json
+import sys
+
+registry = json.load(open(sys.argv[1], encoding="utf-8"))
+assert registry["default"] == "<HUB>"
+assert registry["wikis"]["hub"]["path"] == "<HUB>"
+assert registry["wikis"]["portable-topic"]["path"] == "topics/portable-topic"
+assert registry["wikis"]["external-existing"]["path"] == sys.argv[2]
+assert registry["wikis"]["external-missing"]["path"] == sys.argv[3]
+PY
+then
+  log_pass "--fix rewrites only hub-owned registry paths"
+else
+  log_fail "--fix rewrites only hub-owned registry paths" "$registry_fix_report"
+fi
 
 portable_home="$tmpdir/portable-home"
 portable_hub="$portable_home/Library/Mobile Documents/com~apple~CloudDocs/wiki"
