@@ -47,6 +47,9 @@ jobs:
       - name: Run personal specialist CLI tests
         run: chmod +x tests/test-local-cli-specialists.sh && ./tests/test-local-cli-specialists.sh
 
+      - name: Run Project Knowledge Checkpoint privacy tests
+        run: chmod +x tests/test-local-cli-checkpoint.sh && ./tests/test-local-cli-checkpoint.sh
+
       - name: Run token budget and benchmark protocol tests
         run: chmod +x scripts/benchmark-token-efficiency tests/test-token-benchmarks.sh tests/fixtures/fake-codex-app-server.py tests/fixtures/fake-claude-cli.py && ./tests/test-token-benchmarks.sh
 

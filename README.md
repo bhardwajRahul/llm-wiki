@@ -19,6 +19,13 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
+**v0.24.0** — **Project Knowledge Checkpoints Export.** Exports comprehensive,
+cross-topic project handoffs under `docs/knowledge/<slug>/` with
+dry-run-first create and refresh, read-only verification and bounded import,
+exact source and section coverage, explicit omissions, semantic privacy
+minimization, deterministic sealing, attested overrides, and a thin-output
+guard. Checkpoint writes never authorize commit, publication, or import.
+
 **v0.23.0** — **Personal specialist framework.** Adds optional user-owned,
 instruction-only `SKILL.md` review methods under the user's local wiki hub,
 explicit per-topic allowlists, deterministic validation and management, and research
@@ -431,6 +438,9 @@ Check your installed version:
 /wiki:audit --project gut-brain-playbook          # Truth-seeking audit across outputs + wiki + fresh research
 /wiki:output report --topic gut-brain             # Generate a report
 /wiki:output slides --retardmax                   # Ship a rough slide deck NOW
+/wiki:checkpoint create my-project --repo . --audience team  # Preview a comprehensive cross-topic, privacy-sealed project handoff
+/wiki:checkpoint create my-project --repo . --audience team --apply  # Stage, seal, verify, then write; never commit/push
+/wiki:checkpoint verify docs/knowledge/my-project # Recheck hashes and the privacy attestation
 /wiki:assess /path/to/my-app --wiki nutrition     # Gap analysis: repo vs wiki vs market
 /wiki:lint --fix                                  # Clean up inconsistencies
 ```
@@ -464,10 +474,17 @@ checks without an agent:
 ./scripts/llm-wiki specialist validate
 ./scripts/llm-wiki specialist enable research-methodologist --wiki nutrition
 ./scripts/llm-wiki specialist list --wiki nutrition --json
+./scripts/llm-wiki checkpoint seal docs/knowledge/my-project --audience team --json
+./scripts/llm-wiki checkpoint verify docs/knowledge/my-project --json
 ```
 
 This local helper covers structural checks and safe migrations that do not
-require an LLM. The agentic `/wiki:lint` workflow remains the full protocol for
+require an LLM. Checkpoint sealing is mandatory for generated project
+handoffs: it enforces comprehensive input-to-section coverage and a
+deterministic thin-output floor, hashes the bundle, scans for sensitive
+information without printing matched values, and writes `privacy-report.json`.
+There is no no-scan option; intentional exceptions name exact finding IDs and
+remain visibly attested as `overridden`. The agentic `/wiki:lint` workflow remains the full protocol for
 editorial and deep verification passes. The local schema helper creates only a
 starter advisory topic guide (`schema.md`); run librarian conventions advice
 for established wikis before adopting topic-specific vocabulary. The local archive helper
@@ -614,6 +631,11 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:refresh [<article-path>|--due]` | Re-check article sources for changed facts and offer human-gated updates |
 | `/wiki:output <type>` | Generate: summary, report, study-guide, slides, timeline, glossary, comparison |
 | `/wiki:output <type> --retardmax` | Ship it now — rough but comprehensive, iterate later |
+| `/wiki:checkpoint create [<slug>] --repo <path> --audience private\|team\|public` | Preview a comprehensive cross-topic checkpoint with source access, section coverage, detail-floor, privacy, and gap review |
+| `/wiki:checkpoint create ... --apply` | Stage, synthesize, deterministically privacy-seal, verify, and write a five-file repo handoff without committing or pushing |
+| `/wiki:checkpoint refresh <bundle> [--apply]` | Re-run stored scope and review source/claim/privacy differences before replacing generated files |
+| `/wiki:checkpoint verify <bundle>` | Recheck structure, checkpoint/file hashes, privacy findings, and exact recorded overrides |
+| `/wiki:checkpoint import <bundle\|repo> --wiki <name>` | Verify and ingest a pinned checkpoint as bounded source evidence, never canonical truth |
 | `/wiki:project new <slug> "goal"` | Group related outputs under `output/projects/<slug>/` with a plain `WHY.md` rationale |
 | `/wiki:project list\|show\|add\|archive` | Manage output project folders without duplicating project state into frontmatter |
 | `/wiki:retract [<source-path>]` | User-authoritative removal of a source and its downstream wiki references, including selected archives and sessions |

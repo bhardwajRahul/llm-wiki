@@ -31,6 +31,7 @@ No LLM calls. Validates wiki file structure, default `schema.md`, frontmatter sc
 ./tests/test-structure.sh
 ./tests/test-local-cli-lint.sh
 ./tests/test-local-cli-specialists.sh
+./tests/test-local-cli-checkpoint.sh
 
 # Validate plugin manifest and docs/version consistency
 ./tests/test-plugin-validate.sh

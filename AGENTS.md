@@ -142,6 +142,13 @@ provider steps stay private.
 packages live under `HUB/.skills/`, are explicitly enabled per active topic,
 and never grant tools, write authority, professional status, or permission to
 spawn agents. Select the minimum useful method and record its version/hash.
+17. **Named adapters can be explicit-only.** `wiki skill-factory <request>`
+selects the registered `skill-factory` adapter by name, runs doctor, and follows
+its adapter-owned guide. It has no ambient route; every generated candidate is
+disabled, and install/enable/commit/publication remain separate actions.
+18. **Project checkpoints are comprehensive and privacy-sealed.** Never dump
+raw/sessions or summarize scope away; require coverage, a detail floor, seal,
+and exact overrides.
 
 ## File Formats
 
@@ -454,6 +461,13 @@ For an action plus URL, run `llm-wiki adapter route --intent <effect>
 --resource <url> --json` before ingestion. A match returns the adapter guide;
 read it and run `adapter doctor`. No-match resumes normal routing; ambiguity or
 drift fails closed.
+
+For an explicit `wiki skill-factory <request>` call, do not invent a URL.
+Resolve the registered `skill-factory` adapter with `adapter show`, run
+`adapter doctor skill-factory`, and read its adapter-owned guide. This named
+adapter has no ambient route. Its external output must remain disabled and may
+not be installed, enabled for a topic, committed, or published without separate
+explicit authorization.
 
 Use the bundled `bin/llm-wiki` from the installed plugin root, or
 `scripts/llm-wiki` in a source checkout:
@@ -950,6 +964,18 @@ Projects are a lightweight overlay — they don't move or copy wiki content.
 Project archive is separate from topic archive: it moves one folder under
 `output/projects/.archive/` inside the selected topic wiki.
 
+### Project Knowledge Checkpoint
+
+Bundle `index.md`, `project-knowledge.md`, `sources.md`, `checkpoint.json`, and
+generated `privacy-report.json` under `docs/knowledge/<slug>/`. Preview
+scope/privacy/diffs before `--apply`; verify hashes/attestation; import only
+pinned evidence.
+
+Audience is `private|team|public`; unknown access fails. Exclude raw/session/
+prompt data, secrets, identities, and private/personal/confidential records.
+Stage, seal, copy only passed/overridden output, then reverify. Scans cannot be
+disabled; exact overrides stay attested and permissions remain separate.
+
 ### Feedback
 
 Review and promote high-signal user-feedback candidates. Hooks may capture
@@ -969,11 +995,15 @@ Flags: `--dry-run` (preview without writing), `--rules` (also propose CLAUDE.md/
 
 Auto-run lightweight checks after write operations:
 
-1. Hub should only have `wikis.json`, `_index.md`, `log.md`, `topics/`, and
-   optional `.sessions/` and `.skills/`. `topics/.archive/` is allowed for
-   archived topic wikis. Validate `.skills/` with the instruction-only package
-   and active-topic allowlist rules. Warn on anything else; never delete
-   hub-level content automatically.
+1. Hub should only have `wikis.json`, `_index.md`, optional `README.md`,
+   `log.md`, `topics/`, and optional `.sessions/` and `.skills/`.
+   `topics/.archive/` is allowed for archived topic wikis. When the hub or a
+   topic wiki is itself a Git repository root, preserve its conventional Git
+   and project metadata (`.git`, `.github/`, ignore/attribute files, agent
+   instructions, contribution/security/changelog files, and licenses).
+   Validate `.skills/` with the instruction-only package and active-topic
+   allowlist rules. Warn on anything else; never delete hub-level content
+   automatically.
 2. Index freshness: file counts match index rows, including inventory and dataset indexes. Ignore maintenance/report directories such as `.librarian/` and `.audit/`. Auto-fix mismatches by regenerating the affected directory index.
 3. Orphan detection: files not in any index → add them.
 4. Missing core topic directories → create with empty _index.md. Inventory and dataset layers are lazy: repair indexes when they already exist, but do not create absent optional trees unless the current inventory or dataset workflow needs them. For older compiled articles, infer safe schema fields from the directory/body and rewrite fuzzy raw-source refs only when they resolve unambiguously.
