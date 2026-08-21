@@ -63,6 +63,11 @@ There is no `/wiki:migrate` command and there should never be one. Lint rules **
 - [ ] Hub `topics/.archive/`, when present, contains only archived topic
   directories. Archived topic roots still have their own `_index.md`, but
   normal topic lint skips them unless explicitly included.
+- [ ] Optional hub `.skills/`, when present, has `_index.md`, schema-v1
+  `registry.json`, and valid instruction-only specialist packages. Package
+  names/frontmatter match; required method sections exist; allowlists reference
+  valid specialists and active topics; symlinks, executable files, scripts,
+  binaries, and undeclared package paths fail validation.
 
 ### C2: Frontmatter (Critical/Warning)
 
@@ -222,21 +227,31 @@ Any file that is not in the canonical allowlist for its location is either a use
 
 | Location | Allowed items |
 |----------|--------------|
-| HUB | `wikis.json`, `_index.md`, `log.md`, `topics/` |
+| HUB | `wikis.json`, `_index.md`, `README.md`, `log.md`, `topics/`, optional `.sessions/`, optional `.skills/` |
+| `HUB/.skills/` | `_index.md`, `registry.json`, and lowercase specialist package directories |
+| `HUB/.skills/<name>/` | `SKILL.md` and optional `references/` containing Markdown only |
 | `HUB/topics/` | active topic directories plus `.archive/` |
 | `HUB/topics/.archive/` | archived topic directories |
-| Topic wiki root | `_index.md`, `config.md`, `schema.md`, `log.md`, `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, `.obsidian/`, `.librarian/`, `.audit/`, `.research-session.json`, `.thesis-session.json`, `.session-events.jsonl`, `.session-checkpoint.json` |
+| Topic wiki root | `_index.md`, `README.md`, `config.md`, `schema.md`, `log.md`, `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, `.obsidian/`, `.librarian/`, `.audit/`, `.research-session.json`, `.thesis-session.json`, `.session-events.jsonl`, `.session-checkpoint.json` |
 | `raw/` | `_index.md`, `articles/`, `papers/`, `repos/`, `notes/`, `data/` |
 | `wiki/` | `_index.md`, `concepts/`, `topics/`, `references/`, `theses/` |
-| `inventory/` | `_index.md`, `items/`, `candidates/`, `entities/`, `corpora/`, `views/` |
+| `inventory/` | `_index.md`, `items/`, `ideas/`, `candidates/`, `entities/`, `corpora/`, `views/` |
 | `datasets/` | `_index.md` + dataset slug directories |
 | `raw/<type>/` | `_index.md` + `*.md` files with valid frontmatter |
 | `wiki/<category>/` | `_index.md` + `*.md` files with valid frontmatter |
-| `inventory/{items,candidates,entities,corpora}/` | `_index.md` + `*.md` files with valid inventory record frontmatter |
+| `inventory/{items,ideas,candidates,entities,corpora}/` | `_index.md` + `*.md` files with valid inventory record frontmatter |
 | `inventory/views/` | `_index.md` + derived `*.md` view files with lightweight view frontmatter |
 | `datasets/<slug>/` | `_index.md`, `MANIFEST.md`, `samples/`, `profiles/`, `queries/` |
 | `datasets/<slug>/{samples,profiles,queries}/` | `_index.md` + `*.md` notes |
 | `inbox/` | `.processed/`, `.unknown/`, user-dropped files |
+
+When the hub or topic wiki root is itself a Git repository root (a `.git`
+directory or worktree `.git` file exists there), also allow the repository's
+`.git`, optional `.github/`, `AGENTS.md`, `CLAUDE.md`, `CHANGELOG.md`,
+`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `LICENSE.md`,
+`.gitignore`, `.gitattributes`, and `.gitmodules`. Do not apply this exception
+merely because some parent directory is a repository: project metadata does not
+belong inside an ordinary nested `.wiki/`.
 
 **Checks**:
 
@@ -327,14 +342,17 @@ exists.
 - [ ] If `inventory/` is missing entirely, report "no inventory layer yet" as a suggestion.
 - [ ] If `inventory/` exists, it has `_index.md`.
 - [ ] If any inventory subdirectory exists, it has `_index.md`.
-- [ ] Inventory records under `inventory/items/`, `inventory/candidates/`,
-  `inventory/entities/`, and `inventory/corpora/` have valid frontmatter when present:
+- [ ] Inventory records under `inventory/items/`, `inventory/ideas/`,
+  `inventory/candidates/`, `inventory/entities/`, and `inventory/corpora/` have valid frontmatter when present:
   `title`, `kind`, `status`, `priority`, `created`, `updated`, `tags`,
   `summary`
 - [ ] Inventory view files under `inventory/views/` have lightweight view
   frontmatter when present: `title`, `view`, `updated`, `summary`
-- [ ] `kind` is one of: `item`, `ingest-candidate`, `entity`, `corpus`,
+- [ ] `kind` is one of: `item`, `idea`, `ingest-candidate`, `entity`, `corpus`,
   `question`, `task`, `artifact`, `watch`
+- [ ] `kind: idea` records live in `inventory/ideas/`. Their optional
+  `approved_at`, `promoted`, and `project` fields follow `ideas.md`; lint does
+  not infer approval, create a Project, or add a manual maturity stage.
 - [ ] `status` is one of: `proposed`, `active`, `blocked`, `ingested`,
   `superseded`, `archived`
 - [ ] `priority` is one of: `p0`, `p1`, `p2`, `p3`, `p4`

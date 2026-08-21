@@ -2,6 +2,17 @@
 
 Standard process for testing and shipping a new version of the llm-wiki plugin.
 
+## User Authorization Gate
+
+- Never bump the distribution version, create or push a version tag, publish or
+  edit a GitHub release, or upgrade an installed release without explicit user
+  authorization for that release in the current task.
+- A request to build, fix, test, commit, push, or prepare release notes is not
+  permission to release. Stop after the tested deliverable and present the
+  proposed version and consolidated notes for approval.
+- Batch adjacent fixes for one feature tranche into one proposed release. Do not
+  create a succession of patch releases unless the user explicitly requests it.
+
 ## Pre-release: Version Bump
 
 0. **Verify GitHub auth uses HTTPS, not SSH**:
@@ -33,6 +44,7 @@ Standard process for testing and shipping a new version of the llm-wiki plugin.
    ./tests/test-docs-consistency.sh
    ./tests/test-structure.sh
    ./tests/test-local-cli-lint.sh
+   ./tests/test-local-cli-adapters.sh
    ./tests/test-codex-sync.sh
    ./tests/test-opencode-sync.sh
    ./tests/test-codex-runtime.sh

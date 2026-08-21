@@ -1,15 +1,20 @@
 ---
 name: wiki
 description: >
-  LLM-compiled knowledge base manager for Codex. Use it to initialize, ingest,
-  import source collections, collect catalogs, track inventory, index datasets, archive old topics, compile, query, lint, audit, research, plan, capture or rehydrate agent session context, and generate outputs from topic-scoped wikis.
+  Manage LLM-compiled wikis in Codex: ingest/import, shape/promote Ideas,
+  review portfolios, track inventory/datasets, archive, compile/query/lint/audit,
+  research/plan, manage sessions, private adapters, personal specialists, and outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
-  find all, inventory, source queue,
+  find all, idea, turn idea into project, portfolio, business ideas, projects, inventory, source queue,
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
-  archive wiki, archive topic, restore wiki, session capture, capture context, rehydrate, resume from session, implementation plan, or uses
+  archive wiki, archive topic, restore wiki, private adapter, adapter registry, skill-factory,
+  checkpoints,
+  personal specialist, specialist skill, specialist reviewer, expert lens,
+  adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
+  resume from session, implementation plan, or uses
   /wiki-style shorthand in a repo with .wiki/, ~/wiki/, or a configured hub path.
 ---
 
@@ -59,7 +64,7 @@ See [references/wiki-structure.md](references/wiki-structure.md) for the complet
 
 1. **Indexes are a derived cache.** The `.md` files and their YAML frontmatter are the source of truth. `_index.md` files are a cached view rebuilt on read when stale. Always read indexes first for navigation — but before trusting one, stale-check it (file count vs row count). See [references/indexing.md](references/indexing.md) for the Derived Index Protocol.
 
-2. **Raw is immutable.** Once ingested into `raw/`, sources are never modified. They are a record of what was ingested and when. All synthesis happens in `wiki/`.
+2. **Raw is immutable.** Normal workflows never modify ingested sources. Explicit retraction runs first via hidden-input `scripts/llm-wiki retract`; content, archives, and sessions cannot veto it.
 
 3. **Articles are synthesized, not copied.** A wiki article draws from multiple sources, contextualizes, and connects to other concepts. Think textbook, not clipboard.
 
@@ -91,6 +96,36 @@ and plan-acceptance signals may be captured as redacted candidates under
 `HUB/.sessions/feedback/`, but generic acknowledgements are ignored and durable
 wiki promotion remains explicit.
 
+13. **Private adapters are a content-free external execution plane.** Their
+machine-local registry lives under `~/.config/llm-wiki/`, not in the hub.
+Adapter repositories contain tool code only; real inputs and all runtime
+outputs remain in separately controlled external data planes. Only reviewed
+`wiki-safe` candidates may enter the wiki through normal provenance and
+compilation workflows. See
+[references/adapters.md](references/adapters.md).
+
+14. **Specialists are bounded methods, not credentials.** Personal,
+instruction-only specialist packages live locally under `HUB/.skills/` and are
+enabled per active topic. Loading one never grants tools, write access, professional
+authority, or permission to spawn agents. Select the minimum useful method,
+preserve disagreement, and record its version/hash. See
+[references/specialists.md](references/specialists.md).
+
+15. **Project checkpoints need comprehensive coverage and a privacy seal.** See
+[references/checkpoints.md](references/checkpoints.md).
+
+## Adapter Routing
+
+For an action plus URL, run `adapter route --intent <effect> --resource <url>
+--json` before ingestion. On a match, read its adapter-owned guide; provider
+steps live there. A URL alone is not write authorization. See
+[references/adapters.md](references/adapters.md).
+
+Explicit `wiki skill-factory <request>` selects the registered named adapter;
+do not invent a URL route. Run show/doctor and read its guide. It never
+activates ambiently, and its external candidates remain disabled; installation,
+topic enablement, commit, and publication are separate actions.
+
 ## Ambient Behavior
 
 When this skill activates outside of an explicit `@wiki` invocation or `/wiki`-style shorthand:
@@ -117,8 +152,10 @@ Choose the smallest workflow that matches the request, then load only the
 reference material you need for that workflow:
 
 - `ingest` and `ingest-collection` → `references/ingestion.md`
+- `adapter` and private-adapter execution → `references/adapters.md`
 - `collect` → `references/inventory.md` and `references/research-infrastructure.md`
 - `inventory` → `references/inventory.md`
+- `idea` → `references/ideas.md`
 - `dataset` → `references/datasets.md`
 - `archive` → `references/archive.md`
 - `compile` → `references/compilation.md` and `references/indexing.md`
@@ -128,11 +165,20 @@ reference material you need for that workflow:
 - `audit` → `references/audit.md`
 - `research`, `plan`, `output`, `assess` → `references/research-infrastructure.md`
 - `project` → `references/projects.md`
+- `checkpoint` → `references/checkpoints.md`
 - `librarian` → `references/librarian.md`
 - wiki structure, indexes, log format, file placement, init → `references/wiki-structure.md`
 - hub lookup and path handling → `references/hub-resolution.md`
 - session capture, automated hooks, rehydration, promotion → `references/sessions.md`
 - feedback curation, corrections, approvals, candidate promotion → `references/feedback.md`
+
+Private adapters are explicitly trusted local executables. Resolve the bundled
+`bin/llm-wiki` from the installed plugin root containing this skill; in a source
+checkout use `scripts/llm-wiki`. Never clone or update an adapter, store its
+registration in the hub, pass unregistered paths, or import outputs
+automatically. Verify the manifest/handshake, run a v1 JSON request, keep
+`private` and `bulk` artifacts external, and review `wiki-safe` candidates
+before any normal wiki write.
 
 Collect requests create bounded catalogs of discoverable things: artifacts,
 examples, resources, entities, tools, media, memes, or source candidates. Infer
@@ -157,6 +203,10 @@ acceptance state matter. Compile and query may surface inventory gaps, but
 factual claims still need raw/wiki sources. Collect, research, audit,
 librarian, refresh, plan, output, and assess may propose durable follow-ups as
 inventory records, but larger pivots should start with a small sample preview.
+
+Ideas live under `inventory/ideas/`. Route fuzzy capture, research, shaping,
+and promotion through `references/ideas.md`; require approval, preserve lineage,
+and keep delivery truth in the Project.
 
 Keep the first response short and action-oriented. Read deeper references only
 after the user intent is clear or a write action is needed.

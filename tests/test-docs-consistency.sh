@@ -24,14 +24,13 @@ def fail(message: str) -> None:
 
 
 def tracked_files(pattern: str) -> list[Path]:
+    discovered = set(root.glob(pattern))
     try:
         output = subprocess.check_output(["git", "ls-files", pattern], text=True)
-        files = [root / line for line in output.splitlines() if line.strip()]
-        if files:
-            return files
+        discovered.update(root / line for line in output.splitlines() if line.strip())
     except Exception:
         pass
-    return sorted(root.glob(pattern))
+    return sorted(discovered)
 
 
 # README active command table should mention every command file. Parse only the
@@ -92,6 +91,18 @@ for path in manifest_paths:
             fail("marketplace.json top-level version and plugin entry version differ")
 if len(set(versions.values())) > 1:
     fail("manifest versions differ: " + ", ".join(f"{k}={v}" for k, v in versions.items()))
+
+
+# Publishing is never implied by implementation work. Keep the explicit user
+# authorization and release-consolidation gates in the durable repo contract.
+release_guide = (root / ".claude/release-checklist.md").read_text(encoding="utf-8")
+normalized_release_guide = " ".join(release_guide.split())
+for required in [
+    "explicit user authorization for that release in the current task",
+    "Batch adjacent fixes for one feature tranche into one proposed release",
+]:
+    if required not in normalized_release_guide:
+        fail(f"release checklist is missing authorization rule: {required}")
 
 
 # REFERENCE_NAMES is intentionally duplicated across validation loops. It should

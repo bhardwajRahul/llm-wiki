@@ -8,6 +8,7 @@ TARGET_PLUGIN="$ROOT/plugins/llm-wiki-opencode"
 TARGET_SKILL="$TARGET_PLUGIN/skills/wiki-manager"
 TARGET_QUERY="$TARGET_PLUGIN/skills/wiki-query"
 CLAUDE_MANIFEST="$ROOT/claude-plugin/.claude-plugin/plugin.json"
+LOCAL_HELPER="$ROOT/scripts/llm-wiki"
 
 if [ ! -d "$SOURCE_SKILL" ]; then
   echo "Missing source skill: $SOURCE_SKILL" >&2
@@ -23,6 +24,21 @@ if [ ! -f "$CLAUDE_MANIFEST" ]; then
   echo "Missing Claude manifest: $CLAUDE_MANIFEST" >&2
   exit 1
 fi
+
+if [ ! -f "$LOCAL_HELPER" ]; then
+  echo "Missing local helper: $LOCAL_HELPER" >&2
+  exit 1
+fi
+
+if ! command -v rsync >/dev/null 2>&1; then
+  echo "Missing required tool: rsync" >&2
+  exit 1
+fi
+
+mkdir -p "$ROOT/claude-plugin/bin" "$TARGET_PLUGIN/bin"
+cp "$LOCAL_HELPER" "$ROOT/claude-plugin/bin/llm-wiki"
+cp "$LOCAL_HELPER" "$TARGET_PLUGIN/bin/llm-wiki"
+chmod 0755 "$ROOT/claude-plugin/bin/llm-wiki" "$TARGET_PLUGIN/bin/llm-wiki"
 
 mkdir -p "$TARGET_PLUGIN/skills"
 # references/ is a symlink into the Claude source — exclude from rsync so it's
@@ -64,17 +80,21 @@ text = skill_path.read_text()
 frontmatter = """---
 name: wiki-manager
 description: >
-  LLM-compiled knowledge base manager for OpenCode. Use it to initialize, ingest,
-  import source collections, collect catalogs, track inventory, index datasets, archive old topics, compile, query, lint, audit, research, plan, capture or rehydrate agent session context, and generate outputs from topic-scoped wikis.
+  Manage LLM-compiled wikis in OpenCode: ingest/import, shape/promote Ideas,
+  review portfolios, track inventory/datasets, archive, compile/query/lint/audit,
+  research/plan, manage sessions, private adapters, personal specialists, and outputs.
   Activates when the user mentions wiki workflows, knowledge-base management,
   ingestion, collection ingestion, import wiki, collect, catalog, curate,
-  find all, inventory, source queue,
+  find all, idea, turn idea into project, portfolio, business ideas, projects, inventory, source queue,
   candidate list, watch list, backlog, dataset, large data, data registry,
   dataset manifest, compilation, querying, linting, audit, research, librarian,
   scan quality, article quality, content review, output drift, provenance,
-  archive wiki, archive topic, restore wiki, session capture, capture
-  context, rehydrate, resume from session, lessons learned, implementation
-  plan, or uses wiki-related shorthand in a repo with .wiki/, ~/wiki/, or a
+  archive wiki, archive topic, restore wiki, private adapter, adapter registry, skill-factory,
+  checkpoints,
+  personal specialist, specialist skill, specialist reviewer, expert lens,
+  adapter route, adapter doctor, adapter run, edit an external resource, session capture, capture context, rehydrate,
+  resume from session, lessons learned, implementation plan, or uses
+  wiki-related shorthand in a repo with .wiki/, ~/wiki/, or a
   configured hub path.
 ---
 """

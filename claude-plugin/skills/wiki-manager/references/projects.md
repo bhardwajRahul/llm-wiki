@@ -2,6 +2,20 @@
 
 Projects group related outputs — markdown deliverables, images, code, data — into a single folder with a goal. They live inside a topic wiki's `output/projects/` directory.
 
+Projects may start directly, or they may be promoted from a researched and
+shaped Idea in `inventory/ideas/`. See [ideas.md](ideas.md). Direct Projects
+remain appropriate for maintenance, migrations, incident response, and other
+work that does not benefit from an incubation step.
+
+A Project folder is not a portable knowledge export. When teammates need the
+relevant knowledge from multiple topic wikis inside a working repository, use
+the privacy-sealed [Project Knowledge Checkpoint](checkpoints.md) workflow. The
+Project keeps delivery truth; the checkpoint is a reviewable snapshot for
+handoff/import and never becomes a second live Project state store.
+
+The read-only [Portfolio workflow](portfolio.md) lists Projects across active
+topic wikis and distinguishes explicitly promoted Projects from direct ones.
+
 ## Why projects exist at all
 
 Outputs are often multi-artifact. A single deliverable can produce a markdown playbook plus images referenced by `![](screenshot.png)`, a Python prototype, a CSV export, and a generated diagram. **Relative paths only work when these artifacts colocate.** A pure metadata overlay that keeps `output/` flat and tags via frontmatter breaks the moment the first binary asset appears — markdown image links no longer resolve, scripts can't find their data files, and the user has to manually prefix every asset reference.
@@ -52,6 +66,19 @@ LLMs rebuild wrong without rationale. LLMs don't need a manifest format to read 
 6. **Max nesting depth: 3 levels inside a project folder.** `projects/<slug>/code/file.py` is the deepest shape allowed.
 7. **Slugs**: lowercase, hyphen-separated, max 40 characters. Semantic, not date-prefixed. Unique within the topic wiki.
 8. **Goal is mandatory at creation.** Enforced by `/wiki:project new <slug> "goal"` — the goal becomes the body of `WHY.md`.
+
+## Promotion From An Idea
+
+Idea promotion is explicit. It requires a user-approved decision snapshot and
+creates `WHY.md` plus a frozen `BRIEF.md` in the Project folder. `WHY.md` links
+back to the Idea and explains why delivery was committed; `BRIEF.md` preserves
+the approved pre-project scope, no-gos, success criteria, and intended
+deliverable.
+
+After promotion, the Project owns plans, implementation decisions, code, data,
+deliverables, and outcomes. The Idea remains the catalog and lineage record and
+links to the Project, but it must not mirror changing implementation state.
+Project archive and Idea archive are independent operations.
 
 ## Archive = move the folder
 

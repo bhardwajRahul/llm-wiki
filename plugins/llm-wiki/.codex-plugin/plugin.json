@@ -1,7 +1,7 @@
 {
   "name": "wiki",
-  "version": "0.16.0",
-  "description": "LLM-compiled knowledge bases for Codex. Build topic-scoped wikis, collect provenance-rich catalogs, archive old topics, track inventory, index datasets, capture sessions, curate feedback, and rehydrate context, ingest sources, compile articles, audit, query, lint, research, and generate outputs, with human-owned topic guides and adoption helpers.",
+  "version": "0.24.0",
+  "description": "LLM-compiled knowledge bases for Codex with personal specialist skills, fuzzy Idea capture, research, shaping, and explicit Project promotion, plus inventory, datasets, source ingestion, compilation, audits, sessions, Project Knowledge Checkpoints Export, and artifact generation.",
   "author": {
     "name": "nvk",
     "url": "https://github.com/nvk"
@@ -27,13 +27,22 @@
     "sessions",
     "feedback",
     "hooks",
-    "context"
+    "context",
+    "ideas",
+    "projects",
+    "adapters",
+    "private-adapters",
+    "specialists",
+    "personal-skills",
+    "skill-factory",
+    "checkpoints",
+    "knowledge-handoff"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "LLM Wiki",
-    "shortDescription": "Build, collect, archive, inventory, index data, capture sessions, curate feedback, audit, and maintain research wikis with topic guides",
-    "longDescription": "Bundle the llm-wiki workflow for Codex: initialize a wiki, collect provenance-rich catalogs, archive old topics, track inventory, index datasets, capture sessions, curate feedback, and rehydrate context, ingest sources and external collections, compile articles, audit outputs and provenance, query knowledge, lint structure, run research, and generate outputs, plus human-owned topic guides and adoption helpers.",
+    "shortDescription": "Research, shape Ideas, and export project knowledge checkpoints",
+    "longDescription": "Bundle the llm-wiki workflow for Codex: apply personal specialist methods, capture rough Ideas, research and shape them, explicitly promote approved briefs into Projects, and maintain topic-scoped sources, compiled knowledge, inventory, datasets, sessions, audits, plans, Project Knowledge Checkpoints Export, and generated artifacts.",
     "developerName": "nvk",
     "category": "Productivity",
     "capabilities": [
@@ -42,6 +51,9 @@
     ],
     "websiteURL": "https://github.com/nvk/llm-wiki",
     "defaultPrompt": [
+      "Export a Project Knowledge Checkpoint from relevant research across my topic wikis, with privacy checks.",
+      "Capture this rough Idea, research it, shape alternatives, and wait for approval before creating a Project.",
+      "Run a registered private adapter and review only its wiki-safe evidence candidates.",
       "Research a new topic and compile it into a wiki.",
       "Collect a catalog of examples, tools, memes, media, projects, or source candidates and decide what should become inventory.",
       "Archive an old topic wiki so it stays preserved but out of default context.",

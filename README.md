@@ -7,9 +7,9 @@
 ╚══════╝╚══════╝╚═╝     ╚═╝     ╚══╝╚══╝ ╚═╝╚═╝  ╚═╝╚═╝
 ```
 
-[github.com/nvk/llm-wiki](https://github.com/nvk/llm-wiki)
+[llm-wiki.net](https://llm-wiki.net/) · [@LLMWIKI on X](https://x.com/LLMWIKI) · [github.com/nvk/llm-wiki](https://github.com/nvk/llm-wiki)
 
-LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, collector catalogs, automated session capture, feedback curation, thesis-driven investigation, source ingestion, wiki compilation, truth-seeking audits, querying, and artifact generation. Ships as a Claude Code plugin, an OpenAI Codex plugin, an OpenCode instruction file, or a portable AGENTS.md for any other LLM agent. Obsidian-compatible.
+LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and shape them, then explicitly promote approved briefs into delivery Projects. Also includes parallel research, collector catalogs, session memory, source ingestion, compilation, audits, querying, and artifact generation. Ships for Claude Code, OpenAI Codex, OpenCode, and portable agents. Obsidian-compatible.
 
 ---
 
@@ -19,17 +19,43 @@ LLM-compiled knowledge bases for any AI agent. Parallel multi-agent research, co
 
 ## Changelog
 
-**v0.16.0** — **Query Lite and token benchmarks.** Adds a compact read-only query protocol across Claude Code, Codex, Pi, DS4, OpenCode, and portable agents; reduces Claude `/wiki:query` instructions by 72.54%; adds explicit `$wiki-query`, read-only Pi launchers, static context budgets, corpus-identity gates, and reproducible Codex/Claude/DS4 benchmark lanes. OpenCode live-model behavior remains best effort.
+**v0.24.0** — **Project Knowledge Checkpoints Export.** Exports comprehensive,
+cross-topic project handoffs under `docs/knowledge/<slug>/` with
+dry-run-first create and refresh, read-only verification and bounded import,
+exact source and section coverage, explicit omissions, semantic privacy
+minimization, deterministic sealing, attested overrides, and a thin-output
+guard. Checkpoint writes never authorize commit, publication, or import.
 
-**v0.15.0** — **Topic guides.** Reframes `schema.md` as a human-owned topic guide, adds the friendlier `llm-wiki schema adopt` helper, keeps `schema migrate --apply` as a compatibility alias, and updates librarian docs to talk about conventions proposals instead of database-style schema migrations.
+**v0.23.0** — **Personal specialist framework.** Adds optional user-owned,
+instruction-only `SKILL.md` review methods under the user's local wiki hub,
+explicit per-topic allowlists, deterministic validation and management, and research
+selection with version/hash provenance. The public release contains the
+framework only; personal specialist packages and wiki-derived candidate reports
+are not bundled or published.
 
-**v0.14.0** — **Default topic guides.** Adds advisory `schema.md` by default, safe adoption helpers for older wikis, proposal-only librarian convention updates, deterministic docs/lint checks, and clarifies the optional index/server layer as a rebuildable non-authoritative cache.
+**v0.22.0** — **Declarative private-adapter routing.** Registered adapters
+may declare provider-neutral intent and exact-URL routes plus an adapter-owned
+workflow guide. The public plugin discovers the route before ingestion but no
+longer embeds any provider's authentication, browser, recovery, or editing
+workflow.
 
-**v0.12.0** — **Feedback curator.** Captures high-signal corrections, preferences, approvals, and plan acceptance as redacted feedback candidates under `HUB/.sessions/feedback/`; ignores generic acknowledgements; adds review/manual-capture/promotion workflows; and keeps promotion into topic `raw/notes/` explicit.
+**v0.21.3** — **Adapter-boundary transition.** Consolidates the v0.21 line and
+keeps the session-hook compatibility fix. Provider-specific workflow material
+from that line is superseded in current source by manifest-driven routing and
+lives only in the corresponding private adapter.
 
-**v0.11.1** — **Session helper compatibility.** Small hotfix so automated session capture works on Python 3.9/macOS system Python as well as newer Python runtimes.
+**v0.20.0** — **Governed remote writes.** Extends private adapters with exact
+remote-resource allowlists, declared read/write effects, explicit approval
+bound to an exact plan hash, expected revisions, stable idempotency keys,
+private verified receipts, and content-free terminal reporting.
 
-**v0.11.0** — **Automated session capture.** Default-on redacted checkpoints under `HUB/.sessions/`, opt-out via `session disable`, compact context rehydration, explicit digest promotion, and a tested Codex hook bundle.
+**v0.19.0** — **Private adapter protocol.** Adds an explicitly trusted,
+machine-local adapter registry and portable `llm-wiki-adapter/v1` JSON contract,
+with manifest handshakes, path scopes, sanitized environments, hash-verified
+artifacts, bundled management CLI, and an explicit workflow boundary that never
+passes a wiki destination or auto-promotes adapter output.
+
+**v0.18.0** — **Hub-wide portfolio.** Adds `/wiki:portfolio`, a live read-only view across active topic wikis that lists canonical Ideas and active Projects separately, distinguishes explicitly promoted Projects from direct ones, preserves Concepts as supporting knowledge, and avoids catch-all topics, duplicated records, inferred lineage, and stale portfolio caches.
 
 ## Install
 
@@ -380,6 +406,8 @@ Check your installed version:
 /wiki:research "gut-brain axis" --wiki nutrition   # Add more research to existing wiki
 /wiki:research "fasting" --deep --min-time 2h     # 8 agents, keep going for 2 hours
 /wiki:research "keto" --retardmax                 # 10 agents, max speed, ingest everything
+/wiki:specialist suggest --wiki all                # Rank reusable personal expert methods from current topic indexes
+/wiki:research "causal evidence" --specialist research-methodologist  # Apply one enabled bounded review method
 /wiki:research "What makes long form articles go viral?" --new-topic  # Question → decompose → playbook
 /wiki:thesis "fiber reduces neuroinflammation via SCFAs"  # Thesis-driven: evidence for + against → verdict
 /wiki:thesis "cold exposure upregulates BDNF" --min-time 1h  # Deep thesis investigation
@@ -410,6 +438,9 @@ Check your installed version:
 /wiki:audit --project gut-brain-playbook          # Truth-seeking audit across outputs + wiki + fresh research
 /wiki:output report --topic gut-brain             # Generate a report
 /wiki:output slides --retardmax                   # Ship a rough slide deck NOW
+/wiki:checkpoint create my-project --repo . --audience team  # Preview a comprehensive cross-topic, privacy-sealed project handoff
+/wiki:checkpoint create my-project --repo . --audience team --apply  # Stage, seal, verify, then write; never commit/push
+/wiki:checkpoint verify docs/knowledge/my-project # Recheck hashes and the privacy attestation
 /wiki:assess /path/to/my-app --wiki nutrition     # Gap analysis: repo vs wiki vs market
 /wiki:lint --fix                                  # Clean up inconsistencies
 ```
@@ -431,15 +462,50 @@ checks without an agent:
 ./scripts/llm-wiki-session --hub /path/to/hub enable --mode balanced --tool-events 50
 ./scripts/llm-wiki-session --hub /path/to/hub rehydrate --cwd "$PWD"
 ./scripts/llm-wiki-session --hub /path/to/hub feedback list --unpromoted
+./scripts/llm-wiki adapter add /private/adapter --read-root /private/input --write-root /private/results
+./scripts/llm-wiki adapter doctor <id>
+./scripts/llm-wiki adapter run <id> --request /absolute/request.json --json
+./scripts/llm-wiki adapter run <id> --request /absolute/apply.json \
+  --response /private/results/receipt.json \
+  --approve-remote-write <plan-sha256> --json
+./scripts/llm-wiki specialist init
+./scripts/llm-wiki specialist create research-methodologist \
+  --description "Reviews study design, causal claims, evidence quality, and reproducibility."
+./scripts/llm-wiki specialist validate
+./scripts/llm-wiki specialist enable research-methodologist --wiki nutrition
+./scripts/llm-wiki specialist list --wiki nutrition --json
+./scripts/llm-wiki checkpoint seal docs/knowledge/my-project --audience team --json
+./scripts/llm-wiki checkpoint verify docs/knowledge/my-project --json
 ```
 
 This local helper covers structural checks and safe migrations that do not
-require an LLM. The agentic `/wiki:lint` workflow remains the full protocol for
+require an LLM. Checkpoint sealing is mandatory for generated project
+handoffs: it enforces comprehensive input-to-section coverage and a
+deterministic thin-output floor, hashes the bundle, scans for sensitive
+information without printing matched values, and writes `privacy-report.json`.
+There is no no-scan option; intentional exceptions name exact finding IDs and
+remain visibly attested as `overridden`. The agentic `/wiki:lint` workflow remains the full protocol for
 editorial and deep verification passes. The local schema helper creates only a
 starter advisory topic guide (`schema.md`); run librarian conventions advice
 for established wikis before adopting topic-specific vocabulary. The local archive helper
 performs the deterministic folder move plus `wikis.json`, hub index, and log
 updates.
+
+## Personal Specialist Skills
+
+An optional user-owned library under `HUB/.skills/` stores reusable
+Agent Skills-compatible `SKILL.md` methods. Specialists encode bounded evidence
+and review protocols—not simulated CFO, physician, MBA, or PhD credentials.
+They are explicitly enabled per active topic, instruction-only in v1, and
+cannot grant tools, writes, subagents, or professional authority.
+
+Research can select zero to three enabled specialists (normally one), give each
+the same bounded evidence packet, and record its version and content hash in
+provenance. `/wiki:specialist suggest` examines current topic indexes and ranks
+candidate methods without creating them; `/wiki:specialist apply` performs a
+bounded review. See the [specialist reference](claude-plugin/skills/wiki-manager/references/specialists.md)
+for local storage, sharing boundaries, validation, selection, high-stakes
+escalation, and eval rules.
 
 ## Session Memory
 
@@ -487,6 +553,14 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:ingest-collection <source>` | Bulk-ingest Git doc repos, BIP-style proposal sets, MediaWiki dumps/API sites, message archives, or Wayback CDX snapshots |
 | `/wiki:ingest-collection <source> --adapter git\|mediawiki-dump\|mediawiki-api\|csv-messages\|wayback-cdx` | Force a collection adapter |
 | `/wiki:ingest-collection <source> --limit <N> --dry-run` | Preview or cap a large collection import |
+| `/wiki:adapter add <local-path>` | Register an existing explicitly trusted private adapter checkout; never clones or publishes it |
+| `/wiki:adapter list\|show\|doctor` | Inspect registrations and verify manifest/executable handshakes |
+| `/wiki:adapter run <id> --request <json>` | Execute a scoped v1 request and verify artifacts without automatic wiki import; remote writes additionally require an exact approved plan hash and private verified receipt |
+| `/wiki:adapter remove <id> --yes` | Remove only the machine-local registration, not adapter code or data |
+| `/wiki:specialist init\|create\|refresh\|list\|show\|validate` | Manage personal, instruction-only specialist `SKILL.md` methods under the local hub at `HUB/.skills/` |
+| `/wiki:specialist enable\|disable <name> --wiki <topic>` | Change the explicit per-active-topic specialist allowlist |
+| `/wiki:specialist suggest [--wiki <topic\|all>]` | Rank bounded specialist methods justified by current wiki indexes without creating them |
+| `/wiki:specialist apply <name> <question> --wiki <topic>` | Apply one enabled, validated specialist and report its version/hash |
 | `/wiki:collect "<things>"` | Find, dedupe, and catalog artifacts, examples, resources, media, memes, tools, entities, or source candidates |
 | `/wiki:collect "<things>" --scale tiny\|small\|medium\|large\|huge` | Control write behavior by operational scale, not just row count |
 | `/wiki:collect "<things>" --media archive\|thumbnail\|reference` | Download/cache bounded originals by default; use thumbnail for previews or reference to opt out |
@@ -498,6 +572,12 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:inventory save-view "name"` | Save a derived reusable table/list under `inventory/views/` |
 | `/wiki:inventory scan-outputs --dry-run` | Find old queue/backlog outputs and preview sample records before migration |
 | `/wiki:inventory migrate-output <path> --apply` | Additively create inventory records from a legacy output; never moves or deletes the output |
+| `/wiki:idea new [<slug>] "<seed>"` | Capture a rough proposal under `inventory/ideas/` without creating a Project |
+| `/wiki:idea list\|show` | Browse the topic or hub-wide Idea catalog with derived maturity and next actions |
+| `/wiki:idea develop\|shape <slug>` | Research an Idea, challenge assumptions, and prepare minimal/ideal shapes for approval |
+| `/wiki:idea promote <slug>` | Explicitly promote an approved snapshot into a linked Project with `WHY.md` and frozen `BRIEF.md` |
+| `/wiki:idea archive <slug>` | Archive the Idea record without implicitly archiving its linked Project |
+| `/wiki:portfolio [filters]` | Show a read-only hub-wide view of canonical Ideas and active Projects without creating a catch-all topic |
 | `/wiki:dataset list` | List dataset manifests as compact chat-friendly tables or bullets |
 | `/wiki:dataset list --view schema` | Show schema/readiness state without opening samples or data |
 | `/wiki:dataset add "title" --location <path-or-url>` | Add a dataset manifest without copying data into the wiki |
@@ -531,6 +611,8 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:research <topic> --new-topic` | Create a topic wiki and start researching — works from any directory |
 | `/wiki:research <topic> --min-time 1h` | Keep researching in rounds until time budget is spent |
 | `/wiki:research <topic> --plan` | Decompose into 3-5 parallel paths, confirm, then dispatch all at once |
+| `/wiki:research <topic> --specialist <name>` | Apply an enabled personal specialist method; repeat at most three times |
+| `/wiki:research <topic> --no-specialists` | Run the baseline workflow without loading specialist bodies |
 | `/wiki:research <topic> --deep` | 8 agents: adds historical, adjacent, data/stats |
 | `/wiki:research <topic> --retardmax` | 10 agents: skip planning, max speed, ingest aggressively |
 | `/wiki:thesis <claim>` | Thesis-driven research: evidence for + against → verdict |
@@ -549,16 +631,22 @@ for the storage layout, privacy defaults, capture modes, and adapter contract.
 | `/wiki:refresh [<article-path>|--due]` | Re-check article sources for changed facts and offer human-gated updates |
 | `/wiki:output <type>` | Generate: summary, report, study-guide, slides, timeline, glossary, comparison |
 | `/wiki:output <type> --retardmax` | Ship it now — rough but comprehensive, iterate later |
+| `/wiki:checkpoint create [<slug>] --repo <path> --audience private\|team\|public` | Preview a comprehensive cross-topic checkpoint with source access, section coverage, detail-floor, privacy, and gap review |
+| `/wiki:checkpoint create ... --apply` | Stage, synthesize, deterministically privacy-seal, verify, and write a five-file repo handoff without committing or pushing |
+| `/wiki:checkpoint refresh <bundle> [--apply]` | Re-run stored scope and review source/claim/privacy differences before replacing generated files |
+| `/wiki:checkpoint verify <bundle>` | Recheck structure, checkpoint/file hashes, privacy findings, and exact recorded overrides |
+| `/wiki:checkpoint import <bundle\|repo> --wiki <name>` | Verify and ingest a pinned checkpoint as bounded source evidence, never canonical truth |
 | `/wiki:project new <slug> "goal"` | Group related outputs under `output/projects/<slug>/` with a plain `WHY.md` rationale |
 | `/wiki:project list\|show\|add\|archive` | Manage output project folders without duplicating project state into frontmatter |
-| `/wiki:retract <source-path> --reason "why"` | Remove a bad source, map blast radius, and flag downstream claims for review |
+| `/wiki:retract [<source-path>]` | User-authoritative removal of a source and its downstream wiki references, including selected archives and sessions |
+| `scripts/llm-wiki retract --everywhere [--apply]` | Secret-safe local value scan: hidden/stdin input, common encoded forms, dry-run first, then apply and verify |
 | `/wiki:ll` | Extract lessons learned from the current session into the wiki |
 | `/wiki:ll --dry-run` | Preview extracted lessons without writing |
 | `/wiki:ll --rules` | Also suggest CLAUDE.md / AGENTS.md rule additions |
 | `/wiki:assess <path>` | Assess a repo against wiki research + market. Gap analysis. |
 | `/wiki:assess <path> --retardmax` | Wide net — adds adjacent fields and failure analysis |
 
-All commands accept `--wiki <name>` to target a specific topic wiki and `--local` to target the project wiki. Archived topic wikis are skipped by default; commands that support `--include-archived` require that explicit flag before reading or writing archived material. Commands that generate content (`query`, `output`, `plan`) also accept `--with <wiki>` to load supplementary wikis as cross-wiki context — e.g., `--with article-writing` applies writing craft knowledge when generating output from a domain wiki.
+All commands accept `--wiki <name>` to target a specific topic wiki and `--local` to target the project wiki. Archived topic wikis are skipped by default; commands that support `--include-archived` require that explicit flag before reading or writing archived material. Retraction is the exception: an explicitly selected archived target needs no additional gate, and `scripts/llm-wiki retract --everywhere` includes archives and session context. Commands that generate content (`query`, `output`, `plan`) also accept `--with <wiki>` to load supplementary wikis as cross-wiki context — e.g., `--with article-writing` applies writing craft knowledge when generating output from a domain wiki.
 
 `/wiki:librarian` is the focused wiki-maintenance tool. `/wiki:audit` is broader and may perform fresh research to decide whether the current knowledge or generated outputs are still trustworthy.
 
@@ -572,11 +660,12 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
 ├── _index.md                           # Lists topic wikis with stats
 ├── log.md                              # Global activity log
 ├── .sessions/                          # Optional session capture + feedback candidates
+├── .skills/                            # Optional personal specialist methods + topic allowlists
 └── topics/                             # Each topic is an isolated wiki
     ├── nutrition/                      # Example topic wiki
     │   ├── .obsidian/                  # Optional Obsidian vault config
     │   ├── inbox/                      # Drop zone for this topic
-    │   ├── inventory/                  # Lazy: durable tracking records + derived views
+    │   ├── inventory/                  # Lazy: durable records, Ideas, and derived views
     │   ├── datasets/                   # Lazy: manifests for large/external data
     │   ├── raw/                        # Immutable sources
     │   ├── wiki/                       # Compiled articles
@@ -593,24 +682,31 @@ All commands accept `--wiki <name>` to target a specific topic wiki and `--local
     └── ...
 ```
 
-The hub is just a registry — no content directories, no `.obsidian/`. All content lives in topic sub-wikis with isolated indexes, articles, and a human-owned advisory topic guide (`schema.md`). Init creates the core wiki skeleton first; optional inventory and dataset layers are created when you use them. Queries stay focused. The multi-wiki peek finds overlap across topics when relevant.
+The hub has no content directories or `.obsidian/`; optional `.sessions/` and
+`.skills/` are operational configuration/memory layers. All content lives in
+topic sub-wikis with isolated indexes, articles, and a human-owned advisory
+topic guide (`schema.md`). Init creates the core wiki skeleton first; optional
+inventory and dataset layers are created when you use them. Queries stay
+focused. The multi-wiki peek finds overlap across topics when relevant.
 
 ### The Flow
 
 1. **Research** a topic — parallel agents search the web, ingest sources, and compile articles in one command
-2. **Ingest** additional sources — URLs, files, text, tweets (via Grok MCP), or bulk via inbox
-3. **Collect** catalogs of discoverable things — examples, media, memes, tools, projects, entities, or source candidates — then optionally inventory them
-4. **Inventory** items, candidates, entities, corpora, watch lists, and next actions that should persist; the agent tells you when inventory is the wrong layer
-5. **Index datasets** that are too large for markdown — manifests, profiles, samples, and query recipes
-6. **Archive** whole topic wikis that should stay preserved but quiet
-7. **Compile** raw sources into synthesized wiki articles with cross-references and confidence scores
-8. **Query** the wiki — quick (indexes), standard (articles), or deep (everything active, archived indexes separated)
-9. **Session capture** — automatically preserve redacted Codex/Claude/OpenCode/Gemini checkpoints under `.sessions/` and rehydrate future turns
-10. **Feedback curator** — capture reviewable correction/preference/approval candidates under `.sessions/feedback/` and promote only what matters
-11. **Lessons learned** — extract knowledge from the current session (errors, fixes, gotchas) into the wiki
-12. **Assess** a repo against the wiki — gap analysis: what aligns, what's missing, what the market offers
-13. **Lint** for consistency — broken links, missing indexes, orphan articles, archive registry drift
-14. **Output** artifacts — summaries, reports, slides — filed back into the wiki
+2. **Apply specialist methods** — select a topic-allowlisted evidence/review protocol without pretending the model holds a credential
+3. **Ingest** additional sources — URLs, files, text, tweets (via Grok MCP), or bulk via inbox
+4. **Collect** catalogs of discoverable things — examples, media, memes, tools, projects, entities, or source candidates — then optionally inventory them
+5. **Inventory** items, candidates, entities, corpora, watch lists, and next actions that should persist; the agent tells you when inventory is the wrong layer
+6. **Develop Ideas** from rough seed to researched, challenged, approved shape, then explicitly promote them into delivery Projects
+7. **Index datasets** that are too large for markdown — manifests, profiles, samples, and query recipes
+8. **Archive** whole topic wikis that should stay preserved but quiet
+9. **Compile** raw sources into synthesized wiki articles with cross-references and confidence scores
+10. **Query** the wiki — quick (indexes), standard (articles), or deep (everything active, archived indexes separated)
+11. **Session capture** — automatically preserve redacted Codex/Claude/OpenCode/Gemini checkpoints under `.sessions/` and rehydrate future turns
+12. **Feedback curator** — capture reviewable correction/preference/approval candidates under `.sessions/feedback/` and promote only what matters
+13. **Lessons learned** — extract knowledge from the current session (errors, fixes, gotchas) into the wiki
+14. **Assess** a repo against the wiki — gap analysis: what aligns, what's missing, what the market offers
+15. **Lint** for consistency — broken links, missing indexes, orphan articles, archive registry drift
+16. **Output** artifacts — summaries, reports, slides — filed back into the wiki
 
 ### Key Design
 
@@ -619,12 +715,20 @@ The hub is just a registry — no content directories, no `.obsidian/`. All cont
   names such as `memes-bitcoin`, `memes-ethereum`, or `tools-bitcoin` so
   related catalogs group naturally as the hub grows.
 - **Parallel research agents** — 5 standard, 8 deep, 10 retardmax. Each agent searches from a different angle.
+- **Personal specialist methods** — user-owned, instruction-only `SKILL.md`
+  protocols selected by task features and enabled per topic; methods, not
+  credential costumes.
 - **Collector workflow** — search-driven catalogs for objects, media, and
   examples; saves a provenance map first, then inventories only the durable
   subset.
+- **Concept → Idea → Project** — compiled Concepts hold knowledge, cataloged
+  Ideas hold researched/shaped proposals, and Projects begin only after
+  explicit delivery commitment. Natural language routes the whole lifecycle.
+- **Hub-wide portfolio** — one live, read-only view cross-references distributed
+  Ideas and direct/promoted Projects without duplicating topic-owned records.
 - **`_index.md` navigation** — every existing wiki-managed directory has an index. Claude reads indexes first, never scans blindly.
 - **Articles are synthesized**, not copied — they explain, contextualize, cross-reference.
-- **Raw is immutable** — once ingested, sources are never modified.
+- **Raw is immutable in normal workflows** — explicit user-directed retraction is the exception and removes selected raw and derived references.
 - **Multi-wiki aware** — queries peek at sibling wiki indexes for overlap.
 - **Archive-aware** — archived topic wikis stay preserved under
   `topics/.archive/` but are hidden from default query/compile/research/collect/output

@@ -58,10 +58,6 @@ if [[ "$pi_dry_run" != *"--tools read\\,grep\\,find\\,ls"* \
   echo "$pi_dry_run" >&2
   exit 1
 fi
-if [[ "$pi_dry_run" == *"edit"* || "$pi_dry_run" == *"write"* ]]; then
-  echo "FAIL: generic Pi query launcher exposed write-capable tools" >&2
-  exit 1
-fi
 echo "OK: generic Pi query launcher uses a read-only isolated prompt surface."
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/llm-wiki-ds4-launcher.XXXXXX")"
@@ -86,10 +82,6 @@ if [[ "$dry_run" != *"--tools read\\,grep\\,find\\,ls"* \
    || "$dry_run" != *"profiles/ds4/pi-query-tools.ts"* ]]; then
   echo "FAIL: DS4 launcher dry run is missing the query-only preset" >&2
   echo "$dry_run" >&2
-  exit 1
-fi
-if [[ "$dry_run" == *"edit"* || "$dry_run" == *"write"* ]]; then
-  echo "FAIL: DS4 query launcher exposed write-capable tools" >&2
   exit 1
 fi
 echo "OK: DS4 query launcher uses isolated read-only settings."

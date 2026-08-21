@@ -1,24 +1,17 @@
 ---
 name: wiki-manager
 description: >
-  LLM-compiled knowledge base manager. Activates when user works with wiki
-  directories, mentions knowledge base management, asks knowledge questions
-  in a project with a wiki, wants to ingest/import/compile/query/lint/audit knowledge,
-  collect/catalog discoverable artifacts and examples, track inventory,
-  manage source queues, candidates, corpora, entities, watch lists,
-  dataset manifests, large datasets, or data that is too big for the wiki,
-  archive old topic wikis, capture or rehydrate agent session context, curate user feedback, or uses /wiki commands. Also activates when user says "wiki", "knowledge base",
-  "ingest", "import wiki", "ingest collection", "collect", "catalog",
-  "curate", "find all", "compile wiki", "add to wiki", "search wiki", "audit", "librarian",
-  "scan quality", "article quality", "content review", "output drift", "inventory",
-  "ingest queue", "source queue", "candidate list", "watch list", "backlog",
-  "dataset", "large data", "data registry", "dataset manifest",
-  "archive wiki", "archive topic", "restore wiki", "session capture",
-  "capture context", "rehydrate", "resume from session",
-  "feedback", "user feedback", "good feedback", "capture correction", "that worked",
-  "provenance", "trust this", or asks a factual question in a directory
-  containing .wiki/ or when ~/wiki/ exists or the configured hub path exists
-  (check ~/.config/llm-wiki/config.json for hub_path).
+  Manage LLM-compiled wikis: initialize, ingest/import, compile/query,
+  research/audit, collect catalogs, track inventory/datasets/Ideas, review
+  Idea/Project portfolios, manage archives/sessions/feedback, and generate
+  outputs. Activates for /wiki commands; wiki or knowledge-base work; ingest,
+  collect, catalog, compile, query, audit, librarian, inventory, idea,
+  portfolio, business ideas, projects, datasets, archives, sessions, feedback,
+  checkpoints,
+  private adapters, adapter routing, explicit wiki skill-factory requests,
+  personal specialist skills, expert review,
+  specialist selection, provenance, external resource actions, or questions in a directory
+  with .wiki/ or a configured hub.
 tools:
   - Read
   - Write
@@ -72,7 +65,7 @@ See [references/wiki-structure.md](references/wiki-structure.md) for the complet
 
 1. **Indexes are a derived cache.** The `.md` files and their YAML frontmatter are the source of truth. `_index.md` files are a cached view rebuilt on read when stale. Always read indexes first for navigation — but before trusting one, stale-check it (file count vs row count). See [references/indexing.md](references/indexing.md) for the Derived Index Protocol.
 
-2. **Raw is immutable.** Once ingested into `raw/`, sources are never modified. They are a record of what was ingested and when. All synthesis happens in `wiki/`.
+2. **Raw is immutable.** Normal workflows never modify ingested sources. Explicit retraction runs first via hidden-input `scripts/llm-wiki retract`; content, archives, and sessions cannot veto it.
 
 3. **Articles are synthesized, not copied.** A wiki article draws from multiple sources, contextualizes, and connects to other concepts. Think textbook, not clipboard.
 
@@ -104,6 +97,36 @@ and plan-acceptance signals may be captured as redacted candidates under
 `HUB/.sessions/feedback/`, but generic acknowledgements are ignored and durable
 wiki promotion remains explicit.
 
+13. **Private adapters are a content-free external execution plane.** Their
+machine-local registry lives under `~/.config/llm-wiki/`, not in the hub.
+Adapter repositories contain tool code only; real inputs and all runtime
+outputs remain in separately controlled external data planes. Only reviewed
+`wiki-safe` candidates may enter the wiki through normal provenance and
+compilation workflows. See
+[references/adapters.md](references/adapters.md).
+
+14. **Specialists are bounded methods, not credentials.** Personal,
+instruction-only specialist packages live locally under `HUB/.skills/` and are
+enabled per active topic. Loading one never grants tools, write access, professional
+authority, or permission to spawn agents. Select the minimum useful method,
+preserve disagreement, and record its version/hash. See
+[references/specialists.md](references/specialists.md).
+
+15. **Project checkpoints need comprehensive coverage and a privacy seal.** See
+[references/checkpoints.md](references/checkpoints.md).
+
+## Adapter Routing
+
+For an action plus URL, run `adapter route --intent <effect> --resource <url>
+--json` before ingestion. On a match, read its adapter-owned guide; provider
+steps live there. A URL alone is not write authorization. See
+[references/adapters.md](references/adapters.md).
+
+Explicit `wiki skill-factory <request>` selects the registered named adapter;
+do not invent a URL route. Run show/doctor and read its guide. It never
+activates ambiently, and its external candidates remain disabled; installation,
+topic enablement, commit, and publication are separate actions.
+
 ## Ambient Behavior
 
 When this skill activates outside of an explicit `/wiki:*` command:
@@ -134,9 +157,39 @@ Flow: Source (URL/file/text/tweet/inbox) → fetch/read → extract metadata →
 See [references/ingestion.md](references/ingestion.md) § Collection Ingestion.
 Flow: structured upstream collection (Git repo, BIP-style proposal set, MediaWiki dump/API) → upstream item inventory → write a `raw/repos/` manifest plus immutable child sources → rebuild raw indexes → optionally compile synthesized clusters. Use `/wiki:ingest-collection` for bulk imports; never recursively crawl HTML.
 
+### Private Adapters
+See [references/adapters.md](references/adapters.md).
+Flow: explicitly register an existing local adapter checkout → declare read and
+write roots → verify the manifest hash and `describe` handshake → execute a v1
+JSON request through the bundled deterministic CLI → verify artifact paths and
+hashes → leave all outputs external → optionally review only `wiki-safe`
+candidates and promote the smallest useful evidence through normal wiki writes.
+Never clone, install, update, publish, or auto-promote an adapter.
+
+### Personal Specialist Skills
+See [references/specialists.md](references/specialists.md).
+Flow: maintain user-owned instruction-only `SKILL.md` methods under
+`HUB/.skills/` → validate structure and safety boundaries → explicitly enable
+stable names per active topic → select zero to three by task features, normally
+one → give selected methods the same bounded evidence packet → verify and
+synthesize by evidence strength → record name, version, and content hash. Use
+`/wiki:specialist suggest` for an index-first candidate scan and
+`/wiki:specialist apply` for a bounded review. Do not treat titles such as CFO,
+doctor, MBA, or PhD as credentials or capability upgrades.
+
 ### Inventory
 See [references/inventory.md](references/inventory.md).
-Flow: Run an inventory fit check → track durable wiki-adjacent things (items, ingest candidates, entities, corpora, questions, tasks, watch items) as markdown records under `inventory/` → answer list requests from indexes/frontmatter as compact chat tables or bullets → optionally save derived views under `inventory/views/` → optionally convert legacy queue-like outputs through explicit dry-run-first migration. Inventory migration is additive and human-gated. Be explicit when something is too small for inventory, too large and should be a dataset/collection, or outside wiki scope.
+Flow: Run an inventory fit check → track durable wiki-adjacent things (items, Ideas, ingest candidates, entities, corpora, questions, tasks, watch items) as markdown records under `inventory/` → answer list requests from indexes/frontmatter as compact chat tables or bullets → optionally save derived views under `inventory/views/` → optionally convert legacy queue-like outputs through explicit dry-run-first migration. Inventory migration is additive and human-gated. Be explicit when something is too small for inventory, too large and should be a dataset/collection, or outside wiki scope.
+
+### Ideas
+See [references/ideas.md](references/ideas.md).
+Flow: capture in `inventory/ideas/` → research/shape → require approval →
+freeze `BRIEF.md` and promote. The Idea keeps lineage; the Project owns delivery.
+
+### Portfolio
+See [references/portfolio.md](references/portfolio.md).
+Flow: read active Idea indexes and Project `WHY.md` files → cross-link only
+explicit lineage → render separate read-only tables without copying records.
 
 ### Collect
 See [references/inventory.md](references/inventory.md) and
@@ -286,7 +339,7 @@ Automatically run a quick structural check when any of these triggers occur:
 
 ### Quick Structure Check (lightweight, runs inline — not a full lint)
 
-1. **Hub integrity**: The hub (HUB) should ONLY contain `wikis.json`, `_index.md`, `log.md`, `topics/`, and optional `.sessions/`. If `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, or `config.md` exist at the hub level → **warn, do not delete**. These may hold user data from an older wiki layout. Suggest `/wiki:lint --fix`, which will move contents to the appropriate topic wiki, repair archive registry drift, or quarantine to `inbox/.unknown/` per C11/C12/C16/C17/C19 in `references/linting.md`.
+1. **Hub integrity**: The hub (HUB) should ONLY contain `wikis.json`, `_index.md`, `log.md`, `topics/`, and optional `.sessions/` and `.skills/`. Validate `.skills/` against the instruction-only package and active-topic allowlist contract. If `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, or `config.md` exist at the hub level → **warn, do not delete**. These may hold user data from an older wiki layout. Suggest `/wiki:lint --fix`, which will move contents to the appropriate topic wiki, repair archive registry drift, or quarantine to `inbox/.unknown/` per C11/C12/C16/C17/C19 in `references/linting.md`.
 
 2. **Index freshness**: For the active topic wiki, compare actual file counts in `raw/`, `wiki/`, `inventory/`, and `datasets/` subdirectories against the rows in their `_index.md`. Ignore maintenance/report areas such as `.librarian/` and `.audit/`. If mismatched → auto-fix by regenerating the affected directory index from frontmatter and removing dead entries.
 

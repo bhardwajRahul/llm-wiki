@@ -4,13 +4,21 @@
 
 ## Hub (HUB/)
 
-The hub is lightweight — it has NO content directories. It only tracks topic wikis.
+The hub is lightweight — it has NO content directories. It tracks topic wikis
+and may hold user-owned local operational configuration.
 
 ```
 HUB/                               # resolved from ~/.config/llm-wiki/config.json
 ├── wikis.json                     # Registry of all topic wikis
 ├── _index.md                      # Lists topic wikis with stats
 ├── log.md                         # Global activity log
+├── .sessions/                     # Optional harness-session operational memory
+├── .skills/                       # Optional personal specialist method library
+│   ├── _index.md                  # Derived specialist catalog
+│   ├── registry.json              # Per-active-topic specialist allowlists
+│   └── <name>/
+│       ├── SKILL.md               # Agent Skills-compatible review method
+│       └── references/            # Optional Markdown references only
 └── topics/                        # Each topic is a full wiki
     ├── dementia/
     ├── quantum-computing/
@@ -18,6 +26,12 @@ HUB/                               # resolved from ~/.config/llm-wiki/config.jso
     │   └── old-topic/
     └── ...
 ```
+
+The hub still has no `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`,
+`inbox/`, `config.md`, `schema.md`, or `.obsidian/`. `.skills/` contains
+reusable instructions and allowlists, not evidence or topic content. Its
+packages are instruction-only: `SKILL.md` plus optional Markdown under
+`references/`. See [specialists.md](specialists.md).
 
 ## Topic Sub-Wiki (HUB/topics/<name>/)
 
@@ -47,6 +61,9 @@ HUB/topics/<name>/
 │   ├── items/                     # Physical/digital items, parts, tools, assets
 │   │   ├── _index.md
 │   │   └── *.md
+│   ├── ideas/                     # Proposals shaped before Project commitment
+│   │   ├── _index.md
+│   │   └── *.md                   # kind: idea
 │   ├── candidates/                # Ingest candidates, tasks, questions, watch items
 │   │   ├── _index.md
 │   │   └── *.md
@@ -113,9 +130,9 @@ HUB/topics/<name>/
     └── *.md                       # Loose outputs (backward compatible)
 ```
 
-See [inventory.md](inventory.md) for inventory records, [datasets.md](datasets.md)
-for dataset manifests, and [projects.md](projects.md) for the full projects
-architecture (lifecycle, multi-membership, explicit `--project <slug>` scoping).
+See [inventory.md](inventory.md) for inventory records, [ideas.md](ideas.md) for
+the Concept → Idea → Project workflow, [datasets.md](datasets.md) for dataset
+manifests, and [projects.md](projects.md) for the full projects architecture.
 Files under `inventory/views/` are derived list/table views. They are not
 inventory records and should not be treated as authoritative tracking state.
 Missing optional roots (`inventory/`, `datasets/`, `.obsidian/`, `.librarian/`,
@@ -244,7 +261,7 @@ Append-only chronological activity log. Every wiki operation appends an entry. N
 
 Each entry: `## [YYYY-MM-DD] operation | Description`
 
-Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `output`, `refresh`, `librarian`, `audit`, `plan`, `project`, `inventory`, `dataset`, `schema`, `archive`, `ll`, `assess`
+Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `output`, `refresh`, `librarian`, `audit`, `plan`, `idea`, `project`, `inventory`, `dataset`, `schema`, `archive`, `ll`, `assess`
 
 Useful for: `grep "^## \[" log.md | tail -10` to see recent activity.
 

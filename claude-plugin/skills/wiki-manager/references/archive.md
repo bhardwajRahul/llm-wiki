@@ -88,7 +88,7 @@ Archive is a context filter, not a deletion mechanism.
 | `init` / `--new-topic` | Treat archived slugs as collisions; restore or choose a new slug instead of creating an active duplicate |
 | `librarian` / `refresh` | Skip archived by default; archived material should not create freshness chores |
 | `audit` | Skip archived by default, except when the targeted artifact depends on archived material |
-| `retract` | May operate on archived sources when explicitly targeted; bad preserved evidence still needs retraction |
+| `retract` | User-directed control-plane operation; selected archived data is included without another mutation gate |
 | `lint` | Active structural checks by default; `--include-archived` and `--archived-only` maintain archived structure explicitly |
 
 ## Lint Semantics

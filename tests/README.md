@@ -30,6 +30,8 @@ No LLM calls. Validates wiki file structure, default `schema.md`, frontmatter sc
 # Run structural tests
 ./tests/test-structure.sh
 ./tests/test-local-cli-lint.sh
+./tests/test-local-cli-specialists.sh
+./tests/test-local-cli-checkpoint.sh
 
 # Validate plugin manifest and docs/version consistency
 ./tests/test-plugin-validate.sh
@@ -49,6 +51,8 @@ No LLM calls. Validates wiki file structure, default `schema.md`, frontmatter sc
 - C6: No orphan sources (via defect fixture)
 - C11: File placement matches frontmatter type/category
 - C12: No unknown file types in raw/wiki directories
+- Personal specialists: hub-scoped instruction-only packages, active-topic
+  allowlists, provenance metadata, and no specialist-owned tool grants
 - Docs consistency: README command table, plugin/marketplace versions, and
   reference-file allowlists stay synchronized
 - Token budgets: checked-in context surfaces stay below explicit ceilings

@@ -78,7 +78,12 @@ Talk to OpenCode naturally:
 - "Compile the wiki"
 - "What does my wiki know about X?"
 - "Audit this playbook and follow the evidence wherever it leads"
+- "List my registered private adapters and run doctor on one"
 - "Lint the wiki and fix issues"
+
+Private-adapter management uses the bundled `bin/llm-wiki` and the
+machine-local `~/.config/llm-wiki/adapters.json`; adapter code and bulk outputs
+remain outside the wiki.
 
 ## Alternative: AGENTS.md
 

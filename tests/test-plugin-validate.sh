@@ -9,7 +9,7 @@ PLUGIN_JSON="$PLUGIN_DIR/.claude-plugin/plugin.json"
 PASS=0
 FAIL=0
 TOTAL=0
-REFERENCE_NAMES="archive audit command-prelude compilation datasets feedback hub-resolution indexing ingestion inventory librarian linting projects query-lite research-infrastructure sessions wiki-structure"
+REFERENCE_NAMES="adapters archive audit checkpoints command-prelude compilation datasets feedback hub-resolution ideas indexing ingestion inventory librarian linting portfolio projects query-lite research-infrastructure sessions specialists wiki-structure"
 
 log_pass() { PASS=$((PASS + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[32mPASS\033[0m: %s\n" "$1"; }
 log_fail() { FAIL=$((FAIL + 1)); TOTAL=$((TOTAL + 1)); printf "  \033[31mFAIL\033[0m: %s — %s\n" "$1" "$2"; }
@@ -53,6 +53,42 @@ else
   log_fail "commands/ll.md raw-note template schema drift" "expected type: notes, ingested, and lesson_kind"
 fi
 
+# Portfolio must remain a derived, read-only cross-topic view rather than a new
+# hub content layer or an inferred Idea/Project relationship store.
+PORTFOLIO_COMMAND="$PLUGIN_DIR/commands/portfolio.md"
+PORTFOLIO_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/portfolio.md"
+if grep -q 'read-only' "$PORTFOLIO_COMMAND" \
+  && grep -q 'inventory/ideas/_index.md' "$PORTFOLIO_COMMAND" \
+  && grep -q 'output/projects/\*/WHY.md' "$PORTFOLIO_COMMAND" \
+  && grep -q 'Never infer lineage' "$PORTFOLIO_COMMAND" \
+  && grep -q 'catch-all topic' "$PORTFOLIO_REFERENCE" \
+  && grep -q 'duplicate records' "$PORTFOLIO_REFERENCE"; then
+  log_pass "portfolio command preserves distributed source-of-truth invariants"
+else
+  log_fail "portfolio command invariant drift" "expected read-only index-first Ideas/Projects view"
+fi
+
+# Project Knowledge Checkpoints must remain comprehensive, cross-topic,
+# review-first, and privacy-sealed. A generic summary or optional scan is not
+# equivalent.
+CHECKPOINT_COMMAND="$PLUGIN_DIR/commands/checkpoint.md"
+CHECKPOINT_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/checkpoints.md"
+if grep -q 'dry-run by default' "$CHECKPOINT_COMMAND" \
+  && grep -q 'semantic privacy minimization' "$CHECKPOINT_COMMAND" \
+  && grep -q 'checkpoint seal' "$CHECKPOINT_COMMAND" \
+  && grep -q 'There is no option to disable privacy scanning' "$CHECKPOINT_COMMAND" \
+  && grep -q 'Mandatory comprehensive coverage' "$CHECKPOINT_COMMAND" \
+  && grep -q 'privacy-report.json' "$CHECKPOINT_REFERENCE" \
+  && grep -q 'Default to comprehensive' "$CHECKPOINT_REFERENCE" \
+  && grep -q 'There is no `--no-scan` or global bypass' "$CHECKPOINT_REFERENCE" \
+  && grep -q 'Project Knowledge Checkpoint' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q 'Project checkpoints need comprehensive coverage and a privacy seal' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'Project checkpoints are comprehensive and privacy-sealed' "$PROJECT_ROOT/AGENTS.md"; then
+  log_pass "checkpoint workflow preserves comprehensive coverage, privacy, and approval gates"
+else
+  log_fail "checkpoint workflow invariant drift" "expected comprehensive coverage plus mandatory staged seal/verify and exact overrides"
+fi
+
 # SKILL.md exists
 echo ""
 echo "--- Skill files ---"
@@ -65,6 +101,47 @@ if [ -f "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" ]; then
   fi
 else
   log_fail "SKILL.md not found" "missing file"
+fi
+
+# External action intents must use provider-neutral manifest routing before
+# generic URL ingestion on every maintained instruction surface.
+ADAPTER_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/adapters.md"
+if grep -q '## Adapter Routing' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'adapter route --intent' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q '## Intent routing' "$ADAPTER_REFERENCE" \
+  && grep -q 'adapter-owned workflow' "$ADAPTER_REFERENCE" \
+  && grep -q '"routes"' "$ADAPTER_REFERENCE" \
+  && grep -q '## Explicit named adapter invocation' "$ADAPTER_REFERENCE" \
+  && grep -q 'wiki skill-factory' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'Skill Factory Adapter' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q 'wiki skill-factory' "$PROJECT_ROOT/AGENTS.md" \
+  && grep -q 'External Adapter Route' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q '## Declarative intent routing' "$PLUGIN_DIR/commands/adapter.md" \
+  && grep -q 'Route external actions before ingestion' "$PROJECT_ROOT/AGENTS.md" \
+  && ! grep -Eqi 'google docs|google-docs|docs\.google\.com|google picker|native messaging|find.and.replace' \
+    "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" "$ADAPTER_REFERENCE" \
+    "$PLUGIN_DIR/commands/wiki.md" "$PLUGIN_DIR/commands/adapter.md" "$PROJECT_ROOT/AGENTS.md"; then
+  log_pass "external action intent routes through provider-neutral adapter metadata"
+else
+  log_fail "private adapter routing drift" "expected manifest route discovery and no provider-specific workflow in public instruction surfaces"
+fi
+
+# Personal specialists are bounded instruction packages, not simulated
+# credentials or a tool-authority mechanism.
+SPECIALIST_COMMAND="$PLUGIN_DIR/commands/specialist.md"
+SPECIALIST_REFERENCE="$PLUGIN_DIR/skills/wiki-manager/references/specialists.md"
+if grep -q '## Local storage and sharing boundary' "$SPECIALIST_REFERENCE" \
+  && grep -q 'Instruction-only package contract' "$SPECIALIST_REFERENCE" \
+  && grep -q 'There is no global default' "$SPECIALIST_REFERENCE" \
+  && grep -q 'never grants tools' "$SPECIALIST_REFERENCE" \
+  && grep -q '## `suggest`' "$SPECIALIST_COMMAND" \
+  && grep -q '## `apply`' "$SPECIALIST_COMMAND" \
+  && grep -q 'Specialists are bounded methods, not credentials' "$PLUGIN_DIR/skills/wiki-manager/SKILL.md" \
+  && grep -q 'Personal Specialist' "$PLUGIN_DIR/commands/wiki.md" \
+  && grep -q 'optional `.sessions/` and `.skills/`' "$PROJECT_ROOT/AGENTS.md"; then
+  log_pass "personal specialists preserve allowlists, instruction-only safety, and non-credential boundaries"
+else
+  log_fail "personal specialist invariant drift" "expected hub library, topic allowlists, bounded methods, and no tool grants"
 fi
 
 # Reference files exist
@@ -86,6 +163,14 @@ if [ -f "$PROJECT_ROOT/AGENTS.md" ]; then
   log_pass "AGENTS.md exists"
 else
   log_fail "AGENTS.md missing" "missing file"
+fi
+
+CLAUDE_LOCAL_CLI="$PLUGIN_DIR/bin/llm-wiki"
+if [ -x "$CLAUDE_LOCAL_CLI" ] \
+  && cmp -s "$CLAUDE_LOCAL_CLI" "$PROJECT_ROOT/scripts/llm-wiki"; then
+  log_pass "Claude plugin bundles the current deterministic llm-wiki CLI"
+else
+  log_fail "Claude bundled llm-wiki CLI missing or stale" "run a plugin sync script"
 fi
 
 # Codex mirror validation — the artifacts that Codex installs from this repo.
@@ -180,6 +265,16 @@ if [ -f "$CODEX_SKILL/SKILL.md" ]; then
   else
     log_fail "Codex SKILL.md uses the wrong skill name" "expected 'name: wiki'"
   fi
+  if sed -n '2,/^---$/p' "$CODEX_SKILL/SKILL.md" | grep -q 'external resource'; then
+    log_pass "Codex implicit skill metadata advertises external adapter routing"
+  else
+    log_fail "Codex adapter invocation metadata missing" "expected external resource in frontmatter"
+  fi
+  if sed -n '2,/^---$/p' "$CODEX_SKILL/SKILL.md" | grep -q 'skill-factory'; then
+    log_pass "Codex implicit skill metadata advertises declarative skill factory"
+  else
+    log_fail "Codex skill factory metadata missing" "expected skill factory in frontmatter"
+  fi
 else
   log_fail "Codex SKILL.md not found" "missing file"
 fi
@@ -220,6 +315,14 @@ if [ -f "$CODEX_QUERY_YAML" ] \
   log_pass "Codex wiki-query metadata is explicit-only"
 else
   log_fail "Codex wiki-query metadata invalid" "expected interface and explicit-only policy"
+fi
+
+CODEX_LOCAL_CLI="$CODEX_PLUGIN/bin/llm-wiki"
+if [ -x "$CODEX_LOCAL_CLI" ] \
+  && cmp -s "$CODEX_LOCAL_CLI" "$PROJECT_ROOT/scripts/llm-wiki"; then
+  log_pass "Codex plugin bundles the current deterministic llm-wiki CLI"
+else
+  log_fail "Codex bundled llm-wiki CLI missing or stale" "run scripts/sync-codex-plugin.sh"
 fi
 
 # OpenCode mirror validation — the artifacts that OpenCode loads via the
@@ -270,6 +373,11 @@ if [ -f "$OPENCODE_SKILL/SKILL.md" ]; then
   else
     log_fail "OpenCode SKILL.md contains 'Claude Code'" "sync script missed a replacement"
   fi
+  if sed -n '2,/^---$/p' "$OPENCODE_SKILL/SKILL.md" | grep -q 'external resource'; then
+    log_pass "OpenCode skill metadata advertises external adapter routing"
+  else
+    log_fail "OpenCode adapter invocation metadata missing" "expected external resource in frontmatter"
+  fi
 else
   log_fail "OpenCode SKILL.md not found" "missing file"
 fi
@@ -291,6 +399,14 @@ if [ -f "$OPENCODE_PLUGIN/README.md" ]; then
   log_pass "OpenCode README.md exists"
 else
   log_fail "OpenCode README.md not found" "missing file"
+fi
+
+OPENCODE_LOCAL_CLI="$OPENCODE_PLUGIN/bin/llm-wiki"
+if [ -x "$OPENCODE_LOCAL_CLI" ] \
+  && cmp -s "$OPENCODE_LOCAL_CLI" "$PROJECT_ROOT/scripts/llm-wiki"; then
+  log_pass "OpenCode plugin bundles the current deterministic llm-wiki CLI"
+else
+  log_fail "OpenCode bundled llm-wiki CLI missing or stale" "run scripts/sync-opencode-plugin.sh"
 fi
 
 echo ""

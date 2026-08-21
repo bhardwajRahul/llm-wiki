@@ -99,6 +99,25 @@ else
   log_fail "Codex bundled hook command handles PLUGIN_ROOT paths with spaces" "$manifest_hook_cmd"
 fi
 
+fallback_plugin="$tmpdir/home/.codex/plugins/cache/llm-wiki/wiki/9.9.9/hooks"
+mkdir -p "$fallback_plugin"
+cp "$PROJECT_ROOT/scripts/llm-wiki-session" "$fallback_plugin/llm_wiki_session.py"
+chmod 0755 "$fallback_plugin/llm_wiki_session.py"
+printf '{"session_id":"manifest-fallback","hook_event_name":"PostToolUse","cwd":"%s","tool_name":"Bash"}' "$PWD" \
+  | HOME="$tmpdir/home" PLUGIN_ROOT="$tmpdir/deleted-version" sh -c "$manifest_hook_cmd"
+if [ -f "$hub/.sessions/state/codex/manifest-fallback.json" ]; then
+  log_pass "Codex hook command survives a deleted versioned plugin cache"
+else
+  log_fail "Codex hook fallback failed" "$manifest_hook_cmd"
+fi
+
+mkdir -p "$tmpdir/empty-home"
+if HOME="$tmpdir/empty-home" PLUGIN_ROOT="$tmpdir/deleted-version" sh -c "$manifest_hook_cmd" </dev/null; then
+  log_pass "Codex hook command does not block when no helper remains installed"
+else
+  log_fail "Codex hook command blocked without an installed helper" "$manifest_hook_cmd"
+fi
+
 claude_payload1=$(printf '{"session_id":"claude-session","hook_event_name":"PostToolUse","cwd":"%s","permission_mode":"default","transcript_path":"%s/transcript.jsonl","tool_name":"Bash","prompt":"do not store this Claude prompt","tool_response":"do not store this Claude tool response","tool_input":{"password":"super-secret-password"}}' "$PWD" "$tmpdir")
 claude_payload2=$(printf '{"session_id":"claude-session","hook_event_name":"PostToolUse","cwd":"%s","permission_mode":"default","transcript_path":"%s/transcript.jsonl","tool_name":"Read"}' "$PWD" "$tmpdir")
 printf '%s' "$claude_payload1" | "$SESSION" --hub "$hub" hook --if-enabled

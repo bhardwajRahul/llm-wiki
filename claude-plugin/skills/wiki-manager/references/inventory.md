@@ -2,9 +2,9 @@
 
 Inventory is a wiki-owned tracking layer for durable "things we care about" that
 are not necessarily raw sources, compiled articles, or output artifacts. It is
-for physical or digital items, ingest candidates, entities, corpora, open
-questions, recurring tasks, watch items, and other records the user wants the
-wiki to remember and revisit.
+for physical or digital items, Ideas, ingest candidates, entities, corpora,
+open questions, recurring tasks, watch items, and other records the user wants
+the wiki to remember and revisit.
 
 Inventory records are markdown files with frontmatter. They can cite `raw/`,
 `wiki/`, `datasets/`, `output/`, URLs, or external paths, but they do not move
@@ -27,6 +27,8 @@ Good fits:
   owned/wanted/selected/rejected state should be listed and revisited.
 - The item is a candidate source/corpus/entity/question that may be acted on
   later, but is not ready to ingest, compile, or turn into an output.
+- The item is an Idea that should be researched and shaped before the user
+  commits it to a Project. Use the dedicated Ideas workflow for these records.
 - The item needs to be listed, filtered, revisited, or linked from datasets,
   research sessions, audits, or plans.
 
@@ -99,6 +101,9 @@ inventory/
 ├── items/
 │   ├── _index.md
 │   └── *.md
+├── ideas/
+│   ├── _index.md
+│   └── *.md
 ├── candidates/
 │   ├── _index.md
 │   └── *.md
@@ -117,6 +122,9 @@ The subdirectories are intentionally broad:
 
 - `items/`: physical or digital inventory items such as parts, tools, hosts,
   products, SKUs, subscriptions, and owned/wanted/rejected assets.
+- `ideas/`: possible products, experiments, publications, decisions, or other
+  deliverables being researched and shaped before Project commitment. See
+  [ideas.md](ideas.md).
 - `candidates/`: ingest candidates, open questions, tasks, watch items, and
   proposed follow-up work.
 - `entities/`: people, organizations, projects, venues, standards bodies, or
@@ -155,6 +163,7 @@ Recommended chat views:
 | `summary` | counts by kind/status, top priorities | quick status checks |
 | `actions` | title, priority, status, next action, updated | planning the next work |
 | `items` | item, status, priority, quantity, next action, updated | actual inventory checks |
+| `ideas` | idea, topic, status, derived maturity, priority, next action | Idea catalog and shaping queue |
 | `records` | title, kind, status, priority, updated | complete compact inventory |
 | `sources` | title, source/origin pointers, status | provenance and migration review |
 
@@ -254,6 +263,7 @@ Recommended fields:
 Kinds:
 
 - `item`
+- `idea`
 - `ingest-candidate`
 - `entity`
 - `corpus`
@@ -273,6 +283,10 @@ For `kind: item`, use optional fields when they help list or filter the record:
 - `default_choice`: preferred SKU, part, tool, host, or option
 - `alternatives`: short list of acceptable replacements
 - `needed_for`: build, project, host role, or workflow that needs the item
+
+For `kind: idea`, use the dedicated record body, maturity derivation, duplicate
+checks, research/shaping workflow, and explicit promotion contract in
+[ideas.md](ideas.md). Ideas use `inventory/ideas/`, not `candidates/`.
 
 Statuses:
 
@@ -298,7 +312,7 @@ Priorities:
 ```markdown
 # Inventory Index
 
-> Durable tracking records for items, candidates, entities, corpora, and watch items.
+> Durable tracking records for items, Ideas, candidates, entities, corpora, and watch items.
 
 Last updated: YYYY-MM-DD
 
@@ -306,6 +320,7 @@ Last updated: YYYY-MM-DD
 
 - Total records: N
 - Items: N
+- Ideas: N
 - Candidates: N
 - Entities: N
 - Corpora: N
@@ -315,6 +330,7 @@ Last updated: YYYY-MM-DD
 ## Quick Navigation
 
 - [Items](items/_index.md)
+- [Ideas](ideas/_index.md)
 - [Candidates](candidates/_index.md)
 - [Entities](entities/_index.md)
 - [Corpora](corpora/_index.md)
@@ -400,6 +416,8 @@ wikis, not as corruption:
   persist beyond the current report.
 - `plan` and `project`: may link to inventory records for work queues and
   dependencies, but project goals stay in `WHY.md`.
+- `idea`: uses a specialized inventory record to develop a proposal and may
+  explicitly promote its approved snapshot into a linked Project.
 - `lint`: repairs indexes for an inventory layer that already exists and
   reports migration candidates; it never creates a blank optional layer, decides
   a pivot, or writes records without the explicit inventory migration workflow.

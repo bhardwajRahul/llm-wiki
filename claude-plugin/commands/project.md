@@ -23,6 +23,12 @@ moves `output/projects/<slug>` inside the selected topic wiki.
 
 Read the projects architecture at `skills/wiki-manager/references/projects.md` for the full rationale — particularly *why* `WHY.md` is the only required file (it holds the precious, non-derivable rationale) and *why* everything else is derived from filesystem state.
 
+Idea awareness: if the user says "turn this Idea into a Project," "approve the
+brief," or equivalent, route to the Idea promotion workflow in
+`skills/wiki-manager/references/ideas.md`. Promotion freezes `BRIEF.md` and
+cross-links the records. Keep `project new` available for direct Projects that
+do not originate as Ideas.
+
 Inventory awareness: projects group outputs around a goal; inventory tracks
 durable items with status, priority, and next action. If the user asks for a
 project backlog, source queue, watch list, or task list, suggest inventory

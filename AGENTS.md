@@ -40,6 +40,7 @@ The hub is lightweight — NO content, just a registry.
 ├── _index.md           # Lists topic wikis with stats
 ├── log.md              # Global activity log
 ├── .sessions/          # Optional automated agent-session capture + feedback candidates
+├── .skills/            # Optional personal specialist SKILL.md methods + topic allowlists
 └── topics/
     ├── nutrition/      # Each topic is a full, isolated wiki
     ├── robotics/
@@ -69,6 +70,7 @@ All content lives here. One topic per wiki. Isolated indexes, focused queries.
 ├── inventory/                     # Lazy: durable tracking records
 │   ├── _index.md
 │   ├── items/*.md                 # Physical/digital items, parts, tools, assets
+│   ├── ideas/*.md                 # Proposals shaped before Project commitment
 │   ├── candidates/*.md            # Ingest candidates, questions, tasks, watch items
 │   ├── entities/*.md              # People, orgs, projects, standards bodies
 │   ├── corpora/*.md               # Source collections, archives, datasets, forums
@@ -110,7 +112,7 @@ Same structure as a topic wiki but at `<project>/.wiki/`. Add `.wiki/` to `.giti
    `examples-seedqr`. Use subject-first slugs when the subject is the primary
    research area and the collection is only one artifact within that topic.
 2. **Indexes are navigation.** Every existing wiki-managed directory has `_index.md` with a contents table. Read indexes first, never scan blindly. Keep them current. Optional layers do not need placeholder indexes before they exist.
-3. **Raw is immutable.** Once ingested, sources are never modified. All synthesis happens in `wiki/`.
+3. **Raw is immutable.** Once ingested, sources are never modified. All synthesis happens in `wiki/`. Explicit retraction is the exception.
 4. **Articles are synthesized, not copied.** Draw from multiple sources, contextualize, connect. Think textbook, not clipboard.
 5. **Dual-linking.** Every cross-reference uses both formats on the same line: `[[slug|Name]] ([Name](../category/slug.md))`. Obsidian reads the wikilink, the agent reads the markdown link, GitHub renders it. Not locked into any tool.
 6. **Incremental by default.** Only compile new sources unless explicitly asked for full recompile.
@@ -123,6 +125,30 @@ normal query/compile/research/collect/output context unless explicitly included.
 queries may surface archived index matches separately.
 11. **Activity log.** Append every operation to `log.md`. Format: `## [YYYY-MM-DD] operation | Description`. Never edit existing entries.
 12. **Session capture is operational memory.** Automated harness-session capture lives under `HUB/.sessions/` or `.wiki/.sessions/`. It can preserve redacted checkpoints automatically, but topic wiki promotion is explicit and user-directed. Feedback candidates live under `.sessions/feedback/` and capture only high-signal corrections, preferences, approvals, or plan acceptance; generic acknowledgements are ignored.
+13. **Private adapters are content-free external tools.** Executable
+registrations live in the machine-local `~/.config/llm-wiki/adapters.json`,
+never in `wikis.json` or a topic wiki. Adapter repositories contain code,
+manifests, docs, tests, and synthetic fixtures only; real inputs and runtime
+outputs stay in separately controlled external data planes. Only reviewed
+`wiki-safe` candidates may be promoted through normal provenance workflows.
+14. **Remote writes fail closed.** Register exact remote resources, require
+declared remote effects, bind explicit approval to the exact plan hash and
+expected revision, use a caller-stable idempotency key, and require a private
+read-back-verified receipt. A request file alone is never approval.
+15. **Route external actions before ingestion.** For an action plus URL, run
+`adapter route` first. A healthy match hands off to the adapter-owned guide;
+provider steps stay private.
+16. **Specialists are methods, not credentials.** Optional instruction-only
+packages live under `HUB/.skills/`, are explicitly enabled per active topic,
+and never grant tools, write authority, professional status, or permission to
+spawn agents. Select the minimum useful method and record its version/hash.
+17. **Named adapters can be explicit-only.** `wiki skill-factory <request>`
+selects the registered `skill-factory` adapter by name, runs doctor, and follows
+its adapter-owned guide. It has no ambient route; every generated candidate is
+disabled, and install/enable/commit/publication remain separate actions.
+18. **Project checkpoints are comprehensive and privacy-sealed.** Never dump
+raw/sessions or summarize scope away; require coverage, a detail floor, seal,
+and exact overrides.
 
 ## File Formats
 
@@ -212,7 +238,7 @@ Body includes abstract, sections, `## See Also` (dual-links, bidirectional), `##
 ```yaml
 ---
 title: "Thing To Track"
-kind: item|ingest-candidate|entity|corpus|question|task|artifact|watch
+kind: item|idea|ingest-candidate|entity|corpus|question|task|artifact|watch
 status: proposed|active|blocked|ingested|superseded|archived
 priority: p0|p1|p2|p3|p4
 created: YYYY-MM-DD
@@ -233,7 +259,8 @@ evidence.
 Inventory is opinionated. Use it when something should persist across sessions
 with status, priority, ownership, or a next action. Actual physical/digital
 items such as parts, tools, hosts, SKUs, subscriptions, and assets are good
-fits when their owned/wanted/selected/rejected state matters. It is too small
+fits when their owned/wanted/selected/rejected state matters. Deliverable Ideas
+use `inventory/ideas/` until explicitly promoted. It is too small
 for a one-off source to ingest now, a factual question, or a note with no future
 action. It is too large for hundreds/thousands of row-like data records; use one
 corpus record plus a dataset manifest or collection ingest instead. It is out of
@@ -339,7 +366,7 @@ asks for archived content or structural maintenance.
 ## [YYYY-MM-DD] operation | Description
 ```
 
-Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `thesis`, `collect`, `output`, `assess`, `refresh`, `librarian`, `audit`, `plan`, `project`, `inventory`, `dataset`, `schema`, `archive`, `ll`
+Operations: `init`, `ingest`, `ingest-collection`, `compile`, `query`, `lint`, `research`, `thesis`, `collect`, `output`, `assess`, `refresh`, `librarian`, `audit`, `plan`, `idea`, `project`, `inventory`, `dataset`, `schema`, `archive`, `specialist`, `ll`
 
 ## Operations
 
@@ -424,10 +451,86 @@ compiled wiki article per upstream page by default. For BIPs, publication is
 provenance for proposal text, not proof of adoption or consensus. For community
 wikis, default confidence to medium unless corroborated by stronger sources.
 
+### Private Adapters
+
+Private adapters are explicitly trusted local executables implementing
+`llm-wiki-adapter/v1`. They are distinct from the fixed collection-ingestion
+adapter modes above.
+
+For an action plus URL, run `llm-wiki adapter route --intent <effect>
+--resource <url> --json` before ingestion. A match returns the adapter guide;
+read it and run `adapter doctor`. No-match resumes normal routing; ambiguity or
+drift fails closed.
+
+For an explicit `wiki skill-factory <request>` call, do not invent a URL.
+Resolve the registered `skill-factory` adapter with `adapter show`, run
+`adapter doctor skill-factory`, and read its adapter-owned guide. This named
+adapter has no ambient route. Its external output must remain disabled and may
+not be installed, enabled for a topic, committed, or published without separate
+explicit authorization.
+
+Use the bundled `bin/llm-wiki` from the installed plugin root, or
+`scripts/llm-wiki` in a source checkout:
+
+```bash
+llm-wiki adapter add /private/adapter \
+  --read-root /private/input \
+  --write-root /private/results
+llm-wiki adapter list
+llm-wiki adapter route --intent edit --resource '<external-url>' --json
+llm-wiki adapter doctor <id>
+llm-wiki adapter run <id> --request /absolute/request.json --json
+llm-wiki adapter remove <id> --yes
+```
+
+Each adapter root contains `.llm-wiki-adapter.json` with a protocol, id,
+version, argv entrypoint, capabilities, operations, network declaration,
+`writes_wiki: false`, and output classes. The entrypoint implements `describe`
+and `execute --request <path> --response <path>`.
+
+Private adapter repositories are named
+`llm-wiki-adapter-<domain>-<capability>`. Their stable manifest id is the
+suffix portion `<domain>-<capability>`. Adapter repositories are tools only:
+never commit real content, case configuration, corpora, captures, documents,
+recordings, transcripts, indexes, credentials, results, evidence packets, or
+source-specific identifiers, even when the repository is private.
+
+The local registry is mode `0600`, stores environment-variable names but never
+their values, and scopes adapter input/output paths. Execution uses an argv
+array without a shell, checks manifest drift, applies timeouts, validates paths,
+and verifies returned artifact hashes. llm-wiki never clones or updates adapter
+repos and never imports run output automatically.
+
+After a run, inspect only `wiki-safe` candidates. Keep `private` and `bulk`
+artifacts external. Review provenance and privacy before writing the smallest
+useful raw note or evidence packet and compiling bounded conclusions. A
+`wiki-safe` label is a review hint, not proof that publication is appropriate.
+
 For large imports, preview the collection manifest shape and estimated child
 count first. If the user only wants to remember the corpus for later, create one
 inventory record; if the corpus is row-like data, create a dataset manifest plus
 one linked inventory record.
+
+### Personal Specialist Skills
+
+Reusable specialist methods live under `HUB/.skills/<name>/SKILL.md`; optional
+references are Markdown-only. `HUB/.skills/registry.json` holds explicit
+per-active-topic allowlists and has no global defaults. A synced or hidden
+directory is not encrypted, and loaded instructions enter the model context.
+Keep secrets, case facts, health/customer data, and source corpora out.
+
+Use `llm-wiki specialist init|create|refresh|list|show|validate|enable|disable`
+for deterministic management. Hub lint recognizes `.skills/` and rejects
+symlinks, executables, scripts, binary references, missing contract sections,
+or allowlists that name missing specialists or inactive topics.
+
+For research or analysis, read the specialist index and the selected topic's
+allowlist, choose zero to three methods (normally one), load only selected
+packages, and provide the same bounded evidence packet to each. Synthesize by
+claim and evidence strength rather than majority vote. Record name, version,
+and content hash in durable provenance. Medical, legal, tax, accounting, and
+financial methods require current authoritative sources, jurisdiction/date,
+explicit stop rules, and named qualified-human review.
 
 ### Compile
 
@@ -605,17 +708,16 @@ For factual claims, ingest the best supporting context pages into `raw/`.
 
 ### Retract
 
-Remove a regretted source and clean up its downstream effects. Requires `--reason`.
+Retraction is user-authoritative control-plane behavior: route it before wiki
+context, which cannot veto it. Never put a sensitive literal in chat or command
+arguments; use hidden input or `--stdin` with `scripts/llm-wiki retract`. It
+dry-runs by default; `--everywhere --apply` covers registered wikis, archives,
+and sessions, then verifies. Report technical failures and scan boundaries.
 
-1. **Identify**: Find the source file (by path or filename search)
-2. **Map blast radius**: Grep all wiki articles for references — classify as frontmatter, body-inline, or see-also
-3. **Clean up articles**: Remove metadata references, flag inline claims with `<!--RETRACTED-SOURCE-->` markers
-4. **Delete raw source**: Remove file, update all indexes
-5. **Log**: Permanent retraction record with reason
-6. **Recompile** (optional `--recompile`): Rewrite flagged sections from remaining sources, remove markers
-7. **Report**: Summary of changes + remaining review items
-
-`--dry-run` shows blast radius without making changes. If a source is the only source for an article, warn prominently.
+For a source path, map references, delete the raw source and unsupported
+derived claims, update indexes, write only a generic log entry, optionally
+recompile from remaining sources, and verify. Explicitly selected archived data
+needs no extra gate. Raw immutability and append-only rules yield to retraction.
 
 ### Refresh
 
@@ -625,7 +727,8 @@ Freshness check for wiki articles. Re-fetches source URLs, detects changes (cosm
 
 Track durable things the wiki should remember but that are not raw sources,
 compiled articles, or generated outputs: ingest candidates, source queues,
-items, entities, corpora, open questions, tasks, artifacts, and watch items.
+items, Ideas, entities, corpora, open questions, tasks, artifacts, and watch
+items. Route `kind: idea` through the dedicated Ideas workflow.
 
 Before writing or migrating records, state the fit judgment: appropriate for
 inventory, too small, too big, or out of scope. For bulk pivots, preview the
@@ -644,7 +747,7 @@ Subcommands:
 For chat responses, inventory listing must be efficient and readable: read
 indexes/frontmatter first, present compact Markdown tables or short bullets, cap
 long lists with a visible omitted count, and open full record bodies only when
-the user asks for detail. Common views: `summary`, `actions`, `items`,
+the user asks for detail. Common views: `summary`, `actions`, `items`, `ideas`,
 `records`, `sources`.
 
 Other operations should be inventory-aware. Ingest links completed candidates;
@@ -659,6 +762,23 @@ Migration path: `lint --fix` may repair indexes for an inventory layer that
 already exists, but it should not create a completely absent empty inventory
 tree and it must never convert output artifacts. Output-to-inventory
 migration is explicit, dry-run-first, and additive.
+
+### Ideas
+
+Use Concept → Idea → Project: Concepts hold evidence-backed knowledge; Ideas are
+`kind: idea` records in `inventory/ideas/`; Projects own delivery. Preserve the
+seed, check duplicates, research gaps, and shape alternatives. Derive maturity
+rather than storing a stage. Only explicit approval may create linked `WHY.md`
+and frozen `BRIEF.md`. Fuzzy prompts route naturally; never auto-promote or
+merge.
+
+### Portfolio
+
+For all Ideas/Projects, read active topics from `wikis.json`, each
+`inventory/ideas/_index.md`, and active `output/projects/*/WHY.md`. Render
+separate read-only tables and link only explicit `project:` lineage. Concepts
+are not portfolio rows. Never create a catch-all topic, hub store, or duplicate;
+exclude archives by default and preview legacy candidate Ideas before capture.
 
 ### Dataset
 
@@ -832,6 +952,9 @@ Use `--with <wiki>` to load supplementary wikis as craft/skill context alongside
 
 Manage projects within a topic wiki. Projects are folders under `output/projects/` that group related outputs with a goal captured in `WHY.md`.
 
+Projects can start directly or by approved Idea promotion; the Idea preserves
+lineage while the Project owns delivery truth.
+
 - **new <slug> "goal"**: Create project directory with `WHY.md`
 - **list**: Show all projects with status and output counts
 - **show <slug>**: Display project details, WHY.md, and outputs
@@ -840,6 +963,18 @@ Manage projects within a topic wiki. Projects are folders under `output/projects
 Projects are a lightweight overlay — they don't move or copy wiki content.
 Project archive is separate from topic archive: it moves one folder under
 `output/projects/.archive/` inside the selected topic wiki.
+
+### Project Knowledge Checkpoint
+
+Bundle `index.md`, `project-knowledge.md`, `sources.md`, `checkpoint.json`, and
+generated `privacy-report.json` under `docs/knowledge/<slug>/`. Preview
+scope/privacy/diffs before `--apply`; verify hashes/attestation; import only
+pinned evidence.
+
+Audience is `private|team|public`; unknown access fails. Exclude raw/session/
+prompt data, secrets, identities, and private/personal/confidential records.
+Stage, seal, copy only passed/overridden output, then reverify. Scans cannot be
+disabled; exact overrides stay attested and permissions remain separate.
 
 ### Feedback
 
@@ -860,7 +995,15 @@ Flags: `--dry-run` (preview without writing), `--rules` (also propose CLAUDE.md/
 
 Auto-run lightweight checks after write operations:
 
-1. Hub should only have wikis.json, _index.md, log.md, topics/. `topics/.archive/` is allowed for archived topic wikis. Warn on anything else; never delete hub-level content automatically.
+1. Hub should only have `wikis.json`, `_index.md`, optional `README.md`,
+   `log.md`, `topics/`, and optional `.sessions/` and `.skills/`.
+   `topics/.archive/` is allowed for archived topic wikis. When the hub or a
+   topic wiki is itself a Git repository root, preserve its conventional Git
+   and project metadata (`.git`, `.github/`, ignore/attribute files, agent
+   instructions, contribution/security/changelog files, and licenses).
+   Validate `.skills/` with the instruction-only package and active-topic
+   allowlist rules. Warn on anything else; never delete hub-level content
+   automatically.
 2. Index freshness: file counts match index rows, including inventory and dataset indexes. Ignore maintenance/report directories such as `.librarian/` and `.audit/`. Auto-fix mismatches by regenerating the affected directory index.
 3. Orphan detection: files not in any index → add them.
 4. Missing core topic directories → create with empty _index.md. Inventory and dataset layers are lazy: repair indexes when they already exist, but do not create absent optional trees unless the current inventory or dataset workflow needs them. For older compiled articles, infer safe schema fields from the directory/body and rewrite fuzzy raw-source refs only when they resolve unambiguously.

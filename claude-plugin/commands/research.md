@@ -1,7 +1,7 @@
 ---
 description: "Deep multi-agent research on a topic, question, or thesis. Launches parallel agents to search the web, ingests sources, and compiles them into active wiki articles. Thesis mode provides for/against evidence framing with a verdict."
-argument-hint: "<topic|question> [--plan] [--mode thesis \"<claim>\"] [--new-topic] [--sources <N>] [--deep] [--retardmax] [--min-time <duration>] [--wiki <name>] [--local] [--project <slug>] [--include-archived]"
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:*), Bash(mkdir:*), WebFetch, WebSearch, Agent
+argument-hint: "<topic|question> [--plan] [--mode thesis \"<claim>\"] [--new-topic] [--sources <N>] [--deep] [--retardmax] [--min-time <duration>] [--specialist <name>] [--no-specialists] [--wiki <name>] [--local] [--project <slug>] [--include-archived]"
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(ls:*), Bash(wc:*), Bash(date:*), Bash(mkdir:*), Bash(python3:*), Bash(scripts/llm-wiki:*), Bash(${CLAUDE_PLUGIN_ROOT}/bin/llm-wiki:*), WebFetch, WebSearch, Agent
 ---
 
 ## Your task
@@ -23,6 +23,11 @@ Conduct deep research on the topic in $ARGUMENTS. This is an automated pipeline:
 - **--project <slug>**: Tag all new outputs with this project. The research playbook/summary artifact is saved inside `output/projects/<slug>/` instead of flat `output/`. Compiled wiki articles get `project: <slug>` frontmatter. If the project doesn't exist, fail early with a helpful error. See `references/projects.md` for the projects architecture.
 - **--include-archived**: Explicitly allow researching into an archived target
   wiki. Keep the target archived and label the session accordingly.
+- **--specialist <name>**: Explicitly apply an enabled personal specialist;
+  repeat up to three times. For project-local `.wiki/`, explicit selection is
+  required because v1 has no persisted local-project allowlist.
+- **--no-specialists**: Run the baseline research workflow without reading
+  specialist package bodies. Mutually exclusive with `--specialist`.
 
 ### `--project <slug>` flag
 
@@ -51,6 +56,44 @@ specified, archived topics may be mentioned as overlap only: read their master
 `_index.md` files, warn that a related archived topic exists, and ask whether
 to restore it or continue fresh. Do not ingest or compile into archived topics
 through auto-classification.
+
+### Specialist selection
+
+After resolving the target and before decomposing the question, read
+`skills/wiki-manager/references/specialists.md`. If `--no-specialists` is set,
+record an empty specialist list and continue without reading `HUB/.skills/`.
+
+For a hub topic, read `HUB/.skills/_index.md` when present, then run:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/llm-wiki" specialist list \
+  --wiki <topic-slug> --json
+```
+
+In a source checkout use `scripts/llm-wiki`. With explicit `--specialist`
+flags, require every name in the returned allowlist and validate each package;
+stop rather than silently substituting. Without explicit flags, classify the
+task by domain, decision type, risk, jurisdiction, freshness, and evidence
+needs, then choose zero to three allowlisted specialists (normally one). Run
+`specialist validate <name>` for every selected method and stop on any finding.
+Do not load unselected package bodies.
+
+For project-local `.wiki/`, make no implicit selection. An explicit specialist
+may be loaded from the resolved hub after `specialist validate <name>` because
+the user selected it for this run; do not persist a local allowlist.
+
+Give selected specialists the same bounded packet: exact question, intended
+use, as-of date, jurisdiction when relevant, selected wiki/raw evidence, known
+missing inputs, and output schema. Apply a single method inline by default.
+Use isolated agents only for genuinely independent or cross-domain judgments.
+Loading a specialist never expands tools, writes, network access, or subagent
+authority.
+
+Synthesize by claim and evidence strength, preserving disagreement and
+unknowns. Verify citations, dates, and stop rules. Record each selected name,
+version, and SHA-256 in session state, completion events, and the final
+playbook/report provenance. High-stakes methods require current authoritative
+primary sources and named qualified-human review.
 
 ### Resolve HUB and wiki
 
@@ -92,6 +135,13 @@ When `--min-time` is set, create and maintain:
   "mode": "single|plan",
   "start_time": "ISO 8601",
   "min_time_budget": "2h",
+  "specialists": [
+    {
+      "name": "research-methodologist",
+      "version": "0.1.0",
+      "sha256": "<content-sha256>"
+    }
+  ],
   "current_round": 1,
   "paths": [
     {
