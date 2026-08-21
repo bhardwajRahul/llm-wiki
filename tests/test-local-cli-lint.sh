@@ -49,6 +49,59 @@ else
   log_fail "scripts/llm-wiki is executable" "missing executable bit"
 fi
 
+set +e
+portable_path_output="$(python3 - "$CLI" <<'PY' 2>&1
+import runpy
+import sys
+from pathlib import PureWindowsPath
+
+namespace = runpy.run_path(sys.argv[1])
+
+# Exercise the link helper with Windows-native relpath output even when this
+# test suite runs on POSIX. PureWindowsPath makes as_posix() behavior
+# deterministic without requiring a Windows runner.
+link_helper = namespace["markdown_relative_link"]
+original_path = link_helper.__globals__["Path"]
+original_relpath = link_helper.__globals__["os"].path.relpath
+try:
+    link_helper.__globals__["Path"] = PureWindowsPath
+    link_helper.__globals__["os"].path.relpath = (
+        lambda _target, _base: r"..\..\raw\articles\source.md"
+    )
+    assert link_helper(PureWindowsPath("base"), PureWindowsPath("target")) == (
+        "../../raw/articles/source.md"
+    )
+finally:
+    link_helper.__globals__["Path"] = original_path
+    link_helper.__globals__["os"].path.relpath = original_relpath
+
+
+class FakeResolvedPath:
+    def __init__(self, relative: str) -> None:
+        self.relative = relative
+
+    def resolve(self):
+        return self
+
+    def relative_to(self, _root):
+        return PureWindowsPath(self.relative)
+
+
+ctx = object.__new__(namespace["LintContext"])
+ctx.root = FakeResolvedPath("")
+assert ctx.rel(FakeResolvedPath(r"raw\articles\source.md")) == (
+    "raw/articles/source.md"
+)
+PY
+)"
+portable_path_rc=$?
+set -e
+if [ "$portable_path_rc" -eq 0 ]; then
+  log_pass "generated wiki paths use portable separators"
+else
+  log_fail "generated wiki paths use portable separators" "$portable_path_output"
+fi
+
 expect_success "golden wiki passes local lint" "$CLI" lint "$GOLDEN"
 
 expect_failure_contains \
