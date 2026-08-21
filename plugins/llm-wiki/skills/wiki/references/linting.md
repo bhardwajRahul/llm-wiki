@@ -227,12 +227,12 @@ Any file that is not in the canonical allowlist for its location is either a use
 
 | Location | Allowed items |
 |----------|--------------|
-| HUB | `wikis.json`, `_index.md`, `log.md`, `topics/`, optional `.sessions/`, optional `.skills/` |
+| HUB | `wikis.json`, `_index.md`, `README.md`, `log.md`, `topics/`, optional `.sessions/`, optional `.skills/` |
 | `HUB/.skills/` | `_index.md`, `registry.json`, and lowercase specialist package directories |
 | `HUB/.skills/<name>/` | `SKILL.md` and optional `references/` containing Markdown only |
 | `HUB/topics/` | active topic directories plus `.archive/` |
 | `HUB/topics/.archive/` | archived topic directories |
-| Topic wiki root | `_index.md`, `config.md`, `schema.md`, `log.md`, `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, `.obsidian/`, `.librarian/`, `.audit/`, `.research-session.json`, `.thesis-session.json`, `.session-events.jsonl`, `.session-checkpoint.json` |
+| Topic wiki root | `_index.md`, `README.md`, `config.md`, `schema.md`, `log.md`, `raw/`, `wiki/`, `inventory/`, `datasets/`, `output/`, `inbox/`, `.obsidian/`, `.librarian/`, `.audit/`, `.research-session.json`, `.thesis-session.json`, `.session-events.jsonl`, `.session-checkpoint.json` |
 | `raw/` | `_index.md`, `articles/`, `papers/`, `repos/`, `notes/`, `data/` |
 | `wiki/` | `_index.md`, `concepts/`, `topics/`, `references/`, `theses/` |
 | `inventory/` | `_index.md`, `items/`, `ideas/`, `candidates/`, `entities/`, `corpora/`, `views/` |
@@ -244,6 +244,14 @@ Any file that is not in the canonical allowlist for its location is either a use
 | `datasets/<slug>/` | `_index.md`, `MANIFEST.md`, `samples/`, `profiles/`, `queries/` |
 | `datasets/<slug>/{samples,profiles,queries}/` | `_index.md` + `*.md` notes |
 | `inbox/` | `.processed/`, `.unknown/`, user-dropped files |
+
+When the hub or topic wiki root is itself a Git repository root (a `.git`
+directory or worktree `.git` file exists there), also allow the repository's
+`.git`, optional `.github/`, `AGENTS.md`, `CLAUDE.md`, `CHANGELOG.md`,
+`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `LICENSE.md`,
+`.gitignore`, `.gitattributes`, and `.gitmodules`. Do not apply this exception
+merely because some parent directory is a repository: project metadata does not
+belong inside an ordinary nested `.wiki/`.
 
 **Checks**:
 

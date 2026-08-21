@@ -104,6 +104,68 @@ fi
 
 expect_success "golden wiki passes local lint" "$CLI" lint "$GOLDEN"
 
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+readme_root="$tmpdir/readme-root"
+mkdir "$readme_root"
+cp -R "$GOLDEN/." "$readme_root/"
+printf '# Wiki README\n' > "$readme_root/README.md"
+set +e
+readme_output="$("$CLI" lint --fix "$readme_root" 2>&1)"
+readme_rc=$?
+set -e
+if [ "$readme_rc" -eq 0 ] \
+  && [ -f "$readme_root/README.md" ] \
+  && [ ! -e "$readme_root/inbox/.unknown/README.md" ]; then
+  log_pass "--fix preserves README.md at any wiki root"
+else
+  log_fail "--fix preserves README.md at any wiki root" "$readme_output"
+fi
+
+git_root="$tmpdir/git-root"
+mkdir "$git_root"
+cp -R "$GOLDEN/." "$git_root/"
+mkdir "$git_root/.git" "$git_root/.github"
+for file in AGENTS.md CLAUDE.md CHANGELOG.md CODE_OF_CONDUCT.md \
+  CONTRIBUTING.md SECURITY.md LICENSE LICENSE.md .gitignore .gitattributes \
+  .gitmodules; do
+  printf '# project metadata\n' > "$git_root/$file"
+done
+set +e
+git_root_output="$("$CLI" lint --fix "$git_root" 2>&1)"
+git_root_rc=$?
+set -e
+if [ "$git_root_rc" -eq 0 ] \
+  && grep -q "Result: PASS" <<<"$git_root_output" \
+  && [ -d "$git_root/.git" ] \
+  && [ -d "$git_root/.github" ] \
+  && [ -f "$git_root/AGENTS.md" ] \
+  && [ -f "$git_root/.gitignore" ] \
+  && [ ! -d "$git_root/inbox/.unknown" ]; then
+  log_pass "--fix preserves conventional metadata at a Git-backed wiki root"
+else
+  log_fail "--fix preserves conventional metadata at a Git-backed wiki root" "$git_root_output"
+fi
+
+worktree_root="$tmpdir/worktree-root"
+mkdir "$worktree_root"
+cp -R "$GOLDEN/." "$worktree_root/"
+printf 'gitdir: ../repo/.git/worktrees/wiki\n' > "$worktree_root/.git"
+printf '# Agent instructions\n' > "$worktree_root/AGENTS.md"
+set +e
+worktree_output="$("$CLI" lint --fix "$worktree_root" 2>&1)"
+worktree_rc=$?
+set -e
+if [ "$worktree_rc" -eq 0 ] \
+  && [ -f "$worktree_root/.git" ] \
+  && [ -f "$worktree_root/AGENTS.md" ] \
+  && [ ! -d "$worktree_root/inbox/.unknown" ]; then
+  log_pass "--fix recognizes a worktree .git file as a Git root"
+else
+  log_fail "--fix recognizes a worktree .git file as a Git root" "$worktree_output"
+fi
+
 expect_failure_contains \
   "missing-index fixture fails local lint" \
   "Required _index.md is missing" \
@@ -113,9 +175,6 @@ expect_failure_contains \
   "bad-frontmatter fixture fails local lint" \
   "Invalid type" \
   "$CLI" lint "$SCRIPT_DIR/fixtures/defects/bad-frontmatter"
-
-tmpdir="$(mktemp -d)"
-trap 'rm -rf "$tmpdir"' EXIT
 
 ideas_wiki="$tmpdir/ideas-wiki"
 mkdir "$ideas_wiki"

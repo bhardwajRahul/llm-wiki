@@ -995,11 +995,15 @@ Flags: `--dry-run` (preview without writing), `--rules` (also propose CLAUDE.md/
 
 Auto-run lightweight checks after write operations:
 
-1. Hub should only have `wikis.json`, `_index.md`, `log.md`, `topics/`, and
-   optional `.sessions/` and `.skills/`. `topics/.archive/` is allowed for
-   archived topic wikis. Validate `.skills/` with the instruction-only package
-   and active-topic allowlist rules. Warn on anything else; never delete
-   hub-level content automatically.
+1. Hub should only have `wikis.json`, `_index.md`, optional `README.md`,
+   `log.md`, `topics/`, and optional `.sessions/` and `.skills/`.
+   `topics/.archive/` is allowed for archived topic wikis. When the hub or a
+   topic wiki is itself a Git repository root, preserve its conventional Git
+   and project metadata (`.git`, `.github/`, ignore/attribute files, agent
+   instructions, contribution/security/changelog files, and licenses).
+   Validate `.skills/` with the instruction-only package and active-topic
+   allowlist rules. Warn on anything else; never delete hub-level content
+   automatically.
 2. Index freshness: file counts match index rows, including inventory and dataset indexes. Ignore maintenance/report directories such as `.librarian/` and `.audit/`. Auto-fix mismatches by regenerating the affected directory index.
 3. Orphan detection: files not in any index → add them.
 4. Missing core topic directories → create with empty _index.md. Inventory and dataset layers are lazy: repair indexes when they already exist, but do not create absent optional trees unless the current inventory or dataset workflow needs them. For older compiled articles, infer safe schema fields from the directory/body and rewrite fuzzy raw-source refs only when they resolve unambiguously.

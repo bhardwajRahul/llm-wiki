@@ -129,10 +129,16 @@ HUB_ALLOWED = {
 # VCS/project files legitimately coexist with the wiki schema and must never
 # be treated as unexpected content to quarantine into inbox/.unknown.
 GIT_ROOT_META_ALLOWED = {
+    ".git",
+    ".github",
     "AGENTS.md",
     "CLAUDE.md",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
     "LICENSE",
     "LICENSE.md",
+    "SECURITY.md",
     ".gitignore",
     ".gitattributes",
     ".gitmodules",
