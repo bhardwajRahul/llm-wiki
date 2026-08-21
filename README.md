@@ -19,8 +19,8 @@ LLM-compiled knowledge bases for any AI agent. Capture rough Ideas, research and
 
 ## Changelog
 
-**v0.24.0** — **Privacy-sealed Project Knowledge Checkpoints.** Adds
-comprehensive, cross-topic project handoffs under `docs/knowledge/<slug>/` with
+**v0.24.0** — **Project Knowledge Checkpoints Export.** Exports comprehensive,
+cross-topic project handoffs under `docs/knowledge/<slug>/` with
 dry-run-first create and refresh, read-only verification and bounded import,
 exact source and section coverage, explicit omissions, semantic privacy
 minimization, deterministic sealing, attested overrides, and a thin-output

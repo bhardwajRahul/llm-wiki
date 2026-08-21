@@ -1,13 +1,14 @@
 ---
-description: "Create, refresh, verify, or import a privacy-sealed cross-topic Project Knowledge Checkpoint for a repository."
+description: "Export, refresh, verify, or import a comprehensive cross-topic Project Knowledge Checkpoint for a repository, with privacy checks."
 argument-hint: "create [<slug>] [--repo <path>] [--audience private|team|public] [--apply] | refresh <bundle> [--apply] | verify <bundle> | import <bundle|repo> --wiki <name>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(gh:*), Bash(ls:*), Bash(mkdir:*), Bash(mktemp:*), Bash(cp:*), Bash(mv:*), Bash(rm:*), Bash(date:*), Bash(python3:*), Bash(*llm-wiki:*)
 ---
 
 ## Your task
 
-Manage a Project Knowledge Checkpoint: a portable, privacy-sealed project
-handoff synthesized from relevant compiled knowledge across topic wikis. Read
+Manage the Project Knowledge Checkpoints Export: a portable, comprehensive
+project handoff synthesized from relevant compiled knowledge across topic wikis,
+with mandatory privacy checks. Read
 `skills/wiki-manager/references/checkpoints.md` before acting.
 
 This is not a topic export, raw/session dump, or Git publication command.

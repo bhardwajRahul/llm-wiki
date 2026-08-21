@@ -415,7 +415,7 @@ codex["author"] = {
 codex["description"] = (
     "LLM-compiled knowledge bases for Codex with personal specialist skills, fuzzy Idea capture, research, "
     "shaping, and explicit Project promotion, plus inventory, datasets, source "
-    "ingestion, compilation, audits, sessions, privacy-sealed project checkpoints, and artifact generation."
+    "ingestion, compilation, audits, sessions, Project Knowledge Checkpoints Export, and artifact generation."
 )
 keywords = [
     keyword
@@ -428,16 +428,18 @@ for keyword in ["ideas", "projects", "specialists", "personal-skills", "skill-fa
 codex["keywords"] = keywords
 interface = codex.setdefault("interface", {})
 interface["shortDescription"] = (
-    "Research, shape Ideas, and create privacy-sealed project handoffs"
+    "Research, shape Ideas, and export project knowledge checkpoints"
 )
 interface["longDescription"] = (
     "Bundle the llm-wiki workflow for Codex: apply personal specialist methods, capture rough Ideas, research and "
     "shape them, explicitly promote approved briefs into Projects, and maintain "
     "topic-scoped sources, compiled knowledge, inventory, datasets, sessions, "
-    "audits, plans, privacy-sealed Project Knowledge Checkpoints, and generated artifacts."
+    "audits, plans, Project Knowledge Checkpoints Export, and generated artifacts."
 )
 prompts = list(interface.get("defaultPrompt", []))
-checkpoint_prompt = "Create a privacy-sealed Project Knowledge Checkpoint from relevant research across my topic wikis."
+old_checkpoint_prompt = "Create a privacy-sealed Project Knowledge Checkpoint from relevant research across my topic wikis."
+prompts = [prompt for prompt in prompts if prompt != old_checkpoint_prompt]
+checkpoint_prompt = "Export a Project Knowledge Checkpoint from relevant research across my topic wikis, with privacy checks."
 if checkpoint_prompt not in prompts:
     prompts.insert(0, checkpoint_prompt)
 idea_prompt = "Capture this rough Idea, research it, shape alternatives, and wait for approval before creating a Project."
