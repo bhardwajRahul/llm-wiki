@@ -42,6 +42,11 @@ if [ ! -f "$LOCAL_HELPER" ]; then
   exit 1
 fi
 
+if ! command -v rsync >/dev/null 2>&1; then
+  echo "Missing required tool: rsync" >&2
+  exit 1
+fi
+
 # The deterministic helper is shared by every runtime package. The public
 # script remains the source of truth; packaged copies make adapter management
 # available even when the plugin is installed without the full repository.
