@@ -85,7 +85,15 @@ There is no `/wiki:migrate` command and there should never be one. Lint rules **
 
 ### C3: Index Consistency (Warning)
 
-- [ ] Every .md file in a directory appears in that directory's `_index.md` Contents table
+- [ ] Index shape is declared by directory contract, never inferred from the
+  current `_index.md` text:
+  - `raw/_index.md` and `wiki/_index.md`: category-index pointers
+  - `inventory/_index.md`: category navigation plus a nested record rollup
+  - `datasets/_index.md`: dataset manifest registry
+  - `output/_index.md`: loose output and active Project `WHY.md` listing
+  - leaf directories: direct-file tables
+- [ ] Every contract entry appears as a local markdown link in its owning
+  `_index.md`; a record rollup cannot be hidden by otherwise-valid navigation
 - [ ] No `_index.md` references a non-existent file (dead entries)
 - [ ] Statistics in master `_index.md` match actual file counts
 - [ ] "Last compiled" and "Last lint" dates are present and valid
@@ -476,9 +484,9 @@ Validates the hub-level archive lifecycle described in `archive.md`.
 
 | Issue | Auto-Fix Action |
 |-------|----------------|
-| Missing `_index.md` | Generate from directory contents (read frontmatter of each file) |
-| File not in index | Regenerate the affected directory index from current directory contents and frontmatter |
-| Dead index entry | Regenerate the affected directory index, dropping dead links/rows |
+| Missing `_index.md` | Generate using its declared directory contract and renderer |
+| File not in index | Regenerate with the declared contract; preserve root navigation and domain-specific tables |
+| Dead index entry | Regenerate with the declared contract, dropping only dead contract rows/links |
 | Statistics mismatch | Recalculate from actual file counts |
 | Raw sources with no compiled reference | Create/update `wiki/references/uncompiled-source-coverage.md` as an explicit synthesis backlog |
 | Missing bidirectional link | Add "See Also" entry to the article missing the backlink |

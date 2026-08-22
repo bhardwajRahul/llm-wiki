@@ -17,7 +17,7 @@ find "$DEFECTS" -depth -type d -name '* 2' -exec rm -rf {} +
 copy_golden() {
   local name="$1"
   mkdir -p "$DEFECTS/$name"
-  rsync -a --delete "$GOLDEN/" "$DEFECTS/$name/"
+  rsync -a --delete --delete-excluded --exclude 'inbox/' "$GOLDEN/" "$DEFECTS/$name/"
 }
 
 echo "Generating defect fixtures from golden wiki..."
@@ -160,6 +160,25 @@ echo "  Created: missing-inventory (C16)"
 copy_golden "missing-datasets"
 rm "$DEFECTS/missing-datasets/datasets/_index.md"
 echo "  Created: missing-datasets (C17)"
+
+# Index contracts: inventory roots are hybrid navigation plus a nested record
+# rollup. Keep the leaf index correct so the root is the only stale surface.
+copy_golden "stale-inventory-rollup"
+cp "$DEFECTS/stale-inventory-rollup/inventory/items/trx4m-ring-and-pinion.md" \
+   "$DEFECTS/stale-inventory-rollup/inventory/items/unlisted-item.md"
+sed -i.bak 's/title: "TRX-4M Ring And Pinion"/title: "Unlisted Inventory Item"/' \
+  "$DEFECTS/stale-inventory-rollup/inventory/items/unlisted-item.md"
+rm -f "$DEFECTS/stale-inventory-rollup/inventory/items/unlisted-item.md.bak"
+cat >> "$DEFECTS/stale-inventory-rollup/inventory/items/_index.md" <<'EOF'
+| [unlisted-item.md](unlisted-item.md) | item | proposed | p1 | Decide whether this is the selected drivetrain default. | 2026-01-03 |
+EOF
+echo "  Created: stale-inventory-rollup (index contract)"
+
+# Index contracts: root wiki navigation remains category pointers even when all
+# pointers were removed from the stale index.
+copy_golden "empty-wiki-pointer-index"
+printf '# Wiki Articles\n' > "$DEFECTS/empty-wiki-pointer-index/wiki/_index.md"
+echo "  Created: empty-wiki-pointer-index (index contract)"
 
 COUNT=$(ls -d "$DEFECTS"/*/ 2>/dev/null | wc -l | tr -d ' ')
 echo ""
